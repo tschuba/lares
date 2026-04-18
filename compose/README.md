@@ -287,3 +287,48 @@ chmod +x tests/run_tests.sh
 ## Nächster Schritt
 
 Wenn Phase 3 abgeschlossen ist, mit **Phase 4: Weitere Bridges** fortfahren.
+
+---
+
+# Phase 4: Weitere Bridges
+
+## Voraussetzungen
+
+- Phase 1 muss vollständig abgeschlossen sein
+- IP-Adressen in config/.env definiert sein (NOVELAN_IP, ECOWITT_PUSH_TARGET, Wetterdienste)
+
+## Setup-Anleitung
+
+### 1. Luxtronik2MQTT部署
+
+```bash
+docker compose -f compose/luxtronik2mqtt.yml up -d --build
+docker ps | grep luxtronik2mqtt
+docker logs lares-luxtronik2mqtt
+```
+
+### 2. Ecowitt2MQTT部署
+
+```bash
+docker compose -f compose/ecowitt2mqtt.yml up -d
+docker ps | grep ecowitt2mqtt
+docker logs lares-ecowitt2mqtt
+```
+
+### 3. WeeWX部署
+
+```bash
+docker compose -f compose/weewx.yml up -d
+docker ps | grep weewx
+docker logs lares-weewx
+```
+
+## Abnahmekriterien
+
+- [ ] Novelan-Daten im MQTT und HA sichtbar
+- [ ] Wetterdaten im MQTT und HA sichtbar
+- [ ] WeeWX lädt Daten an externe Dienste hoch
+
+## Nächster Schritt
+
+Wenn Phase 4 abgeschlossen ist, mit **Phase 5: Lokale Integrationen** fortfahren.
