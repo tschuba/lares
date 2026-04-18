@@ -87,4 +87,11 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Status: Angenommen
 - Kontext: Gewünscht ist eine grafische Darstellung der Energieflüsse aller relevanten Geräte und Sensordaten.
 - Entscheidung: Home Assistant Energy Dashboard für operative Sicht und Grafana Sankey-Diagramm für detaillierte Flussvisualisierung.
-- Begründung: Kombination aus einfacher Tagesansicht und tiefer Analyse, ohne auf ein einzelnes Frontend beschränkt zu sein.
+- Begründung: Kombination aus einfacher Tagesansicht und tiefer Analyse, ohne auf ein einziges Frontend beschränkt zu sein.
+
+## ADR-013: Sungrow-Integration als off-the-shelf Image
+
+- Status: Angenommen
+- Kontext: Für Sungrow SH8.0RT existiert ein etabliertes Community-Image `bohdan0/sungrow2mqtt`. Eine custom Bridge wurde prototypisch entwickelt und getestet.
+- Entscheidung: Verwendet wird das off-the-shelf Image `bohdan0/sungrow2mqtt`. Die custom Bridge in `bridges/sungrow2mqtt/` wird archiviert für potenzielle spätere Verwendung.
+- Begründung: ADR-006 beschränkt custom Code auf vallox2mqtt. Für Sungrow steht ein funktionierendes Standard-Image zur Verfügung, das Wartungsaufwand minimiert und Community-Support bietet. Die custom Bridge bleibt als Referenz verfügbar.

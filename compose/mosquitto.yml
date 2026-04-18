@@ -1,0 +1,23 @@
+# Mosquitto MQTT Broker
+# Internal MQTT broker for Lares smart home integration
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: lares-mosquitto
+    restart: unless-stopped
+    networks:
+      - lares
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./config/mosquitto:/mosquitto/config:ro
+      - ./data/mosquitto:/mosquitto/data
+      - ./logs/mosquitto:/mosquitto/log
+    environment:
+      - MOSQUITTO_USERNAME=${MQTT_USERNAME}
+      - MOSQUITTO_PASSWORD=${MQTT_PASSWORD}
+
+networks:
+  lares:
+    external: true

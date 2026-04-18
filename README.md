@@ -30,6 +30,7 @@ Begründung:
 - `docs/architektur.md`: Gesamtarchitektur inkl. Diagramm
 - `docs/inventar.md`: Vollständiges Inventar (Geräte, Dienste, Ports, Netzwerke)
 - `docs/entscheidungen.md`: Architekturentscheidungen mit Begründung
+- `docs/umsetzungsplan.md`: Schrittweiser Implementierungsplan in 8 Phasen
 
 ## Status
 

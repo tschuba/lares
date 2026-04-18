@@ -1,0 +1,20 @@
+# Modbus Proxy for Sungrow Inverter
+# Serializes and stabilizes Modbus access (ADR-004)
+
+services:
+  modbus-proxy:
+    image: ghcr.io/tiagocoutinho/modbus-proxy:latest
+    container_name: lares-modbus-proxy
+    restart: unless-stopped
+    networks:
+      - lares
+    ports:
+      - "502:502"
+    command:
+      - "--listen=:502"
+      - "--backend=${SUNGROW_IP}:502"
+      - "--log-level=info"
+
+networks:
+  lares:
+    external: true
