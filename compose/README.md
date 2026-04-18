@@ -189,3 +189,101 @@ docker run --rm --network lares eclipse-mosquitto:2.0 mosquitto_sub -h lares-mos
 ## Nächster Schritt
 
 Wenn Phase 2 abgeschlossen ist, mit **Phase 3: Vallox Custom Bridge** fortfahren.
+
+---
+
+# Phase 3: Vallox Custom Bridge
+
+## Voraussetzungen
+
+- Phase 1 muss vollständig abgeschlossen sein
+- Phase 2 sollte abgeschlossen sein (für Mosquitto)
+- Vallox IP-Adresse in config/.env definiert sein (VALLOX_IP)
+- MQTT-Verbindungsdaten konfiguriert sein
+
+## Setup-Anleitung
+
+### 1. Vallox API analysieren
+
+**Hinweis**: Diese Phase erfordert Zugriff auf das echte Vallox-Gerät.
+
+```bash
+# Vallox API-Endpunkte testen
+curl http://<VALLOX_IP>:18080/api/v1/data
+curl http://<VALLOX_IP>:18080/api/v1/info
+
+# API-Response dokumentieren und an vallox2mqtt.py anpassen falls nötig
+```
+
+### 2. Vallox2MQTT部署
+
+```bash
+# Verzeichnisse erstellen
+mkdir -p logs/vallox2mqtt
+
+# Bridge bauen und starten
+docker compose -f compose/vallox2mqtt.yml up -d --build
+
+# Verifizieren
+docker ps | grep vallox2mqtt
+docker logs lares-vallox2mqtt
+
+# MQTT-Topics prüfen
+docker run --rm --network lares eclipse-mosquitto:2.0 mosquitto_sub -h lares-mosquitto -t "ventilation/vallox/#" -u $MQTT_USERNAME -P $MQTT_PASSWORD -v
+```
+
+### 3. Unit Tests ausführen
+
+```bash
+# In vallox Bridge-Verzeichnis wechseln
+cd bridges/vallox
+
+# Abhängigkeiten installieren (lokal für Tests)
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Tests ausführen
+chmod +x tests/run_tests.sh
+./tests/run_tests.sh
+```
+
+### 4. Home Assistant Integration
+
+1. MQTT-Sensoren für Vallox-Daten erstellen:
+   - ventilation/vallox/fan_speed
+   - ventilation/vallox/temperature_supply_air
+   - ventilation/vallox/temperature_exhaust_air
+   - ventilation/vallox/humidity
+   - ventilation/vallox/co2_level
+
+2. HA-Configuration.yaml oder UI-Konfiguration verwenden
+
+## Abnahmekriterien
+
+- [ ] vallox2mqtt Bridge läuft als Container
+- [ ] Vallox-Daten werden im MQTT publiziert
+- [ ] Home Assistant zeigt Lüftungsdaten an
+- [ ] Unit-Tests bestehen
+
+## Fehlersuche
+
+### Vallox API Probleme
+- Logs prüfen: `docker logs lares-vallox2mqtt`
+- Vallox IP in config/.env prüfen
+- API-Endpunkte manuell testen: `curl http://<VALLOX_IP>:18080/api/v1/data`
+- API-Response-Struktur prüfen und ggf. parse_vallox_data() anpassen
+
+### MQTT-Verbindungsprobleme
+- Mosquitto läuft: `docker ps | grep mosquitto`
+- Username/Password prüfen
+- Netzwerk-Verbindung: `docker network inspect lares`
+
+### Unit-Test-Probleme
+- Python-Abhängigkeiten installieren
+- Import-Pfade prüfen
+- Mock-Setup in Tests prüfen
+
+## Nächster Schritt
+
+Wenn Phase 3 abgeschlossen ist, mit **Phase 4: Weitere Bridges** fortfahren.

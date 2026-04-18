@@ -1,0 +1,47 @@
+# Vallox to MQTT Bridge
+# Custom Python bridge for Vallox ventilation (ADR-006)
+
+services:
+  vallox2mqtt:
+    build:
+      context: ../bridges/vallox
+      dockerfile: Dockerfile
+    container_name: lares-vallox2mqtt
+    restart: unless-stopped
+    networks:
+      - lares
+    environment:
+      - VALLOX_HOST=${VALLOX_IP}
+      - VALLOX_PORT=18080
+      - POLL_INTERVAL=30
+      - MQTT_BROKER=lares-mosquitto
+      - MQTT_PORT=1883
+      - MQTT_CLIENT_ID=vallox2mqtt
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_TOPIC_PREFIX=ventilation/vallox
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs/vallox2mqtt:/app/logs
+    depends_on:
+      - mosquitto
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: lares-mosquitto
+    restart: unless-stopped
+    networks:
+      - lares
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./config/mosquitto:/mosquitto/config:ro
+      - ./data/mosquitto:/mosquitto/data
+      - ./logs/mosquitto:/mosquitto/log
+    environment:
+      - MOSQUITTO_USERNAME=${MQTT_USERNAME}
+      - MOSQUITTO_PASSWORD=${MQTT_PASSWORD}
+
+networks:
+  lares:
+    external: true
