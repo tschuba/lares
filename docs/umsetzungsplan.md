@@ -47,9 +47,7 @@ Dieses Dokument beschreibt die schrittweise Implementierung von Lares basierend 
 - Test: Proxy erreichbar, leitet Anfragen weiter
 
 ### 2.2 sungrow2mqtt Bridge部署
-- Entscheidung prüfen: ADR-006 sagt nur `vallox2mqtt` als custom Code
-- Option A: Off-the-shelf Image `bohdan0/sungrow2mqtt` verwenden
-- Option B: Bestehende custom Bridge in `bridges/sungrow2mqtt/` weiterentwickeln
+- Image: `bohdan0/sungrow2mqtt` (gemäß ADR-013)
 - Konfiguration: Modbus-Proxy als Quelle, Mosquitto als Ziel
 - Topic-Struktur: `energy/sungrow/...`
 - Test: MQTT-Topics mit Daten füllen
