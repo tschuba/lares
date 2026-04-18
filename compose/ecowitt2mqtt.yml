@@ -1,0 +1,23 @@
+services:
+  ecowitt2mqtt:
+    image: bachya/ecowitt2mqtt:latest
+    container_name: lares-ecowitt2mqtt
+    restart: unless-stopped
+    env_file:
+      - ../config/.env
+    environment:
+      - ECOWITT2MQTT_MQTT_BROKER=lares-mosquitto
+      - ECOWITT2MQTT_MQTT_PORT=1883
+      - ECOWITT2MQTT_MQTT_USERNAME=${MQTT_USERNAME}
+      - ECOWITT2MQTT_MQTT_PASSWORD=${MQTT_PASSWORD}
+      - ECOWITT2MQTT_PORT=4004
+      - ECOWITT2MQTT_HASS_DISCOVERY=true
+      - ECOWITT2MQTT_MQTT_TOPIC=weather/ecowitt
+    ports:
+      - "4004:4004"
+    networks:
+      - lares
+
+networks:
+  lares:
+    external: true
