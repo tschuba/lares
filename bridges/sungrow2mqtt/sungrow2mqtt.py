@@ -6,11 +6,26 @@ from pymodbus.client import ModbusTcpClient
 from paho.mqtt import client as mqtt_client
 
 # Configure logging
-logging.basicConfig(
-    filename='/app/logs/sungrow2mqtt.log',
-    level=os.getenv('LOG_LEVEL', 'INFO').upper(),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+log_file = os.getenv('LOG_FILE', '/app/logs/sungrow2mqtt.log')
+log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+
+# Try to use file logging, fall back to console if directory doesn't exist
+try:
+    log_dir = os.path.dirname(log_file)
+    if log_dir and not os.path.exists(log_dir):
+        os.makedirs(log_dir, exist_ok=True)
+    logging.basicConfig(
+        filename=log_file,
+        level=log_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+except (OSError, IOError):
+    # Fall back to console logging if file logging fails
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
 logger = logging.getLogger('sungrow2mqtt')
 
 def parse_config(config_path):
@@ -46,12 +61,10 @@ def read_modbus_registers(host, port, unit_id, slave_id, function_code, register
         client.connect()
         logger.info(f"Connected to Modbus device at {host}:{port}")
         
-        # Read holding registers
+        # Read holding registers - pymodbus 3.x syntax
         result = client.read_holding_registers(
             address=slave_id,
-            count=register_count,
-            slave=unit_id,
-            function_code=function_code
+            count=register_count
         )
         
         if result.isError():
@@ -72,17 +85,15 @@ def parse_sungrow_data(registers):
     try:
         # Assuming register layout based on typical Sungrow inverters
         voltage = registers[0] / 10.0  # 10-bit resolution
-        current = (registers[2] << 16) | registers[3]
-        current = current / 1000.0  # 20-bit resolution
-        power = (registers[4] << 16) | registers[5]
-        power = power / 100.0  # 22-bit resolution
+        current = (registers[2] * 65536 + registers[3]) / 1000.0  # 32-bit combined
+        power = (registers[4] * 65536 + registers[5]) / 100.0  # 32-bit combined
         
         return {
             'voltage': voltage,
             'current': current,
             'power': power,
-            'energy_today': (registers[6] << 16) | registers[7],
-            'energy_total': (registers[8] << 16) | registers[9]
+            'energy_today': registers[6] * 65536 + registers[7],
+            'energy_total': registers[8] * 65536 + registers[9]
         }
     except Exception as e:
         logger.error(f"Data parsing error: {str(e)}")

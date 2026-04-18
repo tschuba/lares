@@ -1,10 +1,10 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import sys
 import os
 
 # Add the parent directory to path to import the module
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from sungrow2mqtt import publish_to_mqtt
 
@@ -23,7 +23,7 @@ class TestMQTPublishing(unittest.TestCase):
         )
         
         # Assert
-        mock_publish.assert_called_once_with(topic="test/energy/sungrow/voltage", payload="120.0")
+        mock_publish.assert_called_once_with("test/energy/sungrow/voltage", "120.0")
         mock_client.assert_called_once()
 
     @patch('paho.mqtt.client.Client')
