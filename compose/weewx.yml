@@ -1,0 +1,15 @@
+services:
+  weewx:
+    image: felddy/weewx:latest
+    container_name: lares-weewx
+    restart: unless-stopped
+    env_file:
+      - ../config/.env
+    volumes:
+      - ../data/weewx:/data
+    networks:
+      - lares
+
+networks:
+  lares:
+    external: true
