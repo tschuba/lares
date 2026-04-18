@@ -720,3 +720,246 @@ api_url = https://auth.schubs.net/application/o/userinfo/
 ## Nächster Schritt
 
 Wenn Phase 6 abgeschlossen ist, mit **Phase 7: Home Assistant Externe Erreichbarkeit** fortfahren.
+
+---
+
+# Phase 7: Home Assistant Externe Erreichbarkeit
+
+## Voraussetzungen
+
+- Phasen 1-6 müssen vollständig abgeschlossen sein
+- Home Assistant läuft via Coolify
+- Traefik und Authentik sind bereits im Coolify-Umfeld aktiv
+- HA ist bereits intern funktionsfähig
+
+## Setup-Anleitung
+
+### 7.1 Traefik-Konfiguration für HA
+
+**Hinweis**: Home Assistant läuft bereits via Coolify. Nur die Traefik-Route und Netzwerk-Einbindung müssen konfiguriert werden.
+
+**HA-Container in Traefik-Netz einbinden**:
+
+In Coolify oder Docker-Compose-Konfiguration:
+```yaml
+networks:
+  lares:
+  traefik-net:
+    external: true
+```
+
+HA muss beiden Netzen zugeordnet sein:
+- `lares`: für interne MQTT-Kommunikation
+- `traefik-net`: für Reverse-Proxy-Zugriff
+
+**Traefik Route konfigurieren**:
+
+In Traefik-Konfiguration (Coolify-Umfeld oder docker-compose labels):
+```yaml
+http:
+  routers:
+    home-assistant:
+      rule: "Host(`home.schubs.net`)"
+      service: home-assistant
+      entryPoints:
+        - websecure
+      middlewares:
+        - authentik
+      tls:
+        certResolver: letsencrypt
+  services:
+    home-assistant:
+      loadBalancer:
+        servers:
+          - url: "http://<HA_CONTAINER_NAME>:8123"
+  middlewares:
+    authentik:
+      forwardAuth:
+        address: "https://auth.schubs.net/outpost.goauthentik.io/auth/oauth2/verify"
+        trustForwardHeader: true
+```
+
+**Alternativ über Docker Labels** (wenn HA als Docker-Container läuft):
+```yaml
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.home-assistant.rule=Host(`home.schubs.net`)"
+  - "traefik.http.routers.home-assistant.entrypoints=websecure"
+  - "traefik.http.routers.home-assistant.tls.certresolver=letsencrypt"
+  - "traefik.http.routers.home-assistant.middlewares=authentik"
+  - "traefik.http.services.home-assistant.loadbalancer.server.port=8123"
+```
+
+**Verifizierung**:
+```bash
+# HA über Traefik erreichen (ohne Authentik noch)
+curl -I https://home.schubs.net
+# Sollte Redirect zu Authentik oder 401/403 zeigen
+```
+
+### 7.2 Authentik-Integration
+
+**Hinweis**: Home Assistant soll hinter Authentik laufen mit SSO.
+
+**Authentik-Application erstellen**:
+
+1. In Authentik: Neue Application "Home Assistant"
+2. Provider: OAuth2 / OIDC
+3. Authorization Flow: Default Authorization Flow (oder "OpenID Authorization Code Flow")
+4. Redirect URIs:
+   - `https://home.schubs.net/auth/external/callback`
+5. Scopes: openid, profile, email
+6. Client ID und Client Secret notieren
+
+**Home Assistant OAuth2 konfigurieren**:
+
+In HA `configuration.yaml`:
+```yaml
+homeassistant:
+  auth_providers:
+    - type: homeassistant
+    - type: command_line
+      command: /path/to/authentik_ha.py
+      name: Authentik SSO
+      meta: true
+```
+
+Oder über HA UI:
+1. Settings → People → Add Provider → "Command Line"
+2. Name: "Authentik SSO"
+3. Command: `/config/authentik_ha.py`
+
+**Authentik HA Command Provider erstellen**:
+
+Script `/config/authentik_ha.py`:
+```python
+#!/usr/bin/env python3
+import sys
+import requests
+import os
+
+AUTHENTIK_URL = "https://auth.schubs.net"
+CLIENT_ID = "<HA_CLIENT_ID>"
+CLIENT_SECRET = "<HA_CLIENT_SECRET>"
+TOKEN_URL = f"{AUTHENTIK_URL}/application/o/token/"
+USERINFO_URL = f"{AUTHENTIK_URL}/application/o/userinfo/"
+
+def get_user_info(code):
+    data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': 'https://home.schubs.net/auth/external/callback',
+        'client_id': CLIENT_ID,
+        'client_secret': CLIENT_SECRET
+    }
+    resp = requests.post(TOKEN_URL, data=data)
+    token = resp.json()['access_token']
+    headers = {'Authorization': f'Bearer {token}'}
+    user_resp = requests.get(USERINFO_URL, headers=headers)
+    return user_resp.json()
+
+if __name__ == '__main__':
+    code = sys.argv[1]
+    user = get_user_info(code)
+    print(f"name={user.get('name', user.get('username'))}")
+    print(f"id={user.get('sub')}")
+```
+
+**HA für Authentik konfigurieren**:
+
+In HA `configuration.yaml`:
+```yaml
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - <TRAEFIK_IP_OR_CIDR>
+  ip_ban_enabled: true
+  login_attempts_threshold: 5
+```
+
+**Authentik Link in HA UI aktivieren**:
+
+1. Settings → Integrations → Add Integration → "Authentik" (falls verfügbar)
+2. Oder manuellen Link in HA Dashboard konfigurieren
+
+**Verifizierung**:
+1. Browser öffnen: `https://home.schubs.net`
+2. Sollte zu Authentik Login weiterleiten
+3. Nach Login: Weiterleitung zu HA Dashboard
+4. User ist in HA eingeloggt
+
+### 7.3 Test der externen Erreichbarkeit
+
+**Funktions-Checkliste**:
+- [ ] HA über `https://home.schubs.net` erreichbar
+- [ ] Authentik-Login wird angezeigt
+- [ ] Nach erfolgreichem Login: HA Dashboard sichtbar
+- [ ] HA-Funktionen (Steuerung, Automationen) funktionieren
+- [ ] WebSocket-Verbindungen funktionieren (für Live-Updates)
+- [ ] Mobile Apps können sich verbinden
+
+**WebSocket-Konfiguration** (falls nötig):
+
+In Traefik:
+```yaml
+http:
+  routers:
+    home-assistant:
+      rule: "Host(`home.schubs.net`)"
+      # ... andere Konfiguration
+      # WebSocket wird automatisch durch Traefik unterstützt
+```
+
+In HA `configuration.yaml`:
+```yaml
+http:
+  cors_allowed_origins:
+    - https://home.schubs.net
+```
+
+## Abnahmekriterien
+
+- [ ] HA über `home.schubs.net` erreichbar
+- [ ] Authentik-Schutz aktiv
+- [ ] SSO funktioniert
+- [ ] WebSocket-Verbindungen funktionieren
+- [ ] Mobile Apps können sich verbinden
+
+## Fehlersuche
+
+### HA nicht über Traefik erreichbar
+- HA-Container läuft: `docker ps | grep homeassistant`
+- HA in Traefik-Netz eingebunden: `docker network inspect traefik-net`
+- Traefik-Route konfiguriert: Traefik Dashboard prüfen
+- DNS-Eintrag für `home.schubs.net` vorhanden
+- Firewall-Regeln prüfen (Port 443)
+
+### Authentik-Login funktioniert nicht
+- Authentik-Application konfiguriert
+- Redirect URIs korrekt (exakt übereinstimmend)
+- Client ID/Secret korrekt
+- Authorization Flow korrekt gewählt
+- Authentik-Logs prüfen
+
+### HA-Login nach Authentik fehlschlägt
+- HA Command Provider Script korrekt
+- Script ausführbar: `chmod +x /config/authentik_ha.py`
+- Python-Abhängigkeiten installiert
+- User-Mapping korrekt (username/email)
+- HA Logs prüfen
+
+### WebSocket-Probleme
+- Traefik WebSocket-Support aktiv (standardmäßig)
+- HA CORS-Konfiguration korrekt
+- `use_x_forwarded_for: true` in HA aktiv
+- Trusted Proxies korrekt konfiguriert
+
+### Mobile Apps können sich nicht verbinden
+- Externe URL in HA konfiguriert: `https://home.schubs.net`
+- SSL-Zertifikat gültig (Let's Encrypt)
+- WebSocket-Verbindung funktioniert
+- Authentik SSO auch für Mobile Apps konfiguriert
+
+## Nächster Schritt
+
+Wenn Phase 7 abgeschlossen ist, mit **Phase 8: Finalisierung und Dokumentation** fortfahren.

@@ -292,4 +292,5 @@ Phase 8 (Finalisierung)
 - **Phase 1-4**: Dokumentation und Compose-Dateien fertiggestellt
 - **Phase 5**: Dokumentation fertiggestellt (compose/README.md), manuelle HA-Konfiguration erforderlich
 - **Phase 6**: Dokumentation fertiggestellt (compose/README.md), manuelle Konfiguration erforderlich
-- **Nächster Schritt**: Phase 6 manuell durchführen (InfluxDB-Integration, Grafana, Traefik/Authentik)
+- **Phase 7**: Dokumentation fertiggestellt (compose/README.md), manuelle Konfiguration erforderlich
+- **Nächster Schritt**: Phase 7 manuell durchführen (Traefik + Authentik für home.schubs.net)
