@@ -1,0 +1,16 @@
+services:
+  luxtronik2mqtt:
+    build:
+      context: ../bridges/luxtronik
+    container_name: lares-luxtronik2mqtt
+    restart: unless-stopped
+    env_file:
+      - ../config/.env
+    environment:
+      - MQTT_HOST=lares-mosquitto
+    networks:
+      - lares
+
+networks:
+  lares:
+    external: true
