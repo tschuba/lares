@@ -99,3 +99,93 @@ curl -I http://<NAS_LAN_IP>:8086/health
 ## Nächster Schritt
 
 Wenn Phase 1 abgeschlossen ist, mit **Phase 2: Modbus-Proxy und Sungrow-Integration** fortfahren.
+
+---
+
+# Phase 2: Modbus-Proxy und Sungrow-Integration
+
+## Voraussetzungen
+
+- Phase 1 muss vollständig abgeschlossen sein
+- Sungrow IP-Adresse in config/.env definiert sein (SUNGROW_IP)
+- MQTT-Verbindungsdaten konfiguriert sein
+
+## Setup-Anleitung
+
+### 1. Modbus-Proxy部署
+
+```bash
+# Modbus-Proxy starten
+docker compose -f compose/modbus-proxy.yml up -d
+
+# Verifizieren
+docker ps | grep modbus-proxy
+docker logs lares-modbus-proxy
+
+# Verbindung testen
+nc -zv localhost 502
+```
+
+### 2. Sungrow2MQTT部署
+
+```bash
+# Sungrow2MQTT starten (inkl. Modbus-Proxy und Mosquitto)
+docker compose -f compose/sungrow2mqtt.yml up -d
+
+# Verifizieren
+docker ps | grep sungrow2mqtt
+docker logs lares-sungrow2mqtt
+
+# MQTT-Topics prüfen
+docker run --rm --network lares eclipse-mosquitto:2.0 mosquitto_sub -h lares-mosquitto -t "energy/sungrow/#" -u $MQTT_USERNAME -P $MQTT_PASSWORD -v
+```
+
+### 3. Home Assistant Konfiguration
+
+**Hinweis**: Home Assistant läuft bereits via Coolify. Nur MQTT-Integration hinzufügen.
+
+1. In HA Settings → Devices & Services → Add Integration → MQTT
+2. Broker: `lares-mosquitto` (oder PI_LAN_IP)
+3. Port: 1883
+4. Username/Password aus config/.env
+5. Test-Verbindung herstellen
+
+**Sungrow-Entities konfigurieren:**
+- MQTT-Sensor für energy/sungrow/voltage
+- MQTT-Sensor für energy/sungrow/current
+- MQTT-Sensor für energy/sungrow/power
+- MQTT-Sensor für energy/sungrow/energy_today
+- MQTT-Sensor für energy/sungrow/energy_total
+
+**Energy Dashboard:**
+- Settings → Energy → Add Device
+- Sungrow-Entities hinzufügen
+- Konfiguration speichern
+
+## Abnahmekriterien
+
+- [ ] modbus-proxy läuft und ist erreichbar
+- [ ] sungrow2mqtt publiziert Daten im MQTT
+- [ ] Home Assistant zeigt Sungrow-Daten an
+- [ ] Energieflüsse im HA Energy Dashboard sichtbar
+
+## Fehlersuche
+
+### Modbus-Proxy Probleme
+- Logs prüfen: `docker logs lares-modbus-proxy`
+- Sungrow IP in config/.env prüfen
+- Netzwerkverbindung zum Sungrow prüfen: `ping $SUNGROW_IP`
+
+### Sungrow2MQTT Probleme
+- Logs prüfen: `docker logs lares-sungrow2mqtt`
+- MQTT-Verbindung prüfen
+- Modbus-Proxy erreichbar: `docker exec lares-sungrow2mqtt nc -zv lares-modbus-proxy 502`
+
+### HA MQTT-Integration Probleme
+- MQTT-Broker erreichbar: `docker logs lares-mosquitto`
+- Username/Password prüfen
+- HA-Logs prüfen
+
+## Nächster Schritt
+
+Wenn Phase 2 abgeschlossen ist, mit **Phase 3: Vallox Custom Bridge** fortfahren.
