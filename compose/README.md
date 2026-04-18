@@ -455,3 +455,268 @@ Wenn Phase 4 abgeschlossen ist, mit **Phase 5: Lokale Integrationen** fortfahren
 ## Nächster Schritt
 
 Wenn Phase 5 abgeschlossen ist, mit **Phase 6: InfluxDB-Integration und Grafana** fortfahren.
+
+---
+
+# Phase 6: InfluxDB-Integration und Grafana
+
+## Voraussetzungen
+
+- Phasen 1-5 müssen vollständig abgeschlossen sein
+- InfluxDB auf NAS läuft und ist erreichbar
+- Home Assistant läuft und hat Datenquellen (Sungrow, Vallox, Novelan, Ecowitt, Meross)
+- MQTT-Broker läuft und liefert Daten
+
+## Setup-Anleitung
+
+### 6.1 InfluxDB-Integration in Home Assistant
+
+**Hinweis**: InfluxDB läuft auf dem NAS, nicht auf dem Pi.
+
+**Einrichtung**:
+
+1. In HA Settings → Devices & Services → Add Integration → "InfluxDB"
+2. Verbindungstyp: "InfluxDB 2.0"
+3. URL: `http://<NAS_LAN_IP>:8086`
+4. Organisation: `<INFLUX_ORG>` (aus config/.env)
+5. Bucket: `<INFLUX_BUCKET>` (aus config/.env)
+6. Token: `<INFLUX_TOKEN>` (aus config/.env)
+7. Test-Verbindung herstellen
+
+**Sensoren konfigurieren**:
+
+Relevante Sensoren für Zeitreihen-Aufnahme:
+- Energie: Sungrow (PV, Batterie, Netzbezug, Einspeisung), Meross (4 Steckdosen)
+- Wetter: Ecowitt (Temperatur, Luftfeuchtigkeit, Wind, Regen)
+- Lüftung: Vallox (Temperatur, CO2, Luftfeuchtigkeit, Lüfterstufe)
+- Heizung: Novelan (Verbrauchswerte, soweit verfügbar)
+
+**Schreibintervall**:
+
+In HA Configuration.yaml oder UI:
+```yaml
+influxdb:
+  host: <NAS_LAN_IP>
+  port: 8086
+  database: <INFLUX_BUCKET>
+  username: <INFLUX_USERNAME>
+  password: <INFLUX_TOKEN>
+  default_measurement: state
+  exclude:
+    domains:
+      - automation
+      - updater
+      - sun
+  include:
+    entities:
+      - sensor.sungrow_pv_power
+      - sensor.sungrow_battery_power
+      - sensor.sungrow_grid_power
+      - sensor.meross_bambulab_power
+      - sensor.meross_arbeitstisch_power
+      - sensor.meross_waschmaschine_power
+      - sensor.meross_trockner_power
+      # ... weitere relevante Sensoren
+```
+
+**Verifizierung**:
+- InfluxDB-Integration in HA zeigt "verbunden"
+- Daten werden in InfluxDB geschrieben (InfluxDB UI prüfen)
+- Query in InfluxDB UI zeigt Daten an
+
+### 6.2 Grafana部署
+
+**Einrichtung**:
+
+```bash
+# Verzeichnisse erstellen
+mkdir -p data/grafana
+
+# Grafana starten
+docker compose -f compose/grafana.yml up -d
+
+# Verifizieren
+docker ps | grep grafana
+docker logs lares-grafana
+```
+
+**Initialer Zugriff**:
+- URL: `http://<PI_LAN_IP>:3000` (intern)
+- Default-Login: admin / admin
+- Passwort bei erstem Login ändern
+
+**InfluxDB als DataSource konfigurieren**:
+
+1. Configuration → Data Sources → Add data source → "InfluxDB"
+2. Query Language: Flux
+3. URL: `http://<NAS_LAN_IP>:8086`
+4. Organisation: `<INFLUX_ORG>`
+5. Token: `<INFLUX_TOKEN>`
+6. Default Bucket: `<INFLUX_BUCKET>`
+7. "Save & Test"
+
+### 6.3 Dashboards erstellen
+
+**Dashboard 1: Energie-Übersicht**
+
+- PV-Erzeugung (Sungrow)
+- Batterie-Status (Laden/Entladen)
+- Netzbezug / Einspeisung
+- Verbrauch: Meross-Lasten (BambuLab, Arbeitstisch, Waschmaschine, Trockner)
+- Wärmepumpe (Novelan)
+
+**Dashboard 2: Wetter-Trends**
+
+- Temperatur (innen/außen)
+- Luftfeuchtigkeit
+- Windgeschwindigkeit
+- Niederschlag
+- Luftdruck
+
+**Dashboard 3: Lüftungs-Status**
+
+- Zuluft-Temperatur
+- Abluft-Temperatur
+- CO2-Gehalt
+- Luftfeuchtigkeit
+- Lüfterstufe
+
+**Dashboard 4: Heizungs-Verbrauch**
+
+- Wärmepumpen-Verbrauch (Novelan)
+- Temperatur-Verläufe
+- Betriebszeiten
+
+### 6.4 Sankey-Diagramm (ADR-012)
+
+**Einrichtung**:
+
+1. In Grafana Plugins → "Sankey Panel" installieren
+2. Neues Panel mit Sankey-Typ erstellen
+3. Flux-Query für Energieflüsse konfigurieren
+
+**Flux-Query Beispiel**:
+
+```flux
+from(bucket: "<INFLUX_BUCKET>")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r["_measurement"] == "homeassistant")
+  |> filter(fn: (r) => r["_field"] == "power")
+  |> filter(fn: (r) => r["entity_id"] =~ /sungrow|meross|novelan/)
+  |> aggregateWindow(every: 1h, fn: mean)
+  |> yield(name: "mean")
+```
+
+**Energieflüsse konfigurieren**:
+- Quellen: PV-Erzeugung
+- Speicher: Batterie
+- Verbraucher: Wärmepumpe, Meross-Lasten, Hausverbrauch
+- Netz: Bezug/Einspeisung
+
+**Verifizierung**:
+- Sankey-Diagramm zeigt Energieflüsse
+- Flussrichtungen korrekt
+- Werte plausibel
+
+### 6.5 Traefik + Authentik Konfiguration
+
+**Hinweis**: Grafana soll über `cockpit.schubs.net` mit Authentik-Schutz erreichbar sein.
+
+**Grafana in Traefik-Netz einbinden**:
+
+```bash
+# Grafana Compose-Datei anpassen
+# Netzwerke: lares + traefik-net
+docker compose -f compose/grafana.yml up -d
+```
+
+**Traefik Route konfigurieren**:
+
+In Traefik-Konfiguration (Coolify-Umfeld):
+```yaml
+http:
+  routers:
+    grafana:
+      rule: "Host(`cockpit.schubs.net`)"
+      service: grafana
+      entryPoints:
+        - websecure
+      middlewares:
+        - authentik
+  services:
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://lares-grafana:3000"
+```
+
+**Authentik-Provider konfigurieren**:
+
+1. In Authentik: Neue Application "Grafana Cockpit"
+2. Provider: OAuth2 / OIDC
+3. Callback URL: `https://cockpit.schubs.net/login/generic_oauth`
+4. Authorization Flow: Default Authorization Flow
+5. Scopes: openid, profile, email
+6. Grafana als OAuth2-Client konfigurieren
+
+**Grafana OAuth2 konfigurieren**:
+
+In Grafana `grafana.ini` oder Environment-Variablen:
+```ini
+[server]
+root_url = https://cockpit.schubs.net
+
+[auth.generic_oauth]
+enabled = true
+name = Authentik
+allow_sign_up = false
+client_id = <GRAFANA_CLIENT_ID>
+client_secret = <GRAFANA_CLIENT_SECRET>
+scopes = openid profile email
+auth_url = https://auth.schubs.net/application/o/authorize/
+token_url = https://auth.schubs.net/application/o/token/
+api_url = https://auth.schubs.net/application/o/userinfo/
+```
+
+**Verifizierung**:
+- Grafana über `https://cockpit.schubs.net` erreichbar
+- Authentik-Login erforderlich
+- Nach Login: Grafana Dashboard sichtbar
+- Daten aus InfluxDB geladen
+
+## Abnahmekriterien
+
+- [ ] HA schreibt Daten in InfluxDB
+- [ ] Grafana läuft und zeigt Daten an
+- [ ] Sankey-Diagramm funktioniert
+- [ ] Grafana über `cockpit.schubs.net` mit Authentik erreichbar
+
+## Fehlersuche
+
+### InfluxDB-Verbindungsprobleme
+- InfluxDB auf NAS läuft: `docker ps | grep influxdb`
+- Netzwerkverbindung: `ping <NAS_LAN_IP>`
+- Port erreichbar: `nc -zv <NAS_LAN_IP> 8086`
+- Token/ORG/Bucket korrekt
+
+### Grafana Probleme
+- Grafana-Container läuft: `docker ps | grep grafana`
+- Logs prüfen: `docker logs lares-grafana`
+- DataSource-Test in Grafana UI durchführen
+- InfluxDB-Query in Grafana Explorer testen
+
+### Sankey-Probleme
+- Sankey-Plugin installiert
+- Flux-Query syntaktisch korrekt
+- Daten in InfluxDB vorhanden
+- Feld-Namen korrekt
+
+### Traefik/Authentik Probleme
+- Traefik-Logs prüfen
+- Authentik-Provider konfiguriert
+- Grafana OAuth2-Konfiguration korrekt
+- CORS-Einstellungen prüfen
+
+## Nächster Schritt
+
+Wenn Phase 6 abgeschlossen ist, mit **Phase 7: Home Assistant Externe Erreichbarkeit** fortfahren.

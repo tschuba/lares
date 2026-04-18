@@ -291,4 +291,5 @@ Phase 8 (Finalisierung)
 - **Phase**: Implementierung
 - **Phase 1-4**: Dokumentation und Compose-Dateien fertiggestellt
 - **Phase 5**: Dokumentation fertiggestellt (compose/README.md), manuelle HA-Konfiguration erforderlich
-- **Nächster Schritt**: Phase 5 manuell in Home Assistant durchführen
+- **Phase 6**: Dokumentation fertiggestellt (compose/README.md), manuelle Konfiguration erforderlich
+- **Nächster Schritt**: Phase 6 manuell durchführen (InfluxDB-Integration, Grafana, Traefik/Authentik)
