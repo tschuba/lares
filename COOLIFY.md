@@ -39,6 +39,7 @@ INFLUX_PASSWORD=your_influx_password
 INFLUX_ORG=lares
 INFLUX_BUCKET=smart_home
 INFLUX_TOKEN=your_influx_admin_token
+INFLUX_HOST=${NAS_LAN_IP}
 NAS_LAN_IP=192.168.1.200
 
 # Weather Service Credentials
@@ -60,7 +61,7 @@ Coolify supports Docker Compose profiles. Use the `COMPOSE_PROFILES` environment
 
 **Full deployment (all bridges):**
 ```bash
-COMPOSE_PROFILES=sungrow,ventilation,heating,weather
+COMPOSE_PROFILES=sungrow,ventilation,heating,weather,meross
 ```
 
 **Minimal deployment (MQTT only):**
@@ -92,6 +93,7 @@ docker compose -f docker-compose.nas.yml up -d
 | ventilation | vallox2mqtt | Vallox ventilation integration |
 | heating | luxtronik2mqtt | Novelan heat pump integration |
 | weather | ecowitt2mqtt, weewx | Weather station and external uploads |
+| meross | meross2mqtt, telegraf | Meross energy metrics to InfluxDB (ADR-011 hybrid) |
 
 ## Network Configuration
 
@@ -105,6 +107,8 @@ Create required directories on the Pi before first deployment:
 mkdir -p data/mosquitto logs/mosquitto
 mkdir -p logs/vallox2mqtt
 mkdir -p data/weewx
+mkdir -p config/meross2mqtt
+mkdir -p config/telegraf
 ```
 
 Coolify will create these automatically if you configure persistent volumes in the application settings.

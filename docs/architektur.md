@@ -29,10 +29,11 @@ Hinweis: Die Benennung bleibt bei internem Toolwechsel stabil und folgt dem Funk
 - Home Assistant ist bereits via Coolify im Betrieb und wird zusätzlich ins interne `lares`-Netz eingebunden.
 - Mosquitto ist der interne MQTT-Broker.
 - Protokollspezifische Bridges binden Geräte an MQTT an.
-- Home Assistant integriert zusätzlich `meross_lan` für lokale Meross-Energie- und Schaltwerte.
+- Meross-Integration ist dual-path: `meross_lan` in HA für Steuerung, `meross2mqtt` für direkte Energiemetriken zu MQTT/InfluxDB.
+- Telegraf schreibt MQTT-Metriken (inkl. Meross) in InfluxDB auf dem NAS.
 - WeeWX übernimmt die Weiterleitung von Wetterdaten an externe Wetterdienste.
 - Grafana ist internet-erreichbar via Traefik, aber durch Authentik abgesichert.
-- InfluxDB läuft zentral auf dem NAS und wird von Home Assistant beschrieben.
+- InfluxDB läuft zentral auf dem NAS und wird von Home Assistant und Telegraf beschrieben.
 
 ## Architekturdiagramm
 
@@ -50,7 +51,9 @@ flowchart TD
             S2M["sungrow2mqtt"]
             L2M["luxtronik2mqtt"]
             V2M["vallox2mqtt (custom)"]
+            M2M["meross2mqtt"]
             E2M["ecowitt2mqtt :4004"]
+            Telegraf["Telegraf"]
             WeeWX["WeeWX"]
             HA["Home Assistant\nhome.schubs.net"]
             Grafana["Grafana\ncockpit.schubs.net"]
@@ -108,6 +111,10 @@ flowchart TD
     Mosquitto -->|MQTT| HA
     Bambu -->|Integration| HA
     Meross -->|meross_lan| HA
+    Meross -->|HTTP| M2M
+    M2M -->|MQTT| Mosquitto
+    Mosquitto -->|MQTT| Telegraf
+    Telegraf -->|Write| InfluxDB
 
     Blink -. Cloud API .-> Internet
     Internet -. Blink API .-> HA

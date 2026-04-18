@@ -18,10 +18,10 @@ Dieses Dokument führt alle relevanten Komponenten, Dienste, Ports und Integrati
 | Vallox ValloPlus 350 MV-E | Lüftungsanlage | TCP API :18080 | LAN/Ethernet | `vallox2mqtt` (custom, Option A) |
 | Ecowitt GW1201 | Wetter-Gateway | HTTP Push -> :4004 | LAN | `ecowitt2mqtt` |
 | BambuLab P1S | 3D-Drucker | lokaler MQTT-Mechanismus | WLAN | Home Assistant Bambu-Integration |
-| Meross MSS310 (1) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` | WLAN | Home Assistant `meross_lan` |
-| Meross MSS310 (2) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` | WLAN | Home Assistant `meross_lan` |
-| Meross MSS315 (1) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` | WLAN | Home Assistant `meross_lan` |
-| Meross MSS315 (2) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` | WLAN | Home Assistant `meross_lan` |
+| Meross MSS310 (1) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| Meross MSS310 (2) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| Meross MSS315 (1) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| Meross MSS315 (2) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
 | Blink Outdoor 4 (2x) + Sync Module 2 | Kamera-System | Blink Cloud API | WLAN + Internet | Home Assistant Blink-Integration |
 | Amazon Echo Dot (2x), Echo Show (1x) | Sprach-/Audio-Geräte | Alexa API | WLAN + Internet | `alexa_media_player` in HA |
 
@@ -42,7 +42,9 @@ Zuordnung der Meross-Steckdosen:
 | sungrow2mqtt | `bohdan0/sungrow2mqtt` | Intern | - | nein |
 | luxtronik2mqtt | Python Service | Intern | - | optional |
 | vallox2mqtt | custom Python Bridge | Intern | - | optional |
+| meross2mqtt | `depau/meross2mqtt` | Intern | - | optional |
 | ecowitt2mqtt | `bachya/ecowitt2mqtt` | Intern | 4004/tcp (listener) | optional |
+| Telegraf | `telegraf` | Intern | - | optional |
 | WeeWX | `felddy/weewx` | Intern + ausgehend ins Internet | pluginabhängig | ja |
 | Grafana | `grafana/grafana` | Extern via `cockpit.schubs.net` | 3000 intern | ja |
 

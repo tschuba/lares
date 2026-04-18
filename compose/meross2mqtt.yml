@@ -1,0 +1,24 @@
+# Meross to MQTT Bridge
+# Off-the-shelf image for Meross energy metrics (ADR-011 hybrid approach)
+
+services:
+  meross2mqtt:
+    image: depau/meross2mqtt:latest
+    container_name: lares-meross2mqtt
+    restart: unless-stopped
+    networks:
+      - lares
+    volumes:
+      - ./config/meross2mqtt:/config
+    environment:
+      - MQTT_HOST=lares-mosquitto
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - ENABLE_HTTP=true
+      - HOMIE_PREFIX=homie
+      - LOG_LEVEL=INFO
+
+networks:
+  lares:
+    external: true

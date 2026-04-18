@@ -75,12 +75,14 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Entscheidung: WeeWX wird als Weiterleitungs-Hub eingesetzt; Zielplattformen sind AWEKAS, Windy.com, Weather Underground, CWOP/APRS und OpenWeatherMap.
 - Begründung: Entkopplung zwischen lokalem Smart-Home-Pfad und externer Veröffentlichung, flexible Mehrfach-Uploads, etablierte Open-Source-Komponente.
 
-## ADR-011: Meross lokal über `meross_lan`
+## ADR-011: Hybride Meross-Integration (HA-Kontrolle + MQTT-Metriken)
 
 - Status: Angenommen
-- Kontext: Vier Meross-Einzelsteckdosen (2x MSS310, 2x MSS315) sollen in die Energieauswertung einfließen.
-- Entscheidung: Einbindung über die lokale Home-Assistant-Integration `meross_lan` statt Cloud-zentrierter Meross-Anbindung.
-- Begründung: Lokal-first-Konformität, stabile Energiemesswerte, bessere Unabhängigkeit von externen Diensten.
+- Kontext: Vier Meross-Einzelsteckdosen (2x MSS310, 2x MSS315) sollen in die Energieauswertung einfließen. Ziel ist direkter Metrik-Flow zu InfluxDB ohne HA als Middleman, während HA die Steuerung behält.
+- Entscheidung: Dual-Path-Integration:
+  - Steuerung/Automatisierung: `meross_lan` in Home Assistant
+  - Energiemetriken: `meross2mqtt` → Mosquitto → Telegraf → InfluxDB
+- Begründung: HA behält bewährte Kontrolle, während Metriken direkt über MQTT-Bus in InfluxDB fließen (effizienter, reduziert Abhängigkeit von HA für reinen Datensammelpfad). Telegraf als offizielle InfluxData-Lösung gewährleistet Stabilität und Wartbarkeit.
 
 ## ADR-012: Energieflüsse doppelt visualisieren (HA + Grafana Sankey)
 

@@ -1,0 +1,40 @@
+# Meross to MQTT Bridge Configuration
+# For Meross energy metrics collection (ADR-011 hybrid approach)
+
+# Logging level: TRACE, DEBUG, INFO, WARNING, ERROR
+log_level: INFO
+
+# MQTT broker settings
+mqtt_host: ""
+mqtt_port: 1883
+mqtt_username: ""
+mqtt_password: ""
+mqtt_clean_session: true
+
+# Meross MQTT protocol settings
+# Enable HTTP for device communication (recommended for stability)
+enable_http: true
+
+# Topic prefix that this bridge will see
+meross_prefix: "/appliance"
+
+# Topic prefix that the devices will see
+meross_sent_prefix: "/appliance"
+
+# Identifier used by this bridge
+meross_bridge_topic: "bridge"
+
+# Homie MQTT protocol settings
+# Topic prefix for Homie devices
+homie_prefix: "homie"
+
+# Persistence file for discovered devices
+persistence_file: "devices.json"
+
+# Device-specific configuration
+# Add device UUIDs with custom names if desired
+devices:
+  # Example:
+  # device_uuid_here:
+  #   pretty_name: "BambuLab P1S"
+  #   meross_key: ""
