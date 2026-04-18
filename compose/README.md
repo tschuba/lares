@@ -963,3 +963,409 @@ http:
 ## Nächster Schritt
 
 Wenn Phase 7 abgeschlossen ist, mit **Phase 8: Finalisierung und Dokumentation** fortfahren.
+
+---
+
+# Phase 8: Finalisierung und Dokumentation
+
+## Voraussetzungen
+
+- Phasen 1-7 müssen vollständig abgeschlossen sein
+- Alle Services laufen und sind funktionsfähig
+- Externe Erreichbarkeit (HA, Grafana) getestet
+
+## Setup-Anleitung
+
+### 8.1 Compose-Dateien strukturieren
+
+**Hinweis**: Alle Services in `compose/` sind bereits vorhanden. Struktur prüfen und optimieren.
+
+**Aktuelle Struktur prüfen**:
+
+```bash
+ls -la compose/
+# Sollte enthalten:
+# network.yml
+# mosquitto.yml
+# influxdb.yml
+# modbus-proxy.yml
+# sungrow2mqtt.yml
+# vallox2mqtt.yml
+# luxtronik2mqtt.yml
+# ecowitt2mqtt.yml
+# weewx.yml
+# grafana.yml
+```
+
+**Environment-Variablen zentralisieren**:
+
+Erstelle `config/.env` (falls nicht vorhanden):
+```bash
+cp config/.env.template config/.env
+# config/.env mit echten Werten ausfüllen
+```
+
+Platzhalter in `config/.env` ersetzen:
+- `PI_LAN_IP` - IP des Raspberry Pi
+- `NAS_LAN_IP` - IP des NAS
+- `SUNGROW_IP` - IP des Sungrow Inverters
+- `NOVELAN_IP` - IP der Novelan Wärmepumpe
+- `VALLOX_IP` - IP der Vallox Lüftung
+- `ECOWITT_PUSH_TARGET` - Ecowitt Push-URL
+- `MQTT_USERNAME`, `MQTT_PASSWORD` - MQTT-Zugangsdaten
+- `INFLUX_URL`, `INFLUX_ORG`, `INFLUX_BUCKET`, `INFLUX_TOKEN` - InfluxDB-Daten
+- Wetterdienst-Credentials (AWEKAS, Windy, WU, CWOP, OWM)
+
+**Start-Stop-Skripte erstellen**:
+
+Erstelle `scripts/start-all.sh`:
+```bash
+#!/bin/bash
+# Alle Lares-Services starten
+cd /Users/thomas/Projects/lares
+
+# Netzwerk erstellen (falls nicht vorhanden)
+docker network create --driver bridge --subnet 172.20.0.0/16 lares 2>/dev/null || true
+
+# Services starten
+docker compose -f compose/network.yml up -d
+docker compose -f compose/mosquitto.yml up -d
+docker compose -f compose/modbus-proxy.yml up -d
+docker compose -f compose/sungrow2mqtt.yml up -d
+docker compose -f compose/vallox2mqtt.yml up -d --build
+docker compose -f compose/luxtronik2mqtt.yml up -d --build
+docker compose -f compose/ecowitt2mqtt.yml up -d
+docker compose -f compose/weewx.yml up -d
+docker compose -f compose/grafana.yml up -d
+
+echo "Alle Lares-Services gestartet"
+```
+
+Erstelle `scripts/stop-all.sh`:
+```bash
+#!/bin/bash
+# Alle Lares-Services stoppen
+cd /Users/thomas/Projects/lares
+
+docker compose -f compose/grafana.yml down
+docker compose -f compose/weewx.yml down
+docker compose -f compose/ecowitt2mqtt.yml down
+docker compose -f compose/luxtronik2mqtt.yml down
+docker compose -f compose/vallox2mqtt.yml down
+docker compose -f compose/sungrow2mqtt.yml down
+docker compose -f compose/modbus-proxy.yml down
+docker compose -f compose/mosquitto.yml down
+
+echo "Alle Lares-Services gestoppt"
+```
+
+Erstelle `scripts/status.sh`:
+```bash
+#!/bin/bash
+# Status aller Lares-Services anzeigen
+cd /Users/thomas/Projects/lares
+
+echo "=== Lares Services Status ==="
+docker compose -f compose/mosquitto.yml ps
+docker compose -f compose/modbus-proxy.yml ps
+docker compose -f compose/sungrow2mqtt.yml ps
+docker compose -f compose/vallox2mqtt.yml ps
+docker compose -f compose/luxtronik2mqtt.yml ps
+docker compose -f compose/ecowitt2mqtt.yml ps
+docker compose -f compose/weewx.yml ps
+docker compose -f compose/grafana.yml ps
+
+echo "=== Docker Network ==="
+docker network ls | grep lares
+```
+
+Skripte ausführbar machen:
+```bash
+chmod +x scripts/start-all.sh
+chmod +x scripts/stop-all.sh
+chmod +x scripts/status.sh
+```
+
+### 8.2 Dokumentation aktualisieren
+
+**Inventar aktualisieren**:
+
+In `docs/inventar.md`:
+- Platzhalter durch echte Werte ersetzen (IP-Adressen, Ports)
+- Aktuelle Konfiguration dokumentieren
+- Ggf. neue Geräte oder Dienste hinzufügen
+
+**README.md aktualisieren**:
+
+In `README.md`:
+- Status von "Planungs- und Inventarphase" auf "Produktiv" aktualisieren
+- Kurze Zusammenfassung der implementierten Phasen
+- Link zu Betriebsanleitung hinzufügen
+
+**Architektur aktualisieren**:
+
+In `docs/architektur.md`:
+- Aktuelle Netzwerk-Topologie dokumentieren
+- Ggf. Änderungen an der Architektur nachführen
+- Aktuelle Port-Belegungen dokumentieren
+
+**Betriebsanleitung erstellen**:
+
+Erstelle `docs/betriebsanleitung.md`:
+```markdown
+# Betriebsanleitung Lares
+
+## Übersicht
+
+Lares ist die Smart-Home-Zentrale für schubs.net mit MQTT als Integrationsbus.
+
+## Services
+
+### Core-Services
+- Mosquitto: MQTT-Broker auf Port 1883
+- InfluxDB: Zeitreihen-Datenbank auf NAS Port 8086
+
+### Bridges
+- modbus-proxy: Modbus-Proxy für Sungrow
+- sungrow2mqtt: Sungrow → MQTT
+- vallox2mqtt: Vallox → MQTT
+- luxtronik2mqtt: Novelan → MQTT
+- ecowitt2mqtt: Ecowitt → MQTT
+- weewx: Wetterdaten-Upload
+
+### Frontends
+- Home Assistant: https://home.schubs.net
+- Grafana: https://cockpit.schubs.net
+
+## Start/Stop
+
+Alle Services starten:
+```bash
+./scripts/start-all.sh
+```
+
+Alle Services stoppen:
+```bash
+./scripts/stop-all.sh
+```
+
+Status prüfen:
+```bash
+./scripts/status.sh
+```
+
+## Wartung
+
+### Logs prüfen
+```bash
+docker logs lares-mosquitto
+docker logs lares-sungrow2mqtt
+docker logs lares-vallox2mqtt
+# ... weitere Services
+```
+
+### Service neu starten
+```bash
+docker compose -f compose/<service>.yml restart
+```
+
+### Backup siehe Phase 8.3
+### Monitoring siehe Phase 8.4
+
+## Fehlerbehebung
+
+Siehe compose/README.md für detaillierte Fehlersuche pro Phase.
+```
+
+### 8.3 Backup-Strategie
+
+**InfluxDB-Backups auf NAS**:
+
+InfluxDB auf NAS konfigurieren:
+```bash
+# Backup-Skript auf NAS erstellen
+# Pfad: /path/to/nas/scripts/influxdb-backup.sh
+
+#!/bin/bash
+BACKUP_DIR="/path/to/nas/backups/influxdb"
+DATE=$(date +%Y%m%d_%H%M%S)
+INFLUX_TOKEN="<INFLUX_TOKEN>"
+INFLUX_ORG="<INFLUX_ORG>"
+INFLUX_BUCKET="<INFLUX_BUCKET>"
+
+mkdir -p $BACKUP_DIR
+
+# Backup erstellen
+influx backup $BACKUP_DIR/$DATE --token $INFLUX_TOKEN --org $INFLUX_ORG
+
+# Alte Backups aufräumen (7 Tage behalten)
+find $BACKUP_DIR -type d -mtime +7 -exec rm -rf {} \;
+```
+
+Cron-Job auf NAS für automatische Backups:
+```bash
+# Täglich um 02:00 Uhr
+0 2 * * * /path/to/nas/scripts/influxdb-backup.sh >> /var/log/influxdb-backup.log 2>&1
+```
+
+**HA-Konfiguration sichern**:
+
+HA Backup-Skript auf Pi:
+```bash
+#!/bin/bash
+BACKUP_DIR="/path/to/pi/backups/homeassistant"
+DATE=$(date +%Y%m%d_%H%M%S)
+HA_CONFIG="/path/to/homeassistant/config"
+
+mkdir -p $BACKUP_DIR
+
+# Konfiguration sichern
+tar -czf $BACKUP_DIR/ha-config-$DATE.tar.gz $HA_CONFIG
+
+# Alte Backups aufräumen (7 Tage behalten)
+find $BACKUP_DIR -type f -mtime +7 -delete
+```
+
+Cron-Job auf Pi:
+```bash
+# Täglich um 03:00 Uhr
+0 3 * * * /path/to/pi/scripts/ha-backup.sh >> /var/log/ha-backup.log 2>&1
+```
+
+**Restore-Prozess dokumentieren**:
+
+In `docs/betriebsanleitung.md` ergänzen:
+```markdown
+## Restore
+
+### InfluxDB Restore
+```bash
+# Auf NAS
+influx restore /path/to/backup/<date> --token <INFLUX_TOKEN> --org <INFLUX_ORG>
+```
+
+### Home Assistant Restore
+```bash
+# HA stoppen
+docker compose -f <ha-compose>.yml down
+
+# Konfiguration wiederherstellen
+tar -xzf /path/to/backup/ha-config-<date>.tar.gz -C /path/to/homeassistant/
+
+# HA starten
+docker compose -f <ha-compose>.yml up -d
+```
+```
+
+### 8.4 Monitoring
+
+**Health-Checks für alle Services**:
+
+Erstelle `scripts/health-check.sh`:
+```bash
+#!/bin/bash
+# Health-Check für alle Lares-Services
+
+SERVICES=(
+    "lares-mosquitto"
+    "lares-modbus-proxy"
+    "lares-sungrow2mqtt"
+    "lares-vallox2mqtt"
+    "lares-luxtronik2mqtt"
+    "lares-ecowitt2mqtt"
+    "lares-weewx"
+    "lares-grafana"
+)
+
+FAILED=0
+
+for service in "${SERVICES[@]}"; do
+    if docker ps --format '{{.Names}}' | grep -q "^${service}$"; then
+        echo "✓ $service läuft"
+    else
+        echo "✗ $service läuft nicht!"
+        FAILED=1
+    fi
+done
+
+if [ $FAILED -eq 1 ]; then
+    exit 1
+fi
+```
+
+**Alarmierung bei Ausfällen**:
+
+Option 1: E-Mail-Benachrichtigung via Cron:
+```bash
+# Alle 5 Minuten prüfen
+*/5 * * * * /path/to/scripts/health-check.sh || echo "Lares-Service ausgefallen" | mail -s "Lares Alert" admin@schubs.net
+```
+
+Option 2: HA Automation für Alarmierung:
+- In HA Automation erstellen
+- Trigger: Binary Sensor für Service-Status
+- Action: Notification an Handy/E-Mail
+
+**Log-Zentralisierung**:
+
+Erstelle `scripts/logs-collect.sh`:
+```bash
+#!/bin/bash
+# Logs aller Services sammeln
+
+LOG_DIR="/path/to/logs/lares"
+DATE=$(date +%Y%m%d_%H%M%S)
+mkdir -p $LOG_DIR
+
+docker logs lares-mosquitto --tail 500 > $LOG_DIR/mosquitto_$DATE.log
+docker logs lares-modbus-proxy --tail 500 > $LOG_DIR/modbus-proxy_$DATE.log
+docker logs lares-sungrow2mqtt --tail 500 > $LOG_DIR/sungrow2mqtt_$DATE.log
+docker logs lares-vallox2mqtt --tail 500 > $LOG_DIR/vallox2mqtt_$DATE.log
+docker logs lares-luxtronik2mqtt --tail 500 > $LOG_DIR/luxtronik2mqtt_$DATE.log
+docker logs lares-ecowitt2mqtt --tail 500 > $LOG_DIR/ecowitt2mqtt_$DATE.log
+docker logs lares-weewx --tail 500 > $LOG_DIR/weewx_$DATE.log
+docker logs lares-grafana --tail 500 > $LOG_DIR/grafana_$DATE.log
+
+echo "Logs gesammelt in $LOG_DIR"
+```
+
+Cron-Job für tägliche Log-Sammlung:
+```bash
+# Täglich um 04:00 Uhr
+0 4 * * * /path/to/scripts/logs-collect.sh
+```
+
+## Abnahmekriterien
+
+- [ ] Alle Services über Compose startbar
+- [ ] Dokumentation vollständig und aktuell
+- [ ] Backups laufen automatisch
+- [ ] Monitoring aktiv
+
+## Fehlersuche
+
+### Services starten nicht
+- Docker-Logs prüfen
+- Environment-Variablen korrekt
+- Netzwerk `lares` vorhanden
+- Ports nicht belegt
+
+### Backup fehlgeschlagen
+- Backup-Pfad existiert
+- Schreibrechte vorhanden
+- InfluxDB-Token gültig
+- Cron-Job aktiv
+
+### Monitoring alarmiert falsch
+- Health-Check-Script korrekt
+- Service-Namen korrekt
+- Cron-Job konfiguriert
+- E-Mail-Notification funktioniert
+
+## Abschluss
+
+Wenn alle Abnahmekriterien erfüllt sind, ist Lares produktiv bereit.
+
+## Nächster Schritt
+
+Keine weiteren Phasen. System ist produktiv und wartungsbereit.

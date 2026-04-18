@@ -293,4 +293,5 @@ Phase 8 (Finalisierung)
 - **Phase 5**: Dokumentation fertiggestellt (compose/README.md), manuelle HA-Konfiguration erforderlich
 - **Phase 6**: Dokumentation fertiggestellt (compose/README.md), manuelle Konfiguration erforderlich
 - **Phase 7**: Dokumentation fertiggestellt (compose/README.md), manuelle Konfiguration erforderlich
-- **Nächster Schritt**: Phase 7 manuell durchführen (Traefik + Authentik für home.schubs.net)
+- **Phase 8**: Dokumentation fertiggestellt (compose/README.md), manuelle Konfiguration erforderlich
+- **Nächster Schritt**: Phase 8 manuell durchführen (Finalisierung, Backup, Monitoring)
