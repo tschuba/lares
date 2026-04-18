@@ -1,0 +1,149 @@
+# Lares Smart Home Integration Suite
+# Consolidated Docker Compose for Coolify deployment
+# Excludes InfluxDB which runs on NAS per ADR-005
+
+networks:
+  lares:
+    driver: bridge
+    name: lares
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+services:
+  # Core MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: lares-mosquitto
+    restart: unless-stopped
+    networks:
+      - lares
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./config/mosquitto:/mosquitto/config:ro
+      - ./data/mosquitto:/mosquitto/data
+      - ./logs/mosquitto:/mosquitto/log
+    environment:
+      - MOSQUITTO_USERNAME=${MQTT_USERNAME}
+      - MOSQUITTO_PASSWORD=${MQTT_PASSWORD}
+
+  # Modbus Proxy for Sungrow (ADR-004)
+  modbus-proxy:
+    image: ghcr.io/tiagocoutinho/modbus-proxy:latest
+    container_name: lares-modbus-proxy
+    restart: unless-stopped
+    networks:
+      - lares
+    ports:
+      - "502:502"
+    command:
+      - "--listen=:502"
+      - "--backend=${SUNGROW_IP}:502"
+      - "--log-level=info"
+    profiles:
+      - sungrow
+
+  # Sungrow to MQTT Bridge (ADR-013 - off-the-shelf)
+  sungrow2mqtt:
+    image: bohdan0/sungrow2mqtt:latest
+    container_name: lares-sungrow2mqtt
+    restart: unless-stopped
+    networks:
+      - lares
+    environment:
+      - MODBUS_HOST=lares-modbus-proxy
+      - MODBUS_PORT=502
+      - MQTT_HOST=lares-mosquitto
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_TOPIC_PREFIX=energy/sungrow
+      - POLL_INTERVAL=5
+    depends_on:
+      - modbus-proxy
+      - mosquitto
+    profiles:
+      - sungrow
+
+  # Vallox to MQTT Bridge (ADR-006 - custom)
+  vallox2mqtt:
+    build:
+      context: ./bridges/vallox
+      dockerfile: Dockerfile
+    container_name: lares-vallox2mqtt
+    restart: unless-stopped
+    networks:
+      - lares
+    environment:
+      - VALLOX_HOST=${VALLOX_IP}
+      - VALLOX_PORT=18080
+      - POLL_INTERVAL=30
+      - MQTT_BROKER=lares-mosquitto
+      - MQTT_PORT=1883
+      - MQTT_CLIENT_ID=vallox2mqtt
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_TOPIC_PREFIX=ventilation/vallox
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs/vallox2mqtt:/app/logs
+    depends_on:
+      - mosquitto
+    profiles:
+      - ventilation
+
+  # Luxtronik to MQTT Bridge (Novelan heat pump)
+  luxtronik2mqtt:
+    build:
+      context: ./bridges/luxtronik
+    container_name: lares-luxtronik2mqtt
+    restart: unless-stopped
+    env_file:
+      - ./config/.env
+    environment:
+      - MQTT_HOST=lares-mosquitto
+    networks:
+      - lares
+    depends_on:
+      - mosquitto
+    profiles:
+      - heating
+
+  # Ecowitt to MQTT Bridge
+  ecowitt2mqtt:
+    image: bachya/ecowitt2mqtt:latest
+    container_name: lares-ecowitt2mqtt
+    restart: unless-stopped
+    env_file:
+      - ./config/.env
+    environment:
+      - ECOWITT2MQTT_MQTT_BROKER=lares-mosquitto
+      - ECOWITT2MQTT_MQTT_PORT=1883
+      - ECOWITT2MQTT_MQTT_USERNAME=${MQTT_USERNAME}
+      - ECOWITT2MQTT_MQTT_PASSWORD=${MQTT_PASSWORD}
+      - ECOWITT2MQTT_PORT=4004
+      - ECOWITT2MQTT_HASS_DISCOVERY=true
+      - ECOWITT2MQTT_MQTT_TOPIC=weather/ecowitt
+    ports:
+      - "4004:4004"
+    networks:
+      - lares
+    depends_on:
+      - mosquitto
+    profiles:
+      - weather
+
+  # WeeWX for weather data upload (ADR-010)
+  weewx:
+    image: felddy/weewx:latest
+    container_name: lares-weewx
+    restart: unless-stopped
+    env_file:
+      - ./config/.env
+    volumes:
+      - ./data/weewx:/data
+    networks:
+      - lares
+    profiles:
+      - weather
