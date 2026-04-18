@@ -289,4 +289,6 @@ Phase 8 (Finalisierung)
 
 - **Erstellt**: 2026-04-18
 - **Phase**: Implementierung
-- **Nächster Schritt**: Phase 5 (Lokale Integrationen) starten
+- **Phase 1-4**: Dokumentation und Compose-Dateien fertiggestellt
+- **Phase 5**: Dokumentation fertiggestellt (compose/README.md), manuelle HA-Konfiguration erforderlich
+- **Nächster Schritt**: Phase 5 manuell in Home Assistant durchführen

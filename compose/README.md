@@ -332,3 +332,126 @@ docker logs lares-weewx
 ## Nächster Schritt
 
 Wenn Phase 4 abgeschlossen ist, mit **Phase 5: Lokale Integrationen** fortfahren.
+
+---
+
+# Phase 5: Lokale Integrationen
+
+## Voraussetzungen
+
+- Phasen 1-4 müssen vollständig abgeschlossen sein
+- Home Assistant läuft bereits via Coolify
+- Geräte sind im LAN erreichbar und konfiguriert
+
+## Setup-Anleitung
+
+### 5.1 BambuLab P1S Integration
+
+**Hinweis**: BambuLab P1S wird direkt über HA Bambu-Integration eingebunden.
+
+1. In HA Settings → Devices & Services → Add Integration → "Bambu Lab"
+2. IP-Adresse des Druckers eingeben (oder automatisch discovern)
+3. Access Code aus Bambu Studio/Orca Slicer kopieren
+4. Verbinden und Testen
+
+**Verifizierung**:
+- Druckerstatus in HA sichtbar (online/offline, printing, etc.)
+- Temperaturwerte verfügbar
+- Kamera-Bild verfügbar (falls aktiviert)
+
+### 5.2 Meross Steckdosen (meross_lan)
+
+**Hinweis**: 4 Meross-Steckdosen werden über die lokale `meross_lan` Integration eingebunden.
+
+**Gerätezuordnung**:
+- MSS310 (1): BambuLab P1S
+- MSS310 (2): Arbeitstisch
+- MSS315 (1): Waschmaschine
+- MSS315 (2): Trockner
+
+**Einrichtung**:
+
+1. In HA Settings → Devices & Services → Add Integration → "Meross LAN"
+2. Steckdosen automatisch discovern oder manuell IP-Adresse eingeben
+3. Für jede Steckdose:
+   - Einbindung bestätigen
+   - Energiemessung aktivieren
+   - Gerät benennen (z.B. "Steckdose BambuLab")
+   - Bereich zuordnen (z.B. "Arbeitszimmer")
+
+**Verifizierung**:
+- Alle 4 Steckdosen in HA sichtbar
+- Energiemesswerte verfügbar (Strom, Spannung, Leistung, Verbrauch)
+- Schaltfunktion funktioniert
+
+### 5.3 Blink Kameras Integration
+
+**Hinweis**: Blink wird über Cloud-API eingebunden (ADR-009).
+
+**Einrichtung**:
+
+1. In HA Settings → Devices & Services → Add Integration → "Blink"
+2. Blink-Benutzername und Passwort eingeben
+3. 2FA-Code eingeben (falls erforderlich)
+4. Sync Module und Kameras werden automatisch erkannt
+5. Kameras benennen (z.B. "Blink Vorgarten", "Blink Garten")
+
+**Verifizierung**:
+- Kameras in HA sichtbar
+- Live-Bilder abrufbar
+- Motion-Detection-Events in HA
+- Aufnahmen abrufbar
+
+### 5.4 Alexa/Echo Geräte Integration
+
+**Hinweis**: Alexa-Geräte werden über `alexa_media_player` Integration eingebunden.
+
+**Einrichtung**:
+
+1. HACS installieren (falls nicht vorhanden)
+2. In HACS → Integrations → "Alexa Media Player" suchen und installieren
+3. In HA Settings → Devices & Services → Add Integration → "Alexa Media Player"
+4. Amazon-Benutzername und Passwort eingeben
+5. 2FA-Code eingeben (falls erforderlich)
+6. Echo-Geräte werden automatisch erkannt
+
+**Verifizierung**:
+- Echo Dot (2x) in HA sichtbar
+- Echo Show (1x) in HA sichtbar
+- Musik-Wiedergabe steuerbar
+- Lautstärke steuerbar
+- Alexa-Commands ausführbar
+
+## Abnahmekriterien
+
+- [ ] BambuLab in HA integriert
+- [ ] Alle Meross-Steckdosen mit Energiemessung in HA
+- [ ] Blink-Kameras in HA sichtbar
+- [ ] Echo-Geräte über HA steuerbar
+
+## Fehlersuche
+
+### BambuLab Probleme
+- Drucker im selben WLAN wie HA
+- Firewall prüfen (Port 8883 für MQTT)
+- Access Code korrekt aus Bambu Studio kopiert
+
+### Meross Probleme
+- Steckdosen im selben WLAN wie HA
+- Cloud-Verbindung der Steckdosen deaktivieren (für reinen LAN-Modus)
+- IP-Adressen statisch vergeben (DHCP-Reservation)
+
+### Blink Probleme
+- Internetverbindung prüfen
+- Blink-Cloud-Status prüfen
+- 2FA korrekt eingegeben
+
+### Alexa Probleme
+- Amazon-Konto korrekt
+- 2FA korrekt eingegeben
+- HACS korrekt installiert
+- alexa_media_player Plugin aktuell
+
+## Nächster Schritt
+
+Wenn Phase 5 abgeschlossen ist, mit **Phase 6: InfluxDB-Integration und Grafana** fortfahren.
