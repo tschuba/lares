@@ -94,6 +94,7 @@ services:
     restart: unless-stopped
     environment:
       - NOVELAN_IP=${NOVELAN_IP}
+      - NOVELAN_PORT=8889
       - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
       - MQTT_USERNAME=${MQTT_USERNAME}

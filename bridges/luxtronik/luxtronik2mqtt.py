@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("luxtronik2mqtt")
 
 LUXTRONIK_IP = os.getenv("NOVELAN_IP")
+LUXTRONIK_PORT = int(os.getenv("NOVELAN_PORT", 8889))
 MQTT_HOST = os.getenv("MQTT_HOST", "lares-mosquitto")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
 MQTT_USER = os.getenv("MQTT_USERNAME")
@@ -32,9 +33,9 @@ def main():
         logger.error(f"Failed to connect to MQTT: {e}")
         return
 
-    logger.info(f"Connecting to Luxtronik at {LUXTRONIK_IP}...")
+    logger.info(f"Connecting to Luxtronik at {LUXTRONIK_IP}:{LUXTRONIK_PORT}...")
     try:
-        lux = Luxtronik(LUXTRONIK_IP)
+        lux = Luxtronik(LUXTRONIK_IP, LUXTRONIK_PORT)
     except Exception as e:
         logger.error(f"Failed to connect to Luxtronik: {e}")
         return
