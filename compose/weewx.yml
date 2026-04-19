@@ -1,7 +1,7 @@
 services:
   weewx:
     image: felddy/weewx:latest
-    container_name: lares-weewx
+    container_name: weewx
     restart: unless-stopped
     env_file:
       - ../config/.env

@@ -4,7 +4,7 @@
 services:
   modbus-proxy:
     image: ghcr.io/tiagocoutinho/modbus-proxy:latest
-    container_name: lares-modbus-proxy
+    container_name: modbus-proxy
     restart: unless-stopped
     networks:
       - lares

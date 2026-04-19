@@ -4,7 +4,7 @@
 services:
   influxdb:
     image: influxdb:2
-    container_name: lares-influxdb
+    container_name: influxdb
     restart: unless-stopped
     networks:
       - lares

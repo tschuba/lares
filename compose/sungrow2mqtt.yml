@@ -4,14 +4,14 @@
 services:
   sungrow2mqtt:
     image: bohdan0/sungrow2mqtt:latest
-    container_name: lares-sungrow2mqtt
+    container_name: sungrow2mqtt
     restart: unless-stopped
     networks:
       - lares
     environment:
-      - MODBUS_HOST=lares-modbus-proxy
+      - MODBUS_HOST=modbus-proxy
       - MODBUS_PORT=502
-      - MQTT_HOST=lares-mosquitto
+      - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
