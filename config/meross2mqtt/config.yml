@@ -30,7 +30,7 @@ homie_prefix: "homie"
 
 # Device-specific configuration
 # Add device UUIDs with custom names if desired
-devices:
+devices: {}
   # Example:
   # device_uuid_here:
   #   pretty_name: "BambuLab P1S"
