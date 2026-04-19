@@ -1,0 +1,47 @@
+# SunGather Configuration for Lares (ADR-013)
+# Modbus-only access to Sungrow inverter via modbus-proxy
+
+# Auto-generated registers file (will be created on first run)
+auto_generate_registers: true
+
+# Inverter configuration
+inverters:
+  - name: sungrow
+    host: modbus-proxy
+    port: 502
+    slave_id: 1
+    # Level 1 = most useful data, Level 2 = all supported registers
+    level: 1
+    # Enable smart_meter if you have SG* model with smart meter
+    smart_meter: false
+    # Poll interval in seconds
+    poll_interval: 5
+
+# Export configuration
+exports:
+  # MQTT export for Home Assistant integration
+  - name: mqtt
+    enabled: true
+    host: mosquitto
+    port: 1883
+    # MQTT authentication (set to empty if disabled)
+    username: ""
+    password: ""
+    # Topic prefix
+    topic: energy/sungrow
+    # Home Assistant auto-discovery
+    homeassistant: true
+    # HA device name
+    ha_device_name: Sungrow Inverter
+
+  # Optional: Web server for local monitoring
+  # - name: webserver
+  #   enabled: false
+  #   port: 8080
+
+# Logging configuration
+log:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: INFO
+  # Log to file (optional)
+  # file: /logs/sungather.log

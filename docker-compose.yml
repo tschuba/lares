@@ -44,24 +44,18 @@ services:
     profiles:
       - sungrow
 
-  # Sungrow to MQTT Bridge (ADR-013)
+  # Sungrow to MQTT Bridge (ADR-013) - SunGather for Modbus-only access
   sungrow2mqtt:
-    image: 11notes/sungrow:3.0.7
+    image: bohdans/sungather:latest
     container_name: sungrow2mqtt
     restart: unless-stopped
     networks:
       - lares
+    volumes:
+      - ./config/sungather:/config
+      - ./logs/sungather:/logs
     environment:
-      - MODBUS_HOST=modbus-proxy
-      - MODBUS_PORT=502
-      - MQTT_HOST=mosquitto
-      - MQTT_PORT=1883
-      - MQTT_USERNAME=${MQTT_USERNAME}
-      - MQTT_PASSWORD=${MQTT_PASSWORD}
-      - MQTT_TOPIC_PREFIX=energy/sungrow
-      - POLL_INTERVAL=5
-      - GOSUNGROW_USER=${SUNGROW_USER}
-      - GOSUNGROW_PASSWORD=${SUNGROW_PASSWORD}
+      - TZ=Europe/Berlin
     depends_on:
       - modbus-proxy
       - mosquitto
