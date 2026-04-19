@@ -48,6 +48,7 @@ services:
     image: bohdans/sungather:latest
     container_name: sungrow2mqtt
     restart: unless-stopped
+    user: "0:0"
     networks:
       - lares
     volumes:

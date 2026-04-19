@@ -1,21 +1,15 @@
 # SunGather Configuration for Lares (ADR-013)
 # Modbus-only access to Sungrow inverter via modbus-proxy
 
-# Auto-generated registers file (will be created on first run)
-auto_generate_registers: true
-
 # Inverter configuration
-inverters:
-  - name: sungrow
-    host: modbus-proxy
-    port: 502
-    slave_id: 1
-    # Level 1 = most useful data, Level 2 = all supported registers
-    level: 1
-    # Enable smart_meter if you have SG* model with smart meter
-    smart_meter: false
-    # Poll interval in seconds
-    poll_interval: 5
+inverter:
+  host: modbus-proxy
+  port: 502
+  slave: 0x01
+  connection: modbus
+  level: 1
+  smart_meter: false
+  scan_interval: 5
 
 # Export configuration
 exports:
