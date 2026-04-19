@@ -1,0 +1,6 @@
+# Modbus Proxy Configuration for Sungrow (ADR-004)
+# Proxies Modbus TCP connections to Sungrow inverter
+
+listen: :502
+backend: ${SUNGROW_IP}:502
+log-level: info

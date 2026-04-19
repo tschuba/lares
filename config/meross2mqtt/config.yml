@@ -5,7 +5,7 @@
 log_level: INFO
 
 # MQTT broker settings
-mqtt_host: ""
+mqtt_host: "mosquitto"
 mqtt_port: 1883
 mqtt_username: ""
 mqtt_password: ""

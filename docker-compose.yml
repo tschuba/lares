@@ -21,7 +21,7 @@ services:
     ports:
       - "1883:1883"
     volumes:
-      - ./config/mosquitto:/mosquitto/config:ro
+      - ./config/mosquitto:/mosquitto/config
       - ./data/mosquitto:/mosquitto/data
       - ./logs/mosquitto:/mosquitto/log
     environment:
@@ -38,9 +38,9 @@ services:
     ports:
       - "502:502"
     command:
-      - "--listen=:502"
-      - "--backend=${SUNGROW_IP}:502"
-      - "--log-level=info"
+      - "--config-file=/config/modbus-proxy.yml"
+    volumes:
+      - ./config/modbus-proxy:/config:ro
     profiles:
       - sungrow
 
@@ -60,6 +60,8 @@ services:
       - MQTT_PASSWORD=${MQTT_PASSWORD}
       - MQTT_TOPIC_PREFIX=energy/sungrow
       - POLL_INTERVAL=5
+      - GOSUNGROW_USER=${SUNGROW_USER}
+      - GOSUNGROW_PASSWORD=${SUNGROW_PASSWORD}
     depends_on:
       - modbus-proxy
       - mosquitto
@@ -97,7 +99,12 @@ services:
     container_name: luxtronik2mqtt
     restart: unless-stopped
     environment:
+      - NOVELAN_IP=${NOVELAN_IP}
       - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - POLL_INTERVAL=60
     networks:
       - lares
     depends_on:
@@ -146,8 +153,6 @@ services:
     restart: unless-stopped
     networks:
       - lares
-    volumes:
-      - ./config/meross2mqtt:/config
     environment:
       - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
