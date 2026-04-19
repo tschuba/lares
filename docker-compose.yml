@@ -30,7 +30,7 @@ services:
 
   # Modbus Proxy for Sungrow (ADR-004)
   modbus-proxy:
-    image: ghcr.io/tiagocoutinho/modbus-proxy:latest
+    image: tiagocoutinho/modbus-proxy:latest
     container_name: modbus-proxy
     restart: unless-stopped
     networks:
@@ -46,7 +46,7 @@ services:
 
   # Sungrow to MQTT Bridge (ADR-013)
   sungrow2mqtt:
-    image: bohdan0/sungrow2mqtt:latest
+    image: 11notes/sungrow:3.0.7
     container_name: sungrow2mqtt
     restart: unless-stopped
     networks:
@@ -96,8 +96,6 @@ services:
     image: ghcr.io/tschuba/lares/luxtronik2mqtt:latest
     container_name: luxtronik2mqtt
     restart: unless-stopped
-    env_file:
-      - ./config/.env
     environment:
       - MQTT_HOST=mosquitto
     networks:
@@ -112,8 +110,6 @@ services:
     image: bachya/ecowitt2mqtt:latest
     container_name: ecowitt2mqtt
     restart: unless-stopped
-    env_file:
-      - ./config/.env
     environment:
       - ECOWITT2MQTT_MQTT_BROKER=mosquitto
       - ECOWITT2MQTT_MQTT_PORT=1883
@@ -136,8 +132,6 @@ services:
     image: felddy/weewx:latest
     container_name: weewx
     restart: unless-stopped
-    env_file:
-      - ./config/.env
     volumes:
       - ./data/weewx:/data
     networks:
@@ -147,7 +141,7 @@ services:
 
   # Meross to MQTT Bridge (ADR-011)
   meross2mqtt:
-    image: depau/meross2mqtt:latest
+    image: ghcr.io/tschuba/lares/meross2mqtt:latest
     container_name: meross2mqtt
     restart: unless-stopped
     networks:
