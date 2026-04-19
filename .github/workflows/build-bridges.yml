@@ -15,11 +15,12 @@ on:
       - 'bridges/luxtronik/**'
       - 'bridges/vallox/**'
       - '.github/workflows/build-bridges.yml'
+  workflow_dispatch:
 
 jobs:
   build-luxtronik:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'bridges/luxtronik/') || contains(github.event.*.paths[0], 'bridges/luxtronik/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/luxtronik/') || contains(github.event.*.paths[0], 'bridges/luxtronik/')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -56,7 +57,7 @@ jobs:
 
   build-vallox:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'bridges/vallox/') || contains(github.event.*.paths[0], 'bridges/vallox/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/vallox/') || contains(github.event.*.paths[0], 'bridges/vallox/')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
