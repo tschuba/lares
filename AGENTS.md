@@ -3,7 +3,8 @@
 ## Repo reality (important)
 - This repo is currently planning/documentation-first. There is no runnable app yet.
 - No build/test/lint/typecheck/format toolchain is configured (no manifests, CI, or task runner).
-- `compose/`, `config/`, and `bridges/vallox/` are intentionally present but currently empty.
+- `config/` contains configuration templates and subdirectories for various services.
+- `bridges/` contains custom bridge code (vallox, luxtronik).
 
 ## Language and docs
 - Repository documentation is German-first (`README.md`, `docs/*.md`); keep new docs and ADR updates in German.

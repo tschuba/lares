@@ -6,8 +6,8 @@ Dieses Dokument führt alle relevanten Komponenten, Dienste, Ports und Integrati
 
 | Komponente | Details | Funktion |
 |---|---|---|
-| Raspberry Pi 4 Model B Rev 1.5 | 8 GB RAM, 1 TB Storage | Laufzeit für Integrationen, HA, Broker, Grafana |
-| Ugreen DXP2800 NAS | LAN-intern, nicht internet-erreichbar | InfluxDB-Langzeitspeicher |
+| Raspberry Pi 4 Model B Rev 1.5 | 8 GB RAM, 1 TB Storage, 192.168.178.69 | Coolify-Host, öffentliche Dienste (HA, Grafana, Traefik, Authentik) |
+| Ugreen DXP2800 NAS | Intel N100 4-Core, 8 GB RAM, 192.168.178.163 | Integrationsdienste (Mosquitto, Bridges, WeeWX, Telegraf, InfluxDB) |
 
 ## 2) Geräte-Inventar
 
@@ -32,11 +32,19 @@ Zuordnung der Meross-Steckdosen:
 - MSS315 (1): Waschmaschine
 - MSS315 (2): Trockner
 
-## 3) Service-Inventar (Pi / Coolify)
+## 3) Service-Inventar (Pi / Coolify - 192.168.178.69)
 
 | Service | Image/Artefakt | Intern/Extern | Ports | Persistenz |
 |---|---|---|---|---|
 | Home Assistant | beständiger Coolify-Service | Extern via `home.schubs.net` | App-intern | bestehend |
+| Grafana | `grafana/grafana` | Extern via `cockpit.schubs.net` | 3000 intern | bestehend |
+| Traefik | Coolify-integriert | Reverse Proxy | 80/443 | - |
+| Authentik | Coolify-integriert | SSO | App-intern | - |
+
+## 4) Service-Inventar (NAS - 192.168.178.163)
+
+| Service | Image/Artefakt | Intern/Extern | Ports | Persistenz |
+|---|---|---|---|---|
 | Mosquitto | `eclipse-mosquitto` | Intern | 1883/tcp | ja |
 | modbus-proxy | `ghcr.io/tiagocoutinho/modbus-proxy` | Intern | 502/tcp | nein |
 | sungrow2mqtt | `bohdan0/sungrow2mqtt` | Intern | - | nein |
@@ -46,23 +54,18 @@ Zuordnung der Meross-Steckdosen:
 | ecowitt2mqtt | `bachya/ecowitt2mqtt` | Intern | 4004/tcp (listener) | optional |
 | Telegraf | `telegraf` | Intern | - | optional |
 | WeeWX | `felddy/weewx` | Intern + ausgehend ins Internet | pluginabhängig | ja |
-| Grafana | `grafana/grafana` | Extern via `cockpit.schubs.net` | 3000 intern | ja |
-
-## 4) Service-Inventar (NAS)
-
-| Service | Image | Rolle | Port |
-|---|---|---|---|
-| InfluxDB 2.x | `influxdb:2` | zentrale Zeitreihen-Datenbank | 8086/tcp |
+| InfluxDB 2.x | `influxdb:2` | Intern | 8086/tcp | ja |
 
 ## 5) Netzwerke
 
 | Netzwerkname | Zweck | Teilnehmer |
 |---|---|---|
-| `lares` | internes Smart-Home Integrationsnetz | HA, Mosquitto, Bridges, Grafana |
-| Traefik-Netz (bestehend) | Reverse Proxy Routing | Traefik, Authentik, externe Dienste |
-| Standard/Coolify-Projektnetze | segmentierte Laufzeit je Projekt | bestehende Services |
+| `lares` (NAS) | internes Smart-Home Integrationsnetz auf NAS | Mosquitto, Bridges, Telegraf, WeeWX, InfluxDB |
+| LAN (192.168.178.0/24) | physisches Netzwerk zwischen Pi und NAS | HA, Grafana auf Pi verbinden zu Mosquitto, InfluxDB auf NAS |
+| Traefik-Netz (Pi) | Reverse Proxy Routing | Traefik, Authentik, HA, Grafana |
+| Standard/Coolify-Projektnetze (Pi) | segmentierte Laufzeit je Projekt | bestehende Services |
 
-Hinweis: Relevante Dienste werden in mehreren Netzen eingebunden, wenn erforderlich (z. B. Grafana: `lares` + Traefik-Netz).
+Hinweis: Home Assistant und Grafana auf Pi kommunizieren über LAN mit MQTT-Broker und InfluxDB auf NAS (ADR-014).
 
 ## 6) Subdomains und Erreichbarkeit
 
@@ -82,15 +85,15 @@ Nicht öffentlich exponiert:
 
 Diese Werte werden vor Umsetzung mit Realwerten ersetzt:
 
-- `PI_LAN_IP=<...>`
-- `NAS_LAN_IP=<...>`
+- `PI_LAN_IP=192.168.178.69`
+- `NAS_LAN_IP=192.168.178.163`
 - `SUNGROW_IP=<...>`
 - `NOVELAN_IP=<...>`
 - `VALLOX_IP=<...>`
-- `ECOWITT_PUSH_TARGET=http://<PI_LAN_IP>:4004`
+- `ECOWITT_PUSH_TARGET=http://192.168.178.163:4004`
 - `MQTT_USERNAME=<...>`
 - `MQTT_PASSWORD=<...>`
-- `INFLUX_URL=http://<NAS_LAN_IP>:8086`
+- `INFLUX_URL=http://192.168.178.163:8086`
 - `INFLUX_ORG=<...>`
 - `INFLUX_BUCKET=<...>`
 - `INFLUX_TOKEN=<...>`

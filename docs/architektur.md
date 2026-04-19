@@ -25,15 +25,15 @@ Hinweis: Die Benennung bleibt bei internem Toolwechsel stabil und folgt dem Funk
 
 ## Laufzeitarchitektur
 
-- Reverse Proxy und Authentik laufen bereits auf dem Pi (Coolify-Umfeld).
-- Home Assistant ist bereits via Coolify im Betrieb und wird zusätzlich ins interne `lares`-Netz eingebunden.
-- Mosquitto ist der interne MQTT-Broker.
+- Reverse Proxy und Authentik laufen auf dem Pi (Coolify-Umfeld, 192.168.178.69).
+- Home Assistant und Grafana werden via Coolify auf dem Pi betrieben und sind internet-erreichbar (home.schubs.net, cockpit.schubs.net).
+- Alle Integrationsdienste laufen auf dem NAS (192.168.178.163): Mosquitto, alle MQTT-Bridges, WeeWX, Telegraf, InfluxDB (ADR-014).
+- Home Assistant auf Pi kommuniziert über LAN mit MQTT-Broker auf NAS.
 - Protokollspezifische Bridges binden Geräte an MQTT an.
 - Meross-Integration ist dual-path: `meross_lan` in HA für Steuerung, `meross2mqtt` für direkte Energiemetriken zu MQTT/InfluxDB.
-- Telegraf schreibt MQTT-Metriken (inkl. Meross) in InfluxDB auf dem NAS.
+- Telegraf schreibt MQTT-Metriken (inkl. Meross) lokal in InfluxDB auf dem NAS.
 - WeeWX übernimmt die Weiterleitung von Wetterdaten an externe Wetterdienste.
-- Grafana ist internet-erreichbar via Traefik, aber durch Authentik abgesichert.
-- InfluxDB läuft zentral auf dem NAS und wird von Home Assistant und Telegraf beschrieben.
+- InfluxDB läuft zentral auf dem NAS und wird von Home Assistant (über LAN) und Telegraf beschrieben.
 
 ## Architekturdiagramm
 
@@ -41,10 +41,14 @@ Hinweis: Die Benennung bleibt bei internem Toolwechsel stabil und folgt dem Funk
 flowchart TD
     Internet((Internet))
 
-    subgraph Pi ["Raspberry Pi 4 - Coolify Host"]
+    subgraph Pi ["Raspberry Pi 4 - Coolify Host\n192.168.178.69"]
         Traefik["Traefik Reverse Proxy"]
         Authentik["Authentik SSO"]
+        HA["Home Assistant\nhome.schubs.net"]
+        Grafana["Grafana\ncockpit.schubs.net"]
+    end
 
+    subgraph NAS ["Ugreen DXP2800 NAS\n192.168.178.163"]
         subgraph LARES ["Docker-Netzwerk: lares"]
             Mosquitto["Mosquitto :1883"]
             ModbusProxy["modbus-proxy :502"]
@@ -55,13 +59,8 @@ flowchart TD
             E2M["ecowitt2mqtt :4004"]
             Telegraf["Telegraf"]
             WeeWX["WeeWX"]
-            HA["Home Assistant\nhome.schubs.net"]
-            Grafana["Grafana\ncockpit.schubs.net"]
+            InfluxDB[("InfluxDB 2.x :8086")]
         end
-    end
-
-    subgraph NAS ["Ugreen DXP2800 NAS"]
-        InfluxDB[("InfluxDB 2.x :8086")]
     end
 
     subgraph Geraete ["LAN Geräte"]
@@ -88,6 +87,8 @@ flowchart TD
     Authentik --> HA
     Authentik --> Grafana
 
+    HA -->|MQTT über LAN| Mosquitto
+
     Sungrow -->|Modbus TCP| ModbusProxy
     ModbusProxy --> S2M
     S2M -->|MQTT| Mosquitto
@@ -108,7 +109,6 @@ flowchart TD
     WeeWX -->|Upload| CWOP
     WeeWX -->|Upload| OWM
 
-    Mosquitto -->|MQTT| HA
     Bambu -->|Integration| HA
     Meross -->|meross_lan| HA
     Meross -->|HTTP| M2M
@@ -121,18 +121,19 @@ flowchart TD
 
     HA <-->|Alexa API| Echo
 
-    HA -->|Write| InfluxDB
-    Grafana -->|Read| InfluxDB
+    HA -->|Write über LAN| InfluxDB
+    Grafana -->|Read über LAN| InfluxDB
 ```
 
 ## Datenfluss
 
-1. Feldgeräte liefern Rohdaten über native Protokolle.
-2. Bridges transformieren in MQTT-Topics unter gemeinsamer Topic-Hierarchie.
-3. Home Assistant konsumiert MQTT-Daten und führt Automationen aus.
-4. Home Assistant schreibt Messwerte in InfluxDB auf dem NAS.
-5. Grafana visualisiert aus InfluxDB.
-6. Ecowitt-Daten werden parallel über WeeWX an externe Wetterdienste veröffentlicht.
+1. Feldgeräte liefern Rohdaten über native Protokolle an Bridges auf NAS.
+2. Bridges transformieren in MQTT-Topics unter gemeinsamer Topic-Hierarchie auf NAS.
+3. Home Assistant auf Pi konsumiert MQTT-Daten über LAN von NAS-Mosquitto und führt Automationen aus.
+4. Home Assistant schreibt Messwerte über LAN in InfluxDB auf dem NAS.
+5. Telegraf auf NAS schreibt MQTT-Metriken lokal in InfluxDB auf dem NAS.
+6. Grafana auf Pi visualisiert aus InfluxDB auf NAS über LAN.
+7. Ecowitt-Daten werden parallel über WeeWX auf NAS an externe Wetterdienste veröffentlicht.
 
 ## Energiefluss-Visualisierung
 

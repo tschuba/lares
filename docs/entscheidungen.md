@@ -97,3 +97,21 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Kontext: Für Sungrow SH8.0RT existiert ein etabliertes Community-Image `bohdan0/sungrow2mqtt`. Eine custom Bridge wurde prototypisch entwickelt und getestet.
 - Entscheidung: Verwendet wird das off-the-shelf Image `bohdan0/sungrow2mqtt`. Die custom Bridge in `bridges/sungrow2mqtt/` wird archiviert für potenzielle spätere Verwendung.
 - Begründung: ADR-006 beschränkt custom Code auf vallox2mqtt. Für Sungrow steht ein funktionierendes Standard-Image zur Verfügung, das Wartungsaufwand minimiert und Community-Support bietet. Die custom Bridge bleibt als Referenz verfügbar.
+
+## ADR-014: NAS-zentrierte Service-Verteilung
+
+- Status: Angenommen
+- Kontext: Ugreen NAS (Intel N100, 8GB RAM) bietet deutlich mehr Rechenleistung als Raspberry Pi 4. Alle Geräte befinden sich im selben LAN mit statischen IPs.
+- Entscheidung:
+  - **NAS (192.168.178.163)**: Mosquitto, alle MQTT-Bridges, WeeWX, Telegraf, InfluxDB
+  - **Pi (192.168.178.69, Coolify)**: Home Assistant, Grafana, Traefik, Authentik (nur öffentlich zugängliche Dienste)
+- Begründung:
+  - NAS-Hardware leistungsstärker für Integrationsdienste und Datensammlung
+  - Zentralisierung von MQTT-Bus und Zeitreihen-Verarbeitung auf NAS reduziert Netzwerkverkehr
+  - Pi wird zu leichtem Reverse-Proxy-Host für öffentliche Exposition
+  - Home Assistant auf Pi kommuniziert über LAN mit MQTT-Broker auf NAS
+  - Trennung von Datenebene (NAS) und Zugriffsebene (Pi) bleibt gewahrt
+- Trade-off:
+  - Bei NAS-Ausfall fallen alle Integrationsdienste aus (MQTT, Bridges, Telegraf)
+  - Home Assistant bleibt lokal bedienbar, verliert aber MQTT-Daten-Feed
+  - Erhöhte Netzwerklatenz zwischen HA (Pi) und MQTT (NAS) im Vergleich zu lokaler Deployment-Option

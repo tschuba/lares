@@ -1,6 +1,6 @@
-# Lares Smart Home Integration Suite
-# Consolidated Docker Compose for Coolify deployment
-# Excludes InfluxDB which runs on NAS per ADR-005
+# Lares Integration Services on NAS (ADR-014)
+# This compose file is deployed on the NAS (192.168.178.163)
+# Includes: Mosquitto, all MQTT bridges, WeeWX, Telegraf, InfluxDB
 
 networks:
   lares:
@@ -14,7 +14,7 @@ services:
   # Core MQTT Broker
   mosquitto:
     image: eclipse-mosquitto:2.0
-    container_name: lares-mosquitto
+    container_name: mosquitto
     restart: unless-stopped
     networks:
       - lares
@@ -31,7 +31,7 @@ services:
   # Modbus Proxy for Sungrow (ADR-004)
   modbus-proxy:
     image: ghcr.io/tiagocoutinho/modbus-proxy:latest
-    container_name: lares-modbus-proxy
+    container_name: modbus-proxy
     restart: unless-stopped
     networks:
       - lares
@@ -44,17 +44,17 @@ services:
     profiles:
       - sungrow
 
-  # Sungrow to MQTT Bridge (ADR-013 - off-the-shelf)
+  # Sungrow to MQTT Bridge (ADR-013)
   sungrow2mqtt:
     image: bohdan0/sungrow2mqtt:latest
-    container_name: lares-sungrow2mqtt
+    container_name: sungrow2mqtt
     restart: unless-stopped
     networks:
       - lares
     environment:
-      - MODBUS_HOST=lares-modbus-proxy
+      - MODBUS_HOST=modbus-proxy
       - MODBUS_PORT=502
-      - MQTT_HOST=lares-mosquitto
+      - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
@@ -66,12 +66,12 @@ services:
     profiles:
       - sungrow
 
-  # Vallox to MQTT Bridge (ADR-006 - custom)
+  # Vallox to MQTT Bridge (ADR-006)
   vallox2mqtt:
     build:
       context: ./bridges/vallox
       dockerfile: Dockerfile
-    container_name: lares-vallox2mqtt
+    container_name: vallox2mqtt
     restart: unless-stopped
     networks:
       - lares
@@ -79,7 +79,7 @@ services:
       - VALLOX_HOST=${VALLOX_IP}
       - VALLOX_PORT=18080
       - POLL_INTERVAL=30
-      - MQTT_BROKER=lares-mosquitto
+      - MQTT_BROKER=mosquitto
       - MQTT_PORT=1883
       - MQTT_CLIENT_ID=vallox2mqtt
       - MQTT_USERNAME=${MQTT_USERNAME}
@@ -97,12 +97,12 @@ services:
   luxtronik2mqtt:
     build:
       context: ./bridges/luxtronik
-    container_name: lares-luxtronik2mqtt
+    container_name: luxtronik2mqtt
     restart: unless-stopped
     env_file:
       - ./config/.env
     environment:
-      - MQTT_HOST=lares-mosquitto
+      - MQTT_HOST=mosquitto
     networks:
       - lares
     depends_on:
@@ -113,12 +113,12 @@ services:
   # Ecowitt to MQTT Bridge
   ecowitt2mqtt:
     image: bachya/ecowitt2mqtt:latest
-    container_name: lares-ecowitt2mqtt
+    container_name: ecowitt2mqtt
     restart: unless-stopped
     env_file:
       - ./config/.env
     environment:
-      - ECOWITT2MQTT_MQTT_BROKER=lares-mosquitto
+      - ECOWITT2MQTT_MQTT_BROKER=mosquitto
       - ECOWITT2MQTT_MQTT_PORT=1883
       - ECOWITT2MQTT_MQTT_USERNAME=${MQTT_USERNAME}
       - ECOWITT2MQTT_MQTT_PASSWORD=${MQTT_PASSWORD}
@@ -137,7 +137,7 @@ services:
   # WeeWX for weather data upload (ADR-010)
   weewx:
     image: felddy/weewx:latest
-    container_name: lares-weewx
+    container_name: weewx
     restart: unless-stopped
     env_file:
       - ./config/.env
@@ -148,17 +148,17 @@ services:
     profiles:
       - weather
 
-  # Meross to MQTT Bridge (ADR-011 - hybrid approach for metrics)
+  # Meross to MQTT Bridge (ADR-011)
   meross2mqtt:
     image: depau/meross2mqtt:latest
-    container_name: lares-meross2mqtt
+    container_name: meross2mqtt
     restart: unless-stopped
     networks:
       - lares
     volumes:
       - ./config/meross2mqtt:/config
     environment:
-      - MQTT_HOST=lares-mosquitto
+      - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
@@ -170,10 +170,10 @@ services:
     profiles:
       - meross
 
-  # Telegraf for MQTT to InfluxDB bridge (ADR-011 hybrid approach)
+  # Telegraf for MQTT to InfluxDB bridge (ADR-011)
   telegraf:
     image: telegraf:latest
-    container_name: lares-telegraf
+    container_name: telegraf
     restart: unless-stopped
     networks:
       - lares
@@ -185,7 +185,7 @@ services:
       - INFLUX_BUCKET=${INFLUX_BUCKET}
       - INFLUX_HOST=${INFLUX_HOST}
       - INFLUX_PORT=8086
-      - MQTT_BROKER=lares-mosquitto
+      - MQTT_BROKER=mosquitto
       - MQTT_PORT=1883
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
@@ -193,3 +193,24 @@ services:
       - mosquitto
     profiles:
       - meross
+
+  # InfluxDB 2.x (ADR-005)
+  influxdb:
+    image: influxdb:2
+    container_name: influxdb
+    restart: unless-stopped
+    networks:
+      - lares
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./data/influxdb:/var/lib/influxdb2
+      - ./config/influxdb:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET}
+      - DOCKER_INFLUXDB_INIT_RETENTION=30d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}

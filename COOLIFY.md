@@ -2,25 +2,63 @@
 
 ## Overview
 
-Lares can be deployed as a single Coolify application with all Pi-hosted services in one compose file. InfluxDB runs separately on the NAS per ADR-005.
+As of ADR-014, Lares uses a NAS-centric architecture. Coolify on the Pi (192.168.178.69) only hosts public-facing services (Home Assistant, Grafana, Traefik, Authentik). All integration services (Mosquitto, MQTT bridges, WeeWX, Telegraf, InfluxDB) run on the NAS (192.168.178.163).
 
 ## Architecture
 
-- **Pi (Coolify host)**: Mosquitto, all MQTT bridges, WeeWX
-- **NAS**: InfluxDB only (separate deployment)
+- **Pi (192.168.178.69, Coolify host)**: Home Assistant, Grafana, Traefik, Authentik (public-facing services only)
+- **NAS (192.168.178.163)**: Mosquitto, all MQTT bridges, WeeWX, Telegraf, InfluxDB (integration services)
 
 ## Quick Start
 
-### 1. Create Coolify Application
+### 1. Deploy Integration Services on NAS
 
-1. In Coolify, create a new application
-2. Choose "Docker Compose" as the source
-3. Connect the Lares repository
-4. Select `docker-compose.yml` as the compose file
+On the NAS, deploy `docker-compose.yml`:
 
-### 2. Configure Environment Variables
+```bash
+# Clone or copy Lares repository to NAS
+cd /path/to/lares-on-nas
 
-Add these environment variables in Coolify:
+# Create required directories
+mkdir -p data/mosquitto logs/mosquitto
+mkdir -p logs/vallox2mqtt
+mkdir -p data/weewx data/influxdb
+mkdir -p config/mosquitto config/influxdb config/meross2mqtt config/telegraf
+
+# Configure environment variables in config/.env
+cp config/.env.example config/.env
+# Edit config/.env with your values
+
+# Deploy with profiles (example: all services)
+docker compose --profile sungrow --profile ventilation --profile heating --profile weather --profile meross up -d
+```
+
+### 2. Configure Home Assistant on Pi (Coolify)
+
+Home Assistant is already deployed via Coolify. Update the MQTT configuration to point to the NAS:
+
+In Home Assistant configuration (via Coolify or HA UI):
+```yaml
+mqtt:
+  broker: 192.168.178.163
+  port: 1883
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+```
+
+### 3. Configure Grafana on Pi (Coolify)
+
+Grafana is already deployed via Coolify. Update the InfluxDB datasource to point to the NAS:
+
+In Grafana datasource configuration:
+- URL: `http://192.168.178.163:8086`
+- Organization: `lares`
+- Bucket: `smart_home`
+- Token: Use the InfluxDB admin token from NAS
+
+## Environment Variables
+
+These variables should be configured in `config/.env` on the NAS:
 
 ```bash
 # MQTT Configuration
@@ -28,19 +66,18 @@ MQTT_USERNAME=your_mqtt_username
 MQTT_PASSWORD=your_mqtt_password
 
 # Device IPs
-SUNGROW_IP=192.168.1.x
-NOVELAN_IP=192.168.1.x
-VALLOX_IP=192.168.1.x
-ECOWITT_PUSH_TARGET=http://192.168.1.100:4004
+SUNGROW_IP=192.168.178.x
+NOVELAN_IP=192.168.178.x
+VALLOX_IP=192.168.178.x
 
-# InfluxDB (for reference, actual deployment on NAS)
+# InfluxDB Configuration
 INFLUX_USERNAME=your_influx_username
 INFLUX_PASSWORD=your_influx_password
 INFLUX_ORG=lares
 INFLUX_BUCKET=smart_home
 INFLUX_TOKEN=your_influx_admin_token
-INFLUX_HOST=${NAS_LAN_IP}
-NAS_LAN_IP=192.168.1.200
+INFLUX_HOST=192.168.178.163
+INFLUX_PORT=8086
 
 # Weather Service Credentials
 AWEKAS_USERNAME=
@@ -55,40 +92,11 @@ OPENWEATHER_STATION_ID=
 OPENWEATHER_API_KEY=
 ```
 
-### 3. Deploy with Profiles
-
-Coolify supports Docker Compose profiles. Use the `COMPOSE_PROFILES` environment variable to select which services to deploy:
-
-**Full deployment (all bridges):**
-```bash
-COMPOSE_PROFILES=sungrow,ventilation,heating,weather,meross
-```
-
-**Minimal deployment (MQTT only):**
-```bash
-# Leave COMPOSE_PROFILES empty
-```
-
-**Specific services only:**
-```bash
-COMPOSE_PROFILES=sungrow,ventilation
-```
-
-### 4. Deploy InfluxDB on NAS
-
-On the NAS, deploy `docker-compose.nas.yml`:
-
-```bash
-# Copy docker-compose.nas.yml and config/.env to NAS
-cd /path/to/lares-on-nas
-docker compose -f docker-compose.nas.yml up -d
-```
-
-## Service Profiles
+## Service Profiles (NAS)
 
 | Profile | Services | Description |
 |--------|----------|-------------|
-| (none) | mosquitto | Core MQTT broker only |
+| (none) | mosquitto, influxdb | Core MQTT broker and database only |
 | sungrow | modbus-proxy, sungrow2mqtt | Sungrow inverter integration |
 | ventilation | vallox2mqtt | Vallox ventilation integration |
 | heating | luxtronik2mqtt | Novelan heat pump integration |
@@ -97,62 +105,46 @@ docker compose -f docker-compose.nas.yml up -d
 
 ## Network Configuration
 
-All services use the `lares` Docker network (172.20.0.0/16). This network is created automatically by the compose file.
+- **NAS**: All integration services use the `lares` Docker network (172.20.0.0/16) created by `docker-compose.yml`
+- **Pi**: Coolify manages its own networks for Traefik/Authentik
+- **Cross-host**: Home Assistant and Grafana on Pi communicate with Mosquitto and InfluxDB on NAS via LAN (192.168.178.0/24)
 
-## Volume Setup
+## Migration from Pi-Centric Deployment
 
-Create required directories on the Pi before first deployment:
+If you're migrating from the old Pi-centric deployment:
 
-```bash
-mkdir -p data/mosquitto logs/mosquitto
-mkdir -p logs/vallox2mqtt
-mkdir -p data/weewx
-mkdir -p config/meross2mqtt
-mkdir -p config/telegraf
-```
-
-Coolify will create these automatically if you configure persistent volumes in the application settings.
-
-## Migration from Individual Compose Files
-
-If you're currently using the individual compose files in `compose/`:
-
-1. Stop existing services:
-   ```bash
-   cd /Users/thomas/Projects/lares
-   docker compose -f compose/mosquitto.yml down
-   docker compose -f compose/modbus-proxy.yml down
-   docker compose -f compose/sungrow2mqtt.yml down
-   # ... repeat for all services
-   ```
-
-2. Remove the old network (optional, will be recreated):
-   ```bash
-   docker network rm lares
-   ```
-
-3. Deploy via Coolify using the new `docker-compose.yml`
+1. Stop existing services on Pi (if using old compose files)
+2. Remove the old network on Pi (optional): `docker network rm lares`
+3. Deploy services on NAS using `docker-compose.yml`
+4. Update Home Assistant MQTT configuration to point to NAS IP (192.168.178.163)
+5. Update Grafana InfluxDB datasource to point to NAS IP (192.168.178.163)
 
 ## Troubleshooting
 
-### Services not starting
-- Check Coolify logs for each service
-- Verify environment variables are set correctly
-- Ensure device IPs are reachable from the Pi
+### Services not starting on NAS
+- Check NAS Docker logs: `docker compose logs`
+- Verify environment variables in `config/.env`
+- Ensure device IPs are reachable from the NAS
 
-### Network issues
-- Verify the `lares` network exists: `docker network ls | grep lares`
-- Check service connectivity: `docker exec lares-mosquitto ping lares-sungrow2mqtt`
+### Home Assistant cannot connect to MQTT
+- Verify Mosquitto is running on NAS: `ssh nas 'docker ps | grep mosquitto'`
+- Test MQTT connection from Pi: `telnet 192.168.178.163 1883`
+- Check firewall rules on NAS
 
-### InfluxDB connection
-- Ensure InfluxDB is running on NAS
-- Verify NAS IP is correct in environment variables
-- Test connectivity: `curl -I http://<NAS_LAN_IP>:8086/health`
+### Grafana cannot connect to InfluxDB
+- Verify InfluxDB is running on NAS: `ssh nas 'docker ps | grep influxdb'`
+- Test InfluxDB connection from Pi: `curl -I http://192.168.178.163:8086/health`
+- Check InfluxDB token and bucket configuration
+
+### Network latency issues
+- Pi and NAS should be on the same subnet (192.168.178.0/24)
+- Verify LAN cable connections
+- Check for network congestion
 
 ## Advantages of This Approach
 
-1. **Single Coolify application**: All Pi services managed together
-2. **Profile-based deployment**: Deploy only what you need
-3. **Simplified updates**: One compose file to maintain
-4. **Coolify-native**: Uses Coolify's environment variable and deployment features
-5. **Separation of concerns**: NAS (InfluxDB) remains independent per ADR-005
+1. **Hardware optimization**: NAS (Intel N100, 8GB RAM) handles resource-intensive integration services
+2. **Simplified Coolify**: Pi only hosts public-facing services, reducing Coolify complexity
+3. **Centralized data processing**: MQTT bus and time-series processing on NAS reduces cross-host traffic
+4. **Clear separation**: Data plane (NAS) vs access plane (Pi)
+5. **Scalability**: NAS can be upgraded independently for better performance
