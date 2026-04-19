@@ -37,12 +37,9 @@ services:
       - lares
     ports:
       - "502:502"
-    entrypoint:
-      - sh
-      - -c
-      - "envsubst < /config/modbus-proxy.yml > /tmp/modbus-proxy.yml && /modbus-proxy --config-file=/tmp/modbus-proxy.yml"
+    command: ["--config-file", "/config/modbus-proxy.yml"]
     volumes:
-      - ./config/modbus-proxy:/config
+      - ./config/modbus-proxy/modbus-proxy.yml:/config/modbus-proxy.yml
     profiles:
       - sungrow
 

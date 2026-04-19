@@ -1,6 +1,9 @@
 # Modbus Proxy Configuration for Sungrow (ADR-004)
 # Proxies Modbus TCP connections to Sungrow inverter
+# NOTE: Replace 192.168.1.x with your actual Sungrow inverter IP
 
-listen: :502
-backend: ${SUNGROW_IP}:502
-log-level: info
+devices:
+    - modbus:
+        url: 192.168.1.x:502
+      listen:
+        bind: 0:502
