@@ -68,9 +68,7 @@ services:
 
   # Vallox to MQTT Bridge (ADR-006)
   vallox2mqtt:
-    build:
-      context: ./bridges/vallox
-      dockerfile: Dockerfile
+    image: ghcr.io/tschuba/lares/vallox2mqtt:latest
     container_name: vallox2mqtt
     restart: unless-stopped
     networks:
@@ -95,8 +93,7 @@ services:
 
   # Luxtronik to MQTT Bridge (Novelan heat pump)
   luxtronik2mqtt:
-    build:
-      context: ./bridges/luxtronik
+    image: ghcr.io/tschuba/lares/luxtronik2mqtt:latest
     container_name: luxtronik2mqtt
     restart: unless-stopped
     env_file:
