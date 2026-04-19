@@ -37,10 +37,12 @@ services:
       - lares
     ports:
       - "502:502"
-    command:
-      - "--config-file=/config/modbus-proxy.yml"
+    entrypoint:
+      - sh
+      - -c
+      - "envsubst < /config/modbus-proxy.yml > /tmp/modbus-proxy.yml && /modbus-proxy --config-file=/tmp/modbus-proxy.yml"
     volumes:
-      - ./config/modbus-proxy:/config:ro
+      - ./config/modbus-proxy:/config
     profiles:
       - sungrow
 
@@ -148,6 +150,8 @@ services:
     restart: unless-stopped
     networks:
       - lares
+    volumes:
+      - ./config/meross2mqtt/config.yml:/config/config.yml:ro
     environment:
       - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
