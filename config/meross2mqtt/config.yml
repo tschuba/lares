@@ -29,7 +29,7 @@ meross_bridge_topic: "bridge"
 homie_prefix: "homie"
 
 # Persistence file for discovered devices
-persistence_file: "devices.json"
+persistence_file: /app/devices.json
 
 # Device-specific configuration
 # Add device UUIDs with custom names if desired
