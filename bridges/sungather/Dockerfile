@@ -20,8 +20,8 @@ RUN python3 << 'EOF'
 with open('SunGather/sungather.py', 'r') as f:
     content = f.read()
 content = content.replace(
-    "exports = configfile.get('exports', [])\n    for export in exports:",
-    "exports = configfile.get('exports', [])\n    if exports is None:\n        exports = []\n    \n    for export in exports:"
+    "exports = []\n    if configfile.get('exports'):\n        for export in configfile.get('exports'):",
+    "exports = []\n    for export in configfile.get('exports', []):"
 )
 with open('SunGather/sungather.py', 'w') as f:
     f.write(content)
