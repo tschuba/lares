@@ -15,8 +15,17 @@ WORKDIR /opt/sungather
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Fix export loading bug - add None check
-RUN sed -i '/exports = configfile.get/a\    if exports is None:\n        exports = []' SunGather/sungather.py
+# Fix export loading bug - add None check using Python
+RUN python3 << 'EOF'
+with open('SunGather/sungather.py', 'r') as f:
+    content = f.read()
+content = content.replace(
+    "exports = configfile.get('exports', [])\n    for export in exports:",
+    "exports = configfile.get('exports', [])\n    if exports is None:\n        exports = []\n    \n    for export in exports:"
+)
+with open('SunGather/sungather.py', 'w') as f:
+    f.write(content)
+EOF
 
 # Create config directory
 RUN mkdir -p /config /logs
