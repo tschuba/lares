@@ -46,10 +46,10 @@ def main():
             lux.read()
             
             data = {
-                "temperature_outside": lux.parameters.get("ID_WEB_Temperatur_TA").value if lux.parameters.get("ID_WEB_Temperatur_TA") else None,
-                "temperature_hot_water": lux.parameters.get("ID_WEB_Temperatur_TBW").value if lux.parameters.get("ID_WEB_Temperatur_TBW") else None,
-                "temperature_flow": lux.parameters.get("ID_WEB_Temperatur_TVL").value if lux.parameters.get("ID_WEB_Temperatur_TVL") else None,
-                "temperature_return": lux.parameters.get("ID_WEB_Temperatur_TRL").value if lux.parameters.get("ID_WEB_Temperatur_TRL") else None,
+                "temperature_outside": lux.calculations.get("ID_WEB_Temperatur_TA").value if lux.calculations.get("ID_WEB_Temperatur_TA") else None,
+                "temperature_hot_water": lux.calculations.get("ID_WEB_Temperatur_TBW").value if lux.calculations.get("ID_WEB_Temperatur_TBW") else None,
+                "temperature_flow": lux.calculations.get("ID_WEB_Temperatur_TVL").value if lux.calculations.get("ID_WEB_Temperatur_TVL") else None,
+                "temperature_return": lux.calculations.get("ID_WEB_Temperatur_TRL").value if lux.calculations.get("ID_WEB_Temperatur_TRL") else None,
             }
             
             data = {k: v for k, v in data.items() if v is not None}
