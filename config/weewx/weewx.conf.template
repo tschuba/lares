@@ -58,25 +58,26 @@ version = 5.1.0
 [MQTTSubscribeDriver]
     # MQTT-Subscribe Driver Configuration for WeeWX
     
+    # The driver to use
+    driver = user.mqttsubscribe
+    
     # MQTT Broker Connection
-    broker = mosquitto
+    host = mosquitto
     port = 1883
     username = $MQTT_USERNAME
     password = $MQTT_PASSWORD
     
-    # Topic to subscribe to for Ecowitt weather data
+    # Topic configuration for Ecowitt weather data
     # Adjust topic based on Ecowitt integration option:
     # - Option A (direct MQTT): Topic as configured in Ecowitt App
     # - Option B (ecowitt2mqtt): weather/ecowitt/#
-    topic = weather/ecowitt/#
-    
-    # Optional: MQTT connection options
-    # client_id = weewx
-    # qos = 0
-    # retain = false
-    
-    # The driver to use
-    driver = user.mqttsubscribe
+    [[topics]]
+        unit_system = METRICWX
+        [[[weather/ecowitt]]]
+            subscribe = True
+            ignore = False
+            [[[[message]]]]
+                type = json
 
 ##############################################################################
 
