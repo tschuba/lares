@@ -5,10 +5,12 @@ Custom bridge for Vallox ValloPlus 350 MV-E ventilation system (ADR-006)
 """
 
 import os
+import sys
 import logging
 import time
 import json
-import requests
+import asyncio
+from vallox_websocket_api import Vallox
 from paho.mqtt import client as mqtt_client
 
 # Configure logging
@@ -19,73 +21,61 @@ try:
     log_dir = os.path.dirname(log_file)
     if log_dir and not os.path.exists(log_dir):
         os.makedirs(log_dir, exist_ok=True)
+    
+    # Configure logging with both file and stdout handlers
     logging.basicConfig(
-        filename=log_file,
         level=log_level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
     )
 except (OSError, IOError):
+    # Fallback to stdout only if file logging fails
     logging.basicConfig(
         level=log_level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[logging.StreamHandler()]
     )
 
 logger = logging.getLogger('vallox2mqtt')
 
 
 class ValloxAPI:
-    """Client for Vallox TCP API on port 18080"""
+    """Client for Vallox WebSocket API"""
 
-    def __init__(self, host, port=18080):
+    def __init__(self, host):
         self.host = host
-        self.port = port
-        self.base_url = f"http://{host}:{port}"
-        self.timeout = 5
+        self.client = Vallox(host)
 
-    def get_metrics(self):
+    async def get_metrics(self):
         """Fetch current metrics from Vallox unit"""
         try:
-            # Vallox API endpoint for metrics
-            response = requests.get(
-                f"{self.base_url}/api/v1/data",
-                timeout=self.timeout
-            )
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            logger.error(f"Vallox API request failed: {str(e)}")
-            return None
-
-    def get_system_info(self):
-        """Fetch system information"""
-        try:
-            response = requests.get(
-                f"{self.base_url}/api/v1/info",
-                timeout=self.timeout
-            )
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            logger.error(f"Vallox system info request failed: {str(e)}")
+            data = await self.client.fetch_metric_data()
+            return data
+        except Exception as e:
+            logger.error(f"Vallox WebSocket API request failed: {str(e)}")
             return None
 
 
 def parse_vallox_data(metrics):
-    """Parse Vallox metrics into ventilation data"""
+    """Parse Vallox WebSocket API metrics into ventilation data"""
     if not metrics:
         return None
 
     try:
-        # Example parsing - adjust based on actual API response structure
+        # WebSocket API returns a dictionary with metric keys like A_CYC_TEMP_EXHAUST_AIR
         return {
-            'fan_speed': metrics.get('fanSpeed', 0),
-            'temperature_supply_air': metrics.get('supplyAirTemperature', 0.0),
-            'temperature_exhaust_air': metrics.get('exhaustAirTemperature', 0.0),
-            'temperature_outdoor_air': metrics.get('outdoorAirTemperature', 0.0),
-            'humidity': metrics.get('humidity', 0),
-            'co2_level': metrics.get('co2Level', 0),
-            'filter_condition': metrics.get('filterCondition', 0),
-            'operating_mode': metrics.get('operatingMode', 'unknown')
+            'fan_speed': metrics.get('A_CYC_FAN_SPEED', 0),
+            'temperature_supply_air': metrics.get('A_CYC_TEMP_SUPPLY_AIR', 0.0),
+            'temperature_exhaust_air': metrics.get('A_CYC_TEMP_EXHAUST_AIR', 0.0),
+            'temperature_extract_air': metrics.get('A_CYC_TEMP_EXTRACT_AIR', 0.0),
+            'temperature_outdoor_air': metrics.get('A_CYC_TEMP_OUTDOOR_AIR', 0.0),
+            'temperature_supply_cell_air': metrics.get('A_CYC_TEMP_SUPPLY_CELL_AIR', 0.0),
+            'humidity': metrics.get('A_CYC_HUMIDITY', 0),
+            'co2_level': metrics.get('A_CYC_CO2_SENSOR', 0),
+            'operating_mode': str(metrics.get('A_CYC_MODE', 'unknown'))
         }
     except Exception as e:
         logger.error(f"Data parsing error: {str(e)}")
@@ -114,12 +104,11 @@ def publish_to_mqtt(mqtt_client, topic_prefix, data):
         logger.info(f"Published {metric}: {value} to {topic}")
 
 
-def main():
+async def main():
     """Main loop for vallox2mqtt bridge"""
     try:
         # Load configuration from environment
         vallox_host = os.getenv('VALLOX_HOST')
-        vallox_port = int(os.getenv('VALLOX_PORT', '18080'))
         poll_interval = int(os.getenv('POLL_INTERVAL', '30'))
 
         mqtt_broker = os.getenv('MQTT_BROKER', 'lares-mosquitto')
@@ -131,11 +120,12 @@ def main():
 
         if not vallox_host:
             logger.error("VALLOX_HOST environment variable not set")
+            print("ERROR: VALLOX_HOST environment variable not set", file=sys.stderr)
             return
 
-        # Initialize Vallox API client
-        vallox_api = ValloxAPI(vallox_host, vallox_port)
-        logger.info(f"Vallox API client initialized for {vallox_host}:{vallox_port}")
+        # Initialize Vallox WebSocket API client
+        vallox_api = ValloxAPI(vallox_host)
+        logger.info(f"Vallox WebSocket API client initialized for {vallox_host}")
 
         # Connect to MQTT broker
         mqtt_client = connect_mqtt(
@@ -151,7 +141,7 @@ def main():
         while True:
             try:
                 # Fetch metrics from Vallox
-                metrics = vallox_api.get_metrics()
+                metrics = await vallox_api.get_metrics()
 
                 if metrics:
                     # Parse metrics
@@ -166,14 +156,14 @@ def main():
                     logger.warning("Failed to fetch Vallox metrics")
 
                 # Wait for next poll
-                time.sleep(poll_interval)
+                await asyncio.sleep(poll_interval)
 
             except KeyboardInterrupt:
                 logger.info("Shutting down gracefully")
                 break
             except Exception as e:
                 logger.error(f"Error in polling loop: {str(e)}")
-                time.sleep(poll_interval)
+                await asyncio.sleep(poll_interval)
 
     except Exception as e:
         logger.critical(f"Fatal error: {str(e)}")
@@ -185,4 +175,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

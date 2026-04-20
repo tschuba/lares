@@ -1,2 +1,2 @@
-requests>=2.31.0
+vallox-websocket-api>=5.0.0
 paho-mqtt>=2.0.0

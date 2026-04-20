@@ -68,7 +68,7 @@ Dieses Dokument beschreibt die schrittweise Implementierung von Lares basierend 
 **Ziel**: Custom Python-Bridge für Vallox Lüftung erstellen (ADR-006)
 
 ### 3.1 Vallox API analysieren
-- TCP API auf Port 18080 dokumentieren
+- HTTP API auf Port 80 dokumentieren
 - Relevante Endpunkte identifizieren
 - Test-Setup mit echtem Gerät
 

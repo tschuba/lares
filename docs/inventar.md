@@ -15,7 +15,7 @@ Dieses Dokument führt alle relevanten Komponenten, Dienste, Ports und Integrati
 |---|---|---|---|---|
 | Sungrow SH8.0RT | PV/Hybrid-Inverter | Modbus TCP :502 | LAN via WiNet-S | `modbus-proxy` + `sungrow2mqtt` |
 | Novelan LADV 9.1-1/3 | Wärmepumpe | Luxtronik2 :8889 | LAN/Ethernet | `luxtronik2mqtt` |
-| Vallox ValloPlus 350 MV-E | Lüftungsanlage | TCP API :18080 | LAN/Ethernet | `vallox2mqtt` (custom, Option A) |
+| Vallox ValloPlus 350 MV-E | Lüftungsanlage | HTTP API :80 | LAN/Ethernet | `vallox2mqtt` (custom, Option A) |
 | Ecowitt GW1201 | Wetter-Gateway | HTTP Push -> :4004 | LAN | `ecowitt2mqtt` |
 | BambuLab P1S | 3D-Drucker | lokaler MQTT-Mechanismus | WLAN | Home Assistant Bambu-Integration |
 | Meross MSS310 (1) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |

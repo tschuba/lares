@@ -66,7 +66,7 @@ flowchart TD
     subgraph Geraete ["LAN Geräte"]
         Sungrow["Sungrow SH8.0RT\nModbus TCP :502"]
         Novelan["Novelan LADV 9.1\nLuxtronik2 :8889"]
-        Vallox["Vallox ValloPlus 350 MV-E\nTCP :18080"]
+        Vallox["Vallox ValloPlus 350 MV-E\nHTTP :80"]
         Ecowitt["Ecowitt GW1201\nHTTP Push"]
         Bambu["BambuLab P1S\nMQTT intern"]
         Meross["Meross MSS310/MSS315\nLeistungsmessung"]
