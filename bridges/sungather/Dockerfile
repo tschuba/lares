@@ -15,6 +15,10 @@ WORKDIR /opt/sungather
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Apply patch to fix export loading bug
+COPY export-fix.patch /export-fix.patch
+RUN patch -p1 < /export-fix.patch
+
 # Create config directory
 RUN mkdir -p /config /logs
 
