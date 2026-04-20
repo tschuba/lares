@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lis
 
 # Install weewx-mqtt-subscribe extension
 RUN git clone https://github.com/weewx-mqtt/subscribe.git /tmp/subscribe && \
-    cd /tmp/subscribe && \
-    python3 install.py && \
+    mkdir -p /home/weewx/bin/user && \
+    cp /tmp/subscribe/bin/user/mqttsubscribe.py /home/weewx/bin/user/ && \
     rm -rf /tmp/subscribe
 
 # Copy custom entrypoint script
