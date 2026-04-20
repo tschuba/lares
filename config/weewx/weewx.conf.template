@@ -8,7 +8,7 @@
     # MQTT-Subscribe Driver Configuration
     [[MQTTSubscribe]]
         # MQTT Broker Connection
-        broker = 192.168.178.163
+        broker = mosquitto
         port = 1883
         username = $MQTT_USERNAME
         password = $MQTT_PASSWORD
