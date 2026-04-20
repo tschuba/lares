@@ -14,6 +14,9 @@ RUN git clone https://github.com/weewx-mqtt/subscribe.git /tmp/subscribe && \
     cp -r /tmp/subscribe/bin/user/* /data/bin/user/ && \
     rm -rf /tmp/subscribe
 
+# Add /home/weewx/bin to PYTHONPATH
+ENV PYTHONPATH=/home/weewx/bin:$PYTHONPATH
+
 # Copy custom entrypoint script
 COPY entrypoint.sh /bridges/weewx/entrypoint.sh
 RUN chmod +x /bridges/weewx/entrypoint.sh
