@@ -57,12 +57,16 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Begründung: geringere Komplexität, keine Replikationsverwaltung, klarer Datenspeicherort.
 - Trade-off: Bei NAS-Ausfall pausiert Zeitreihenaufnahme temporär.
 
-## ADR-006: Vallox-Integration als custom MQTT-Bridge (Option A)
+## ADR-006: Custom Code für Vallox und WeeWX
 
 - Status: Angenommen
-- Kontext: Kein etabliertes Standard-Image für Vallox->MQTT in dieser Zielarchitektur.
-- Entscheidung: Eigene schlanke Python-Bridge (`vallox2mqtt`) mit Dockerfile.
-- Begründung: Einheitliche Datenführung über MQTT, volle Kontrolle über Topics und Polling.
+- Kontext: Für Vallox und WeeWX sind Anpassungen erforderlich, die nicht durch Standard-Images abgedeckt sind.
+- Entscheidung:
+  - Vallox: Eigene schlanke Python-Bridge (`vallox2mqtt`) mit Dockerfile
+  - WeeWX: Custom Image basierend auf `felddy/weewx:latest` mit vorgeinstalliertem `gettext-base` und `weewx-mqtt-subscribe` sowie custom entrypoint für `envsubst`-Templating
+- Begründung:
+  - Vallox: Kein etabliertes Standard-Image für Vallox->MQTT in dieser Zielarchitektur; einheitliche Datenführung über MQTT, volle Kontrolle über Topics und Polling
+  - WeeWX: MQTT-Subscribe-Erweiterung nicht über PyPI verfügbar, muss aus GitHub installiert werden; envsubst-Templating vereinfacht Konfiguration; Custom Image reduziert Container-Startzeit durch vorgeinstallierte Abhängigkeiten
 
 ## ADR-007: Externe Erreichbarkeit strikt minimieren
 

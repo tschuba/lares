@@ -77,13 +77,7 @@ Die Ecowitt App unterstützt nur einen einzigen Custom Weather Service gleichzei
 
 #### WeeWX MQTT-Extension
 
-Die MQTT-Subscribe-Erweiterung muss manuell installiert werden, da sie nicht über pip verfügbar ist. Installiere sie nach dem ersten Start des Containers:
-
-```bash
-docker-compose exec weewx pip install git+https://github.com/weewx-mqtt/subscribe.git
-```
-
-Alternativ kann die Erweiterung auch direkt im WeeWX-Verzeichnis installiert werden. Siehe die [weewx-mqtt/subscribe Dokumentation](https://github.com/weewx-mqtt/subscribe) für Details.
+Die MQTT-Subscribe-Erweiterung und `gettext` für envsubst sind im custom Docker-Image (`bridges/weewx/Dockerfile`) vorgeinstalliert. Das Image basiert auf `felddy/weewx:latest` und wird automatisch gebaut. Es ist keine manuelle Installation erforderlich.
 
 #### WeeWX als MQTT-Consumer konfigurieren
 

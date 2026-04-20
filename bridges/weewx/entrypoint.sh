@@ -2,7 +2,7 @@
 # Entrypoint script for WeeWX to substitute environment variables in weewx.conf
 
 TEMPLATE_FILE="/home/weewx/weewx.conf.template"
-CONFIG_FILE="/data/weewx.conf"
+CONFIG_FILE="/home/weewx/weewx.conf"
 
 # If template exists, generate config from it
 if [ -f "$TEMPLATE_FILE" ]; then

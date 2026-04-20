@@ -132,15 +132,13 @@ services:
 
   # WeeWX for weather data upload (ADR-010)
   weewx:
-    image: felddy/weewx:latest
+    image: ghcr.io/tschuba/lares/weewx:latest
     container_name: weewx
     restart: unless-stopped
     user: "0:0"
-    entrypoint: ["/bridges/weewx/entrypoint.sh"]
     volumes:
       - ./data/weewx:/data
       - ./config/weewx/weewx.conf.template:/home/weewx/weewx.conf.template:ro
-      - ./bridges/weewx/entrypoint.sh:/bridges/weewx/entrypoint.sh:ro
     environment:
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
