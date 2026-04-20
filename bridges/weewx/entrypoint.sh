@@ -8,6 +8,9 @@ CONFIG_FILE="/home/weewx/weewx.conf"
 if [ -f "$TEMPLATE_FILE" ]; then
     envsubst < "$TEMPLATE_FILE" > "$CONFIG_FILE"
     echo "Generated weewx.conf from template"
+    # Copy to /data/weewx.conf so WeeWX uses it
+    cp "$CONFIG_FILE" /data/weewx.conf
+    echo "Copied weewx.conf to /data/weewx.conf"
 fi
 
 # Start WeeWX with original entrypoint (change to working directory first)
