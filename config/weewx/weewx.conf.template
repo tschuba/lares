@@ -39,7 +39,7 @@ version = 5.1.0
     
     # Set to type of station hardware. There must be a corresponding stanza
     # in this file, which includes a value for the 'driver' option.
-    station_type = MQTTSubscribe
+    station_type = MQTTSubscribeDriver
     
     # If you have a website, you may specify an URL. The URL is required if you
     # intend to register your station. The URL must include the scheme, for
@@ -55,7 +55,7 @@ version = 5.1.0
 
 ##############################################################################
 
-[MQTTSubscribe]
+[MQTTSubscribeDriver]
     # MQTT-Subscribe Driver Configuration for WeeWX
     
     # MQTT Broker Connection
@@ -502,7 +502,7 @@ version = 5.1.0
     # This section specifies which services should be run and in what order.
     [[Services]]
         prep_services = weewx.engine.StdTimeSynch
-        data_services = ,
+        data_services = user.mqttsubscribe.MQTTSubscribeService
         process_services = weewx.engine.StdConvert, weewx.engine.StdCalibrate, weewx.engine.StdQC, weewx.wxservices.StdWXCalculate
         xtype_services = weewx.wxxtypes.StdWXXTypes, weewx.wxxtypes.StdPressureCooker, weewx.wxxtypes.StdRainRater, weewx.wxxtypes.StdDelta
         archive_services = weewx.engine.StdArchive
