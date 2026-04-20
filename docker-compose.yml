@@ -45,7 +45,7 @@ services:
 
   # Sungrow to MQTT Bridge (ADR-013) - SunGather for Modbus-only access
   sungrow2mqtt:
-    image: ghcr.io/tschuba/lares/sungrow2mqtt:v0.5.3
+    image: ghcr.io/tschuba/lares/sungrow2mqtt:latest
     container_name: sungrow2mqtt
     restart: unless-stopped
     user: "0:0"

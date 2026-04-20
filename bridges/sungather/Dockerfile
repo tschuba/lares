@@ -9,9 +9,8 @@ RUN apt-get update && apt-get install -y \
 # Clone SunGather repository
 RUN git clone https://github.com/bohdan-s/SunGather.git /opt/sungather
 
-# Checkout specific version (v0.5.3 has the export bug fix)
+# Use main branch for latest fixes (v0.5.3 tag has wrong version string)
 WORKDIR /opt/sungather
-RUN git checkout v0.5.3
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
