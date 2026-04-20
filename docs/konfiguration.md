@@ -6,6 +6,7 @@ Dieses Dokument beschreibt geräteseitige Konfigurationsschritte, die nicht übe
 
 - [Ecowitt GW1201 Wetter-Gateway](#ecowitt-gw1201-wetter-gateway)
 - [WeeWX Wetterdienste](#weewx-wetterdienste)
+- [Grafana](#grafana)
 
 ## Ecowitt GW1201 Wetter-Gateway
 
@@ -170,3 +171,95 @@ docker-compose logs -f weewx
 ```
 
 Erfolgreiche Uploads zeigen sich in den Logs als erfolgreiche HTTP-POST an die jeweiligen Dienste.
+
+## Grafana
+
+Grafana läuft auf dem Raspberry Pi via Coolify und ist unter `cockpit.schubs.net` hinter Authentik erreichbar. Es visualisiert Daten aus der zentralen InfluxDB-Instanz auf dem NAS.
+
+### InfluxDB-Datenquelle konfigurieren
+
+Grafana muss als Datenquelle die InfluxDB auf dem NAS einrichten.
+
+#### Schritte
+
+1. Grafana unter `cockpit.schubs.net` öffnen (Authentik-Login erforderlich)
+2. Navigation zu **Configuration** → **Data sources** → **Add data source**
+3. **InfluxDB** auswählen
+4. Folgende Konfiguration eingeben:
+
+**InfluxDB 2.x Konfiguration:**
+
+- **Name**: `InfluxDB NAS` (oder beliebig)
+- **Query Language**: Flux
+- **URL**: `http://192.168.178.163:8086`
+- **Organization**: `${INFLUX_ORG}` (aus `.env`)
+- **Token**: `${INFLUX_TOKEN}` (aus `.env`)
+- **Default Bucket**: `${INFLUX_BUCKET}` (aus `.env`)
+
+5. **Save & Test** klicken
+6. Bei Erfolg erscheint "Data source is working"
+
+### Dashboards importieren oder erstellen
+
+#### Energiefluss-Sankey (ADR-012)
+
+Für die Visualisierung der Energieflüsse wird ein Sankey-Diagramm verwendet:
+
+1. **Sankey Panel Plugin** installieren:
+   - Navigation zu **Configuration** → **Plugins**
+   - Nach "Sankey" suchen
+   - Plugin installieren (z.B. "Sankey Panel" von fr-ser/grafana-sankey-panel)
+
+2. **Dashboard erstellen**:
+   - **Create** → **Dashboard**
+   - **Add new panel**
+   - Panel-Typ auf "Sankey" ändern
+   - Flux-Query für Energieflüsse konfigurieren
+
+**Beispiel-Query für Sungrow-Daten:**
+
+```flux
+from(bucket: "${INFLUX_BUCKET}")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r["_measurement"] == "sungrow")
+  |> filter(fn: (r) => r["_field"] == "pv_power" or r["_field"] == "battery_power" or r["_field"] == "grid_power")
+  |> aggregateWindow(every: 1h, fn: mean)
+  |> yield(name: "mean")
+```
+
+3. Sankey-Knoten und -Verbindungen entsprechend der Energieflüsse konfigurieren:
+   - PV → Batterie
+   - PV → Netz (Einspeisung)
+   - Batterie → Haus
+   - Netz → Haus (Bezug)
+
+#### Weitere Dashboard-Ideen
+
+- **Wetterdaten-Trends**: Temperatur, Luftfeuchtigkeit, Wind, Niederschlag aus Ecowitt-Daten
+- **Wärmepumpe-Metriken**: Leistungszahlen, Laufzeiten aus Novelan/Luxtronik-Daten
+- **Meross-Energieverbrauch**: Verbrauch pro Steckdose (BambuLab, Arbeitstisch, Waschmaschine, Trockner)
+- **System-Status**: CPU, RAM, Disk der Integrationsdienste (via Telegraf)
+
+### Variablen für dynamische Dashboards
+
+Für wiederverwendbare Dashboards können Variablen definiert werden:
+
+1. Dashboard-Einstellungen → **Variables** → **Add variable**
+2. Beispiele:
+   - **Gerät-Auswahl**: Listet alle MQTT-Topics oder Geräte-IDs
+   - **Zeitbereich**: Schnellwahl für 1h, 24h, 7d, 30d
+   - **Aggregation**: mean, max, min, sum
+
+### Warnungen und Alerts (optional)
+
+Grafana kann Alerts basierend auf Schwellwerten senden:
+
+1. Panel konfigurieren → **Alert** tab
+2. Bedingung definieren (z.B. Batterie-Ladestand < 20%)
+3. Notification Channel einrichten (z.B. E-Mail, Webhook zu Home Assistant)
+
+### Tipps
+
+- **Lange Zeitreihen**: InfluxDB auf NAS ist für Langzeitspeicherung optimiert – Dashboards können Monats/Jahres-Übersichten anzeigen
+- **Performance**: Aggregation in Flux-Queries verwenden (z.B. `aggregateWindow(every: 1h, fn: mean)`) für große Zeitbereiche
+- **Backup**: Dashboard-JSONs exportieren und versionieren (z.B. in `config/grafana/dashboards/`)

@@ -170,3 +170,4 @@ Siehe `docs/konfiguration.md` für Details zu:
 
 - Ecowitt GW1201: Push-Target URL konfigurieren
 - WeeWX: Wetterdienst-Zugangsdaten konfigurieren
+- Grafana: InfluxDB-Datenquelle und Dashboards einrichten
