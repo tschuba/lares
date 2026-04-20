@@ -140,7 +140,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build-sungather:
+  build-sungrow2mqtt:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/sungather/') || contains(github.event.*.paths[0], 'bridges/sungather/')
     steps:
