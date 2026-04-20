@@ -57,6 +57,7 @@ logs/
 # Data directories
 data/
 config/mosquitto/passwd
+config/sungather/config.yaml
 
 # Archive directories
 *.archive/

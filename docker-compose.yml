@@ -45,7 +45,7 @@ services:
 
   # Sungrow to MQTT Bridge (ADR-013) - SunGather for Modbus-only access
   sungrow2mqtt:
-    image: bohdans/sungather:latest
+    image: ghcr.io/tschuba/lares/sungrow2mqtt:v0.5.3
     container_name: sungrow2mqtt
     restart: unless-stopped
     user: "0:0"
@@ -56,6 +56,8 @@ services:
       - ./logs/sungather:/logs
     environment:
       - TZ=Europe/Berlin
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
     depends_on:
       - modbus-proxy
       - mosquitto

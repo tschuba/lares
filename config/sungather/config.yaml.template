@@ -19,8 +19,8 @@ exports:
     host: mosquitto
     port: 1883
     # MQTT authentication (set to empty if disabled)
-    username: ""
-    password: ""
+    username: "$MQTT_USERNAME"
+    password: "$MQTT_PASSWORD"
     # Topic prefix
     topic: energy/sungrow
     # Home Assistant auto-discovery
