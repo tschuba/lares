@@ -2,6 +2,22 @@
 
 Dieses Dokument beschreibt die schrittweise Implementierung von Lares basierend auf den dokumentierten Architekturentscheidungen.
 
+## Inhaltsverzeichnis
+
+- [Prinzipien](#prinzipien)
+- [Phase 1: Infrastruktur-Grundlage (NAS-zentriert per ADR-014)](#phase-1-infrastruktur-grundlage-nas-zentriert-per-adr-014)
+- [Phase 2: Modbus-Proxy und Sungrow-Integration (auf NAS)](#phase-2-modbus-proxy-und-sungrow-integration-auf-nas)
+- [Phase 3: Vallox Custom Bridge (auf NAS)](#phase-3-vallox-custom-bridge-auf-nas)
+- [Phase 4: Weitere Bridges (auf NAS)](#phase-4-weitere-bridges-auf-nas)
+- [Phase 5: Lokale Integrationen (auf Pi via Coolify)](#phase-5-lokale-integrationen-auf-pi-via-coolify)
+- [Phase 6: InfluxDB-Integration und Grafana](#phase-6-influxdb-integration-und-grafana)
+- [Phase 7: Home Assistant Externe Erreichbarkeit (auf Pi via Coolify)](#phase-7-home-assistant-externe-erreichbarkeit-auf-pi-via-coolify)
+- [Phase 8: Finalisierung und Dokumentation](#phase-8-finalisierung-und-dokumentation)
+- [Abhängigkeiten und Reihenfolge](#abhängigkeiten-und-reihenfolge)
+- [Risiken und Offene Punkte](#risiken-und-offene-punkte)
+- [Zeitplan (Rough Estimate)](#zeitplan-rough-estimate)
+- [Status](#status)
+
 ## Prinzipien
 
 - **Phasenbasiert**: Jede Phase baut auf der vorherigen auf

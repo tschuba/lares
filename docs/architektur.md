@@ -1,5 +1,18 @@
 # Architektur
 
+## Inhaltsverzeichnis
+
+- [Kontext](#kontext)
+- [Leitprinzipien](#leitprinzipien)
+- [Subdomains und Begründung](#subdomains-und-begründung)
+- [Laufzeitarchitektur](#laufzeitarchitektur)
+- [Architekturdiagramm](#architekturdiagramm)
+- [Datenfluss](#datenfluss)
+- [Energiefluss-Visualisierung](#energiefluss-visualisierung)
+- [Wetterdaten-Freigabe](#wetterdaten-freigabe)
+- [Netzwerk- und Sicherheitsmodell](#netzwerk-und-sicherheitsmodell)
+- [Warum nur eine InfluxDB-Instanz auf dem NAS](#warum-nur-eine-influxdb-instanz-auf-dem-nas)
+
 ## Kontext
 
 Lares ist eine lokal orientierte Smart-Home-Zentrale mit MQTT als Integrationsbus, Home Assistant als Steuerungs- und Automationskern, Grafana für Visualisierung und InfluxDB auf dem NAS für Langzeitspeicherung.

@@ -2,6 +2,23 @@
 
 Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begründung fest.
 
+## Inhaltsverzeichnis
+
+- [ADR-001: Projektname "Lares"](#adr-001-projektname-lares)
+- [ADR-002: Funktionsorientierte Subdomains](#adr-002-funktionsorientierte-subdomains)
+- [ADR-003: MQTT als Integrationsbus](#adr-003-mqtt-als-integrationsbus)
+- [ADR-004: modbus-proxy vor Sungrow](#adr-004-modbus-proxy-vor-sungrow)
+- [ADR-005: InfluxDB nur auf NAS](#adr-005-influxdb-nur-auf-nas)
+- [ADR-006: Vallox-Integration als custom MQTT-Bridge (Option A)](#adr-006-vallox-integration-als-custom-mqtt-bridge-option-a)
+- [ADR-007: Externe Erreichbarkeit strikt minimieren](#adr-007-externe-erreichbarkeit-strikt-minimieren)
+- [ADR-008: Authentik für alle internet-erreichbaren Oberflächen](#adr-008-authentik-für-alle-internet-erreichbaren-oberflächen)
+- [ADR-009: Blink als akzeptierte Cloud-Ausnahme](#adr-009-blink-als-akzeptierte-cloud-ausnahme)
+- [ADR-010: Wetterdaten mit WeeWX an mehrere Dienste veröffentlichen](#adr-010-wetterdaten-mit-weewx-an-mehrere-dienste-veröffentlichen)
+- [ADR-011: Hybride Meross-Integration (HA-Kontrolle + MQTT-Metriken)](#adr-011-hybride-meross-integration-ha-kontrolle--mqtt-metriken)
+- [ADR-012: Energieflüsse doppelt visualisieren (HA + Grafana Sankey)](#adr-012-energieflüsse-doppelt-visualisieren-ha--grafana-sankey)
+- [ADR-013: Sungrow-Integration als off-the-shelf Image](#adr-013-sungrow-integration-als-off-the-shelf-image)
+- [ADR-014: NAS-zentrierte Service-Verteilung](#adr-014-nas-zentrierte-service-verteilung)
+
 ## ADR-001: Projektname "Lares"
 
 - Status: Angenommen

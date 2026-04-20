@@ -2,6 +2,19 @@
 
 Dieses Dokument führt alle relevanten Komponenten, Dienste, Ports und Integrationen für Lares.
 
+## Inhaltsverzeichnis
+
+- [1) Hardware-Inventar](#1-hardware-inventar)
+- [2) Geräte-Inventar](#2-geräte-inventar)
+- [3) Service-Inventar (Pi / Coolify - 192.168.178.69)](#3-service-inventar-pi--coolify---19216817869)
+- [4) Service-Inventar (NAS - 192.168.178.163)](#4-service-inventar-nas---192168178163)
+- [5) Netzwerke](#5-netzwerke)
+- [6) Subdomains und Erreichbarkeit](#6-subdomains-und-erreichbarkeit)
+- [7) Platzhalter für Betriebswerte](#7-platzhalter-für-betriebswerte)
+- [8) Wetterdatenfreigabe (Ecowitt)](#8-wetterdatenfreigabe-ecowitt)
+- [9) Energiefluss-Visualisierung](#9-energiefluss-visualisierung)
+- [10) Cloud-Abhängigkeiten (bewusst)](#10-cloud-abhängigkeiten-bewusst)
+
 ## 1) Hardware-Inventar
 
 | Komponente | Details | Funktion |
