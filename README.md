@@ -31,6 +31,7 @@ Begründung:
 - `docs/inventar.md`: Vollständiges Inventar (Geräte, Dienste, Ports, Netzwerke)
 - `docs/entscheidungen.md`: Architekturentscheidungen mit Begründung
 - `docs/umsetzungsplan.md`: Schrittweiser Implementierungsplan in 8 Phasen
+- `docs/konfiguration.md`: Geräte-seitige Konfiguration (Ecowitt, WeeWX)
 
 ## Status
 

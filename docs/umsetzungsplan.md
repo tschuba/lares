@@ -120,13 +120,13 @@ Dieses Dokument beschreibt die schrittweise Implementierung von Lares basierend 
 ### 4.2 ecowitt2mqtt (Wetterstation) auf NAS
 - Image: `bachya/ecowitt2mqtt`
 - Port 4004 im `lares`-Netz auf NAS exposed
-- Ecowitt-Konfiguration anpassen
+- Ecowitt-Konfiguration anpassen (siehe `docs/konfiguration.md`)
 - Topic-Struktur: `weather/ecowitt/...`
 - HA-Integration auf Pi
 
 ### 4.3 WeeWX auf NAS部署 (Wetterdaten-Upload)
 - Image: `felddy/weewx`
-- Konfiguration für externe Dienste (AWEKAS, Windy, WU, CWOP, OWM)
+- Konfiguration für externe Dienste (AWEKAS, Windy, WU, CWOP, OWM) - siehe `docs/konfiguration.md`
 - Ecowitt-Daten parallel zu ecowitt2mqtt an WeeWX leiten
 - Test: Upload an externe Dienste verifizieren
 

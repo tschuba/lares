@@ -14,6 +14,7 @@ Dieses Dokument führt alle relevanten Komponenten, Dienste, Ports und Integrati
 - [8) Wetterdatenfreigabe (Ecowitt)](#8-wetterdatenfreigabe-ecowitt)
 - [9) Energiefluss-Visualisierung](#9-energiefluss-visualisierung)
 - [10) Cloud-Abhängigkeiten (bewusst)](#10-cloud-abhängigkeiten-bewusst)
+- [11) Geräte-seitige Konfiguration](#11-geräte-seitige-konfiguration)
 
 ## 1) Hardware-Inventar
 
@@ -160,3 +161,12 @@ Primäre Energiequellen und -senken:
 | Wetterfreigabe-Dienste | externe Veröffentlichung erfordert ausgehende Internetverbindung |
 
 Alle anderen Kernpfade sind lokal-first ausgelegt.
+
+## 11) Geräte-seitige Konfiguration
+
+Einige Geräte benötigen manuelle Konfiguration auf der Geräteseite, die nicht über `.env` oder `docker-compose.yml` abgedeckt ist.
+
+Siehe `docs/konfiguration.md` für Details zu:
+
+- Ecowitt GW1201: Push-Target URL konfigurieren
+- WeeWX: Wetterdienst-Zugangsdaten konfigurieren

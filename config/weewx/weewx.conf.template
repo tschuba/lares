@@ -1,0 +1,59 @@
+# WeeWX Configuration Template for Lares
+# Copy this file to weewx.conf and replace placeholders with actual values
+
+# Station Configuration
+[Station]
+    station_type = MQTTSubscribe
+
+    # MQTT-Subscribe Driver Configuration
+    [[MQTTSubscribe]]
+        # MQTT Broker Connection
+        broker = 192.168.178.163
+        port = 1883
+        username = $MQTT_USERNAME
+        password = $MQTT_PASSWORD
+
+        # Topic to subscribe to for Ecowitt weather data
+        # Adjust topic based on Ecowitt integration option:
+        # - Option A (direct MQTT): Topic as configured in Ecowitt App
+        # - Option B (ecowitt2mqtt): weather/ecowitt/#
+        topic = weather/ecowitt/#
+
+        # Optional: MQTT connection options
+        # client_id = weewx
+        # qos = 0
+        # retain = false
+
+# Standard WeeWX Configuration Sections
+# Add weather service configurations below (AWEKAS, Windy, WU, CWOP, OWM)
+
+# Example: Weather Underground
+#[StdRESTful]
+#    [[WU]]
+#        station_id = $WUNDERGROUND_STATION_ID
+#        password = $WUNDERGROUND_API_KEY
+
+# Example: AWEKAS
+#[StdRESTful]
+#    [[AWEKAS]]
+#        username = $AWEKAS_USERNAME
+#        password = $AWEKAS_PASSWORD
+#        station_id = $AWEKAS_STATION_ID
+
+# Example: Windy
+#[StdRESTful]
+#    [[Windy]]
+#        station_id = $WINDY_STATION_ID
+#        api_key = $WINDY_API_KEY
+
+# Example: CWOP/APRS
+#[StdRESTful]
+#    [[CWOP]]
+#        station_id = $CWOP_STATION_ID
+#        password = $CWOP_PASSWORD
+
+# Example: OpenWeatherMap
+#[StdRESTful]
+#    [[OWM]]
+#        station_id = $OPENWEATHER_STATION_ID
+#        api_key = $OPENWEATHER_API_KEY

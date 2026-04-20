@@ -135,8 +135,26 @@ services:
     image: felddy/weewx:latest
     container_name: weewx
     restart: unless-stopped
+    user: "0:0"
+    entrypoint: ["/bridges/weewx/entrypoint.sh"]
     volumes:
       - ./data/weewx:/data
+      - ./config/weewx/weewx.conf.template:/home/weewx/weewx.conf.template:ro
+      - ./bridges/weewx/entrypoint.sh:/bridges/weewx/entrypoint.sh:ro
+    environment:
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - WUNDERGROUND_STATION_ID=${WUNDERGROUND_STATION_ID}
+      - WUNDERGROUND_API_KEY=${WUNDERGROUND_API_KEY}
+      - AWEKAS_USERNAME=${AWEKAS_USERNAME}
+      - AWEKAS_PASSWORD=${AWEKAS_PASSWORD}
+      - AWEKAS_STATION_ID=${AWEKAS_STATION_ID}
+      - WINDY_STATION_ID=${WINDY_STATION_ID}
+      - WINDY_API_KEY=${WINDY_API_KEY}
+      - CWOP_STATION_ID=${CWOP_STATION_ID}
+      - CWOP_PASSWORD=${CWOP_PASSWORD}
+      - OPENWEATHER_STATION_ID=${OPENWEATHER_STATION_ID}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
     networks:
       - lares
     profiles:
