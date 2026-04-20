@@ -39,7 +39,7 @@ version = 5.1.0
     
     # Set to type of station hardware. There must be a corresponding stanza
     # in this file, which includes a value for the 'driver' option.
-    station_type = MQTTSubscribeDriver
+    station_type = MQTTSubscribe
     
     # If you have a website, you may specify an URL. The URL is required if you
     # intend to register your station. The URL must include the scheme, for
@@ -55,11 +55,45 @@ version = 5.1.0
 
 ##############################################################################
 
-[MQTTSubscribeDriver]
-    # MQTT-Subscribe Driver Configuration for WeeWX
+[MQTTSubscribe]
+    # MQTT-Subscribe Configuration for WeeWX (Service section)
     
     # The driver to use
     driver = user.mqttsubscribe
+    
+    # Service options
+    enable = true
+    binding = loop
+    stop_on_validation_errors = false
+    
+    # MQTT Broker Connection
+    host = mosquitto
+    port = 1883
+    username = $MQTT_USERNAME
+    password = $MQTT_PASSWORD
+    
+    # Topic configuration for Ecowitt weather data
+    # Adjust topic based on Ecowitt integration option:
+    # - Option A (direct MQTT): Topic as configured in Ecowitt App
+    # - Option B (ecowitt2mqtt): weather/ecowitt/#
+    [[topics]]
+        unit_system = METRICWX
+        [[[weather/ecowitt]]]
+            subscribe = True
+            ignore = False
+            [[[[message]]]]
+                type = json
+
+[MQTTSubscribeDriver]
+    # MQTT-Subscribe Configuration for WeeWX (Driver section - alias for MQTTSubscribe)
+    
+    # The driver to use
+    driver = user.mqttsubscribe
+    
+    # Service options
+    enable = true
+    binding = loop
+    stop_on_validation_errors = false
     
     # MQTT Broker Connection
     host = mosquitto
