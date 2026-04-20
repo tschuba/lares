@@ -4,9 +4,8 @@ FROM felddy/weewx:latest
 USER root
 
 # Install gettext for envsubst and paho-mqtt for MQTTSubscribe
-RUN apt-get update && apt-get install -y gettext-base python3-pip && rm -rf /var/lib/apt/lists/* && \
-    /opt/venv/bin/pip install paho-mqtt && \
-    pip3 install paho-mqtt
+RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/* && \
+    /opt/venv/bin/pip install --target /opt/venv/lib/python3.13/site-packages paho-mqtt
 
 # Install weewx-mqtt-subscribe extension
 RUN git clone https://github.com/weewx-mqtt/subscribe.git /tmp/subscribe && \
