@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB NAS
+    uid: influxdb-nas
+    type: influxdb
+    access: proxy
+    url: http://192.168.178.163:8086
+    jsonData:
+      version: Flux
+      organization: ${INFLUX_ORG}
+      defaultBucket: ${INFLUX_BUCKET}
+    secureJsonData:
+      token: ${INFLUX_TOKEN}
+    isDefault: true
