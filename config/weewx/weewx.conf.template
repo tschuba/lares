@@ -137,7 +137,6 @@ version = 5.1.0
         enable = true
         username = $AWEKAS_USERNAME
         password = $AWEKAS_PASSWORD
-        station_id = $AWEKAS_STATION_ID
     
     [[CWOP]]
         # This section is for configuring posts to CWOP.
