@@ -543,3 +543,12 @@ version = 5.1.0
         archive_services = weewx.engine.StdArchive
         restful_services = weewx.restx.StdStationRegistry, weewx.restx.StdWunderground, weewx.restx.StdPWSweather, weewx.restx.StdCWOP, weewx.restx.StdWOW, weewx.restx.StdAWEKAS
         report_services = weewx.engine.StdPrint, weewx.engine.StdReport
+
+##############################################################################
+
+#   This section configures logging.
+
+[Logging]
+    [[root]]
+        level = INFO
+        handlers = console,
