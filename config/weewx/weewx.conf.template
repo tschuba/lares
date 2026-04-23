@@ -134,7 +134,7 @@ version = 5.1.0
         # If you wish to post to AWEKAS, set the option 'enable' to true, then
         # specify a username and password.
         # Use quotes around the password to guard against parsing errors.
-        enable = false
+        enable = true
         username = $AWEKAS_USERNAME
         password = $AWEKAS_PASSWORD
         station_id = $AWEKAS_STATION_ID
