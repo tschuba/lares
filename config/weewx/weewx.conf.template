@@ -62,9 +62,10 @@ version = 5.1.0
     driver = user.mqttsubscribe
     
     # Service options
-    enable = true
+    enable = false
     binding = loop
     stop_on_validation_errors = false
+    ignore_failed_conversions = true
     
     # MQTT Broker Connection
     host = mosquitto
@@ -84,32 +85,34 @@ version = 5.1.0
             [[[[message]]]]
                 type = json
                 ignore_default = True
-                [[[[[temp]]]]]
-                    name = outTemp
-                [[[[[humidity]]]]]
-                    name = outHumidity
-                [[[[[tempin]]]]]
-                    name = inTemp
-                [[[[[humidityin]]]]]
-                    name = inHumidity
-                [[[[[baromrel]]]]]
-                    name = barometer
-                [[[[[windspeed]]]]]
-                    name = windSpeed
-                [[[[[windgust]]]]]
-                    name = windGust
-                [[[[[winddir]]]]]
-                    name = windDir
-                [[[[[rainrate]]]]]
-                    name = rainRate
-                [[[[[dailyrain]]]]]
-                    name = dayRain
-                [[[[[solarradiation]]]]]
-                    name = radiation
-                [[[[[uv]]]]]
-                    name = UV
-                [[[[[dewpoint]]]]]
-                    name = dewpoint
+            [[[[temp]]]]
+                name = outTemp
+            [[[[humidity]]]]
+                name = outHumidity
+            [[[[tempin]]]]
+                name = inTemp
+            [[[[humidityin]]]]
+                name = inHumidity
+            [[[[baromrel]]]]
+                name = barometer
+            [[[[windspeed]]]]
+                name = windSpeed
+            [[[[windgust]]]]
+                name = windGust
+            [[[[winddir]]]]
+                name = windDir
+            [[[[rainrate]]]]
+                name = rainRate
+            [[[[dailyrain]]]]
+                name = dayRain
+            [[[[solarradiation]]]]
+                name = radiation
+            [[[[uv]]]]
+                name = UV
+            [[[[dewpoint]]]]
+                name = dewpoint
+            [[[[wh65batt]]]]
+                ignore = True
 
 [MQTTSubscribeDriver]
     # MQTT-Subscribe Configuration for WeeWX (Driver section - alias for MQTTSubscribe)
@@ -121,6 +124,7 @@ version = 5.1.0
     enable = true
     binding = loop
     stop_on_validation_errors = false
+    ignore_failed_conversions = true
     
     # MQTT Broker Connection
     host = mosquitto
@@ -140,32 +144,34 @@ version = 5.1.0
             [[[[message]]]]
                 type = json
                 ignore_default = True
-                [[[[[temp]]]]]
-                    name = outTemp
-                [[[[[humidity]]]]]
-                    name = outHumidity
-                [[[[[tempin]]]]]
-                    name = inTemp
-                [[[[[humidityin]]]]]
-                    name = inHumidity
-                [[[[[baromrel]]]]]
-                    name = barometer
-                [[[[[windspeed]]]]]
-                    name = windSpeed
-                [[[[[windgust]]]]]
-                    name = windGust
-                [[[[[winddir]]]]]
-                    name = windDir
-                [[[[[rainrate]]]]]
-                    name = rainRate
-                [[[[[dailyrain]]]]]
-                    name = dayRain
-                [[[[[solarradiation]]]]]
-                    name = radiation
-                [[[[[uv]]]]]
-                    name = UV
-                [[[[[dewpoint]]]]]
-                    name = dewpoint
+            [[[[temp]]]]
+                name = outTemp
+            [[[[humidity]]]]
+                name = outHumidity
+            [[[[tempin]]]]
+                name = inTemp
+            [[[[humidityin]]]]
+                name = inHumidity
+            [[[[baromrel]]]]
+                name = barometer
+            [[[[windspeed]]]]
+                name = windSpeed
+            [[[[windgust]]]]
+                name = windGust
+            [[[[winddir]]]]
+                name = windDir
+            [[[[rainrate]]]]
+                name = rainRate
+            [[[[dailyrain]]]]
+                name = dayRain
+            [[[[solarradiation]]]]
+                name = radiation
+            [[[[uv]]]]
+                name = UV
+            [[[[dewpoint]]]]
+                name = dewpoint
+            [[[[wh65batt]]]]
+                ignore = True
 
 ##############################################################################
 
@@ -590,7 +596,6 @@ version = 5.1.0
     # This section specifies which services should be run and in what order.
     [[Services]]
         prep_services = weewx.engine.StdTimeSynch
-        # data_services = user.mqttsubscribe.MQTTSubscribeService
         process_services = weewx.engine.StdConvert, weewx.engine.StdCalibrate, weewx.engine.StdQC, weewx.wxservices.StdWXCalculate
         xtype_services = weewx.wxxtypes.StdWXXTypes, weewx.wxxtypes.StdPressureCooker, weewx.wxxtypes.StdRainRater, weewx.wxxtypes.StdDelta
         archive_services = weewx.engine.StdArchive
