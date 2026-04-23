@@ -12,6 +12,8 @@ RUN git clone https://github.com/weewx-mqtt/subscribe.git /tmp/subscribe && \
     mkdir -p /home/weewx/bin/user /data/bin/user && \
     cp -r /tmp/subscribe/bin/user/* /home/weewx/bin/user/ && \
     cp -r /tmp/subscribe/bin/user/* /data/bin/user/ && \
+    touch /home/weewx/bin/user/__init__.py /home/weewx/bin/user/extensions.py && \
+    touch /data/bin/user/__init__.py /data/bin/user/extensions.py && \
     rm -rf /tmp/subscribe
 
 # Add /home/weewx/bin to PYTHONPATH
