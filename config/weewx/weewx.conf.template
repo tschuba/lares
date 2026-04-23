@@ -39,7 +39,7 @@ version = 5.1.0
     
     # Set to type of station hardware. There must be a corresponding stanza
     # in this file, which includes a value for the 'driver' option.
-    station_type = MQTTSubscribe
+    station_type = MQTTSubscribeDriver
     
     # If you have a website, you may specify an URL. The URL is required if you
     # intend to register your station. The URL must include the scheme, for
@@ -56,77 +56,22 @@ version = 5.1.0
 ##############################################################################
 
 [MQTTSubscribe]
-    # MQTT-Subscribe Configuration for WeeWX (Service section)
-    
-    # The driver to use
-    driver = user.mqttsubscribe
-    
-    # Service options
+    # Service mode disabled; WeeWX uses [MQTTSubscribeDriver] as the active driver.
     enable = false
-    binding = loop
-    stop_on_validation_errors = false
-    ignore_failed_conversions = true
-    
-    # MQTT Broker Connection
-    host = mosquitto
-    port = 1883
-    username = $MQTT_USERNAME
-    password = $MQTT_PASSWORD
-    
-    # Topic configuration for Ecowitt weather data
-    # Adjust topic based on Ecowitt integration option:
-    # - Option A (direct MQTT): Topic as configured in Ecowitt App
-    # - Option B (ecowitt2mqtt): weather/ecowitt/#
-    [[topics]]
-        unit_system = METRICWX
-        [[[weather/ecowitt]]]
-            subscribe = True
-            ignore = False
-            [[[[message]]]]
-                type = json
-                ignore_default = True
-            [[[[temp]]]]
-                name = outTemp
-            [[[[humidity]]]]
-                name = outHumidity
-            [[[[tempin]]]]
-                name = inTemp
-            [[[[humidityin]]]]
-                name = inHumidity
-            [[[[baromrel]]]]
-                name = barometer
-            [[[[windspeed]]]]
-                name = windSpeed
-            [[[[windgust]]]]
-                name = windGust
-            [[[[winddir]]]]
-                name = windDir
-            [[[[rainrate]]]]
-                name = rainRate
-            [[[[dailyrain]]]]
-                name = dayRain
-            [[[[solarradiation]]]]
-                name = radiation
-            [[[[uv]]]]
-                name = UV
-            [[[[dewpoint]]]]
-                name = dewpoint
-            [[[[wh65batt]]]]
-                ignore = True
 
 [MQTTSubscribeDriver]
-    # MQTT-Subscribe Configuration for WeeWX (Driver section - alias for MQTTSubscribe)
+    # MQTT-Subscribe driver configuration for WeeWX
     
     # The driver to use
     driver = user.mqttsubscribe
     
-    # Service options
+    # Driver options
     enable = true
     binding = loop
     stop_on_validation_errors = false
     ignore_failed_conversions = true
     
-    # MQTT Broker Connection
+    # MQTT broker connection
     host = mosquitto
     port = 1883
     username = $MQTT_USERNAME
@@ -134,16 +79,17 @@ version = 5.1.0
     
     # Topic configuration for Ecowitt weather data
     # Adjust topic based on Ecowitt integration option:
-    # - Option A (direct MQTT): Topic as configured in Ecowitt App
+    # - Option A (direct MQTT): topic as configured in Ecowitt app
     # - Option B (ecowitt2mqtt): weather/ecowitt/#
     [[topics]]
-        unit_system = METRICWX
+        unit_system = US
         [[[weather/ecowitt]]]
             subscribe = True
             ignore = False
             [[[[message]]]]
                 type = json
                 ignore_default = True
+            # --- Temperature & humidity ---
             [[[[temp]]]]
                 name = outTemp
             [[[[humidity]]]]
@@ -152,24 +98,107 @@ version = 5.1.0
                 name = inTemp
             [[[[humidityin]]]]
                 name = inHumidity
+            [[[[dewpoint]]]]
+                name = dewpoint
+            [[[[feelslike]]]]
+                name = appTemp
+            [[[[heatindex]]]]
+                name = heatindex
+            [[[[windchill]]]]
+                name = windchill
+            [[[[frostpoint]]]]
+                name = frostpoint
+            [[[[humidex]]]]
+                name = humidex
+            [[[[humidityabs]]]]
+                name = humidityabs
+            [[[[humidityabsin]]]]
+                name = humidityabsin
+            [[[[vpd]]]]
+                name = vpd
+            # --- Pressure ---
             [[[[baromrel]]]]
                 name = barometer
+            [[[[baromabs]]]]
+                name = pressure
+            # --- Wind ---
             [[[[windspeed]]]]
                 name = windSpeed
             [[[[windgust]]]]
                 name = windGust
             [[[[winddir]]]]
                 name = windDir
+            [[[[winddir_avg10m]]]]
+                name = windDir10
+            [[[[maxdailygust]]]]
+                name = windGustDay
+            [[[[beaufortscale]]]]
+                name = beaufortscale
+            # --- Rain ---
             [[[[rainrate]]]]
                 name = rainRate
             [[[[dailyrain]]]]
                 name = dayRain
+            [[[[eventrain]]]]
+                name = eventRain
+            [[[[hourlyrain]]]]
+                name = hourRain
+            [[[[last24hrain]]]]
+                name = rain24
+            # --- Radiation ---
             [[[[solarradiation]]]]
                 name = radiation
             [[[[uv]]]]
                 name = UV
-            [[[[dewpoint]]]]
-                name = dewpoint
+            [[[[solarradiation_perceived]]]]
+                name = solarradiation_perceived
+            # --- Additional indices ---
+            [[[[relative_strain_index]]]]
+                name = relative_strain_index
+            [[[[simmerindex]]]]
+                name = simmerindex
+            [[[[safe_exposure_time_skin_type_1]]]]
+                name = safe_exposure_time_skin_type_1
+            [[[[safe_exposure_time_skin_type_2]]]]
+                name = safe_exposure_time_skin_type_2
+            [[[[safe_exposure_time_skin_type_3]]]]
+                name = safe_exposure_time_skin_type_3
+            [[[[safe_exposure_time_skin_type_4]]]]
+                name = safe_exposure_time_skin_type_4
+            [[[[safe_exposure_time_skin_type_5]]]]
+                name = safe_exposure_time_skin_type_5
+            [[[[safe_exposure_time_skin_type_6]]]]
+                name = safe_exposure_time_skin_type_6
+            # --- Ignore: string fields ---
+            [[[[frostrisk]]]]
+                ignore = True
+            [[[[humidex_perception]]]]
+                ignore = True
+            [[[[thermalperception]]]]
+                ignore = True
+            [[[[winddir_name]]]]
+                ignore = True
+            [[[[relative_strain_index_perception]]]]
+                ignore = True
+            [[[[simmerzone]]]]
+                ignore = True
+            # --- Ignore: rain accumulators (WeeWX calculates these itself) ---
+            [[[[weeklyrain]]]]
+                ignore = True
+            [[[[monthlyrain]]]]
+                ignore = True
+            [[[[yearlyrain]]]]
+                ignore = True
+            [[[[totalrain]]]]
+                ignore = True
+            # --- Ignore: device diagnostics ---
+            [[[[runtime]]]]
+                ignore = True
+            [[[[heap]]]]
+                ignore = True
+            [[[[interval]]]]
+                ignore = True
+            # --- Ignore: battery status ---
             [[[[wh65batt]]]]
                 ignore = True
 
