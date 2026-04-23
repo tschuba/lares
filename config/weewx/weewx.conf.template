@@ -83,6 +83,18 @@ version = 5.1.0
             ignore = False
             [[[[message]]]]
                 type = json
+                [[[[[wh65batt]]]]]
+                    ignore = True
+                [[[[[frostrisk]]]]]
+                    ignore = True
+                [[[[[humidex_perception]]]]]
+                    ignore = True
+                [[[[[relative_strain_index_perception]]]]]
+                    ignore = True
+                [[[[[thermalperception]]]]]
+                    ignore = True
+                [[[[[winddir_name]]]]]
+                    ignore = True
 
 [MQTTSubscribeDriver]
     # MQTT-Subscribe Configuration for WeeWX (Driver section - alias for MQTTSubscribe)
@@ -112,6 +124,18 @@ version = 5.1.0
             ignore = False
             [[[[message]]]]
                 type = json
+                [[[[[wh65batt]]]]]
+                    ignore = True
+                [[[[[frostrisk]]]]]
+                    ignore = True
+                [[[[[humidex_perception]]]]]
+                    ignore = True
+                [[[[[relative_strain_index_perception]]]]]
+                    ignore = True
+                [[[[[thermalperception]]]]]
+                    ignore = True
+                [[[[[winddir_name]]]]]
+                    ignore = True
 
 ##############################################################################
 
