@@ -81,34 +81,35 @@ version = 5.1.0
         [[[weather/ecowitt]]]
             subscribe = True
             ignore = False
-            type = json
-            ignore_default = True
-            [[[[outTemp]]]]
-                name = temp
-            [[[[outHumidity]]]]
-                name = humidity
-            [[[[inTemp]]]]
-                name = tempin
-            [[[[inHumidity]]]]
-                name = humidityin
-            [[[[barometer]]]]
-                name = baromrel
-            [[[[windSpeed]]]]
-                name = windspeed
-            [[[[windGust]]]]
-                name = windgust
-            [[[[windDir]]]]
-                name = winddir
-            [[[[rainRate]]]]
-                name = rainrate
-            [[[[dayRain]]]]
-                name = dailyrain
-            [[[[radiation]]]]
-                name = solarradiation
-            [[[[UV]]]]
-                name = uv
-            [[[[dewpoint]]]]
-                name = dewpoint
+            [[[[message]]]]
+                type = json
+                ignore_default = True
+                [[[[[temp]]]]]
+                    name = outTemp
+                [[[[[humidity]]]]]
+                    name = outHumidity
+                [[[[[tempin]]]]]
+                    name = inTemp
+                [[[[[humidityin]]]]]
+                    name = inHumidity
+                [[[[[baromrel]]]]]
+                    name = barometer
+                [[[[[windspeed]]]]]
+                    name = windSpeed
+                [[[[[windgust]]]]]
+                    name = windGust
+                [[[[[winddir]]]]]
+                    name = windDir
+                [[[[[rainrate]]]]]
+                    name = rainRate
+                [[[[[dailyrain]]]]]
+                    name = dayRain
+                [[[[[solarradiation]]]]]
+                    name = radiation
+                [[[[[uv]]]]]
+                    name = UV
+                [[[[[dewpoint]]]]]
+                    name = dewpoint
 
 [MQTTSubscribeDriver]
     # MQTT-Subscribe Configuration for WeeWX (Driver section - alias for MQTTSubscribe)
@@ -136,34 +137,35 @@ version = 5.1.0
         [[[weather/ecowitt]]]
             subscribe = True
             ignore = False
-            type = json
-            ignore_default = True
-            [[[[outTemp]]]]
-                name = temp
-            [[[[outHumidity]]]]
-                name = humidity
-            [[[[inTemp]]]]
-                name = tempin
-            [[[[inHumidity]]]]
-                name = humidityin
-            [[[[barometer]]]]
-                name = baromrel
-            [[[[windSpeed]]]]
-                name = windspeed
-            [[[[windGust]]]]
-                name = windgust
-            [[[[windDir]]]]
-                name = winddir
-            [[[[rainRate]]]]
-                name = rainrate
-            [[[[dayRain]]]]
-                name = dailyrain
-            [[[[radiation]]]]
-                name = solarradiation
-            [[[[UV]]]]
-                name = uv
-            [[[[dewpoint]]]]
-                name = dewpoint
+            [[[[message]]]]
+                type = json
+                ignore_default = True
+                [[[[[temp]]]]]
+                    name = outTemp
+                [[[[[humidity]]]]]
+                    name = outHumidity
+                [[[[[tempin]]]]]
+                    name = inTemp
+                [[[[[humidityin]]]]]
+                    name = inHumidity
+                [[[[[baromrel]]]]]
+                    name = barometer
+                [[[[[windspeed]]]]]
+                    name = windSpeed
+                [[[[[windgust]]]]]
+                    name = windGust
+                [[[[[winddir]]]]]
+                    name = windDir
+                [[[[[rainrate]]]]]
+                    name = rainRate
+                [[[[[dailyrain]]]]]
+                    name = dayRain
+                [[[[[solarradiation]]]]]
+                    name = radiation
+                [[[[[uv]]]]]
+                    name = UV
+                [[[[[dewpoint]]]]]
+                    name = dewpoint
 
 ##############################################################################
 
