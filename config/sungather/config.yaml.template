@@ -25,8 +25,8 @@ exports:
     topic: energy/sungrow
     # Home Assistant auto-discovery
     homeassistant: true
-    # HA device name
     ha_device_name: Sungrow Inverter
+    ha_sensors: []
 
   # Optional: Web server for local monitoring
   # - name: webserver
