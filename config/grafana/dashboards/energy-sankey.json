@@ -1,43 +1,187 @@
 {
-  "title": "Energy Flows (Sankey)",
+  "title": "Energie (Sungrow)",
   "uid": "energy-sankey",
-  "tags": ["energy", "sankey"],
+  "tags": ["energy", "sungrow", "sankey"],
   "timezone": "browser",
   "schemaVersion": 38,
   "panels": [
     {
-      "type": "fr-ser-sankey-panel",
-      "title": "Energy Distribution",
-      "gridPos": { "h": 16, "w": 24, "x": 0, "y": 0 },
+      "type": "stat",
+      "title": "PV Leistung",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
       "id": 1,
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "gray", "value": null },
+              { "color": "yellow", "value": 100 },
+              { "color": "green", "value": 1000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
       },
       "targets": [
         {
-          "refId": "Sungrow",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: \"${INFLUX_BUCKET}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sungrow\")\n  |> filter(fn: (r) => r[\"_field\"] == \"pv_power\" or r[\"_field\"] == \"battery_power\" or r[\"_field\"] == \"grid_power\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
-        },
+          "refId": "PV",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Batterie",
+      "description": "+ = lädt, - = entlädt",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "orange", "value": null },
+              { "color": "gray", "value": -50 },
+              { "color": "blue", "value": 50 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "targets": [
         {
-          "refId": "Meross",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: \"${INFLUX_BUCKET}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"meross\")\n  |> filter(fn: (r) => r[\"_field\"] == \"power\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
-        },
+          "refId": "Batt",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Netz",
+      "description": "+ = Einspeisung, - = Bezug",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "gray", "value": -50 },
+              { "color": "green", "value": 50 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "targets": [
         {
-          "refId": "Novelan",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: \"${INFLUX_BUCKET}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"power\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "refId": "Grid",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"export_power_hybrid\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Batterie-Ladestand",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 20 },
+              { "color": "green", "value": 50 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "refId": "SoC",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_level\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "netsage-sankey-panel",
+      "title": "Energiefluss (Durchschnitt)",
+      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 4 },
+      "id": 5,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "options": {
+        "monochrome": false,
+        "nodeWidth": 20,
+        "nodePadding": 40,
+        "iteration": 10,
+        "valueField": "Leistung (W)",
+        "labelSize": 14
+      },
+      "targets": [
+        {
+          "refId": "Sankey",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "import \"array\"\nimport \"math\"\n\npvPower = (from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0))._value\n\nbattPower = (from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0))._value\n\ngridPower = (from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"export_power_hybrid\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0))._value\n\npvToHouse = pvPower - (if battPower > 0.0 then battPower else 0.0) - (if gridPower > 0.0 then gridPower else 0.0)\npvToBatt  = if battPower > 0.0 then battPower else 0.0\npvToGrid  = if gridPower > 0.0 then gridPower else 0.0\ngridToHouse = if gridPower < 0.0 then math.abs(x: gridPower) else 0.0\nbattToHouse = if battPower < 0.0 then math.abs(x: battPower) else 0.0\n\narray.from(rows: [\n  {Quelle: \"PV Solar\", Ziel: \"Haus\",         \"Leistung (W)\": if pvToHouse > 0.0 then pvToHouse else 0.0},\n  {Quelle: \"PV Solar\", Ziel: \"Batterie\",     \"Leistung (W)\": pvToBatt},\n  {Quelle: \"PV Solar\", Ziel: \"Einspeisung\",  \"Leistung (W)\": pvToGrid},\n  {Quelle: \"Netz\",     Ziel: \"Haus\",         \"Leistung (W)\": gridToHouse},\n  {Quelle: \"Batterie\", Ziel: \"Haus\",         \"Leistung (W)\": battToHouse},\n])"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Leistungsverlauf",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
+      "id": 6,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": { "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "refId": "History",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\")\n  |> filter(fn: (r) => r[\"_field\"] == \"total_active_power\" or r[\"_field\"] == \"battery_power\" or r[\"_field\"] == \"export_power_hybrid\" or r[\"_field\"] == \"load_power_hybrid\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ]
     }

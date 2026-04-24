@@ -1,0 +1,102 @@
+{
+  "title": "Heizung (Novelan)",
+  "uid": "heating",
+  "tags": ["heating", "novelan"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Vorlauf & Rücklauf",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": { "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "refId": "FlowReturn",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_flow\" or r[\"_field\"] == \"temperature_return\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Warmwasser",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": { "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "refId": "HotWater",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Außentemperatur",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": { "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "refId": "Outside",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_outside\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Aktuelle Temperaturen",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 20 },
+              { "color": "red", "value": 60 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "refId": "Stats",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> last()\n  |> yield(name: \"last\")"
+        }
+      ]
+    }
+  ]
+}

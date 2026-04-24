@@ -185,6 +185,7 @@ services:
     image: telegraf:latest
     container_name: telegraf
     restart: unless-stopped
+    user: "0:0"
     networks:
       - lares
     volumes:

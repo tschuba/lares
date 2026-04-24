@@ -21,7 +21,7 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: \"${INFLUX_BUCKET}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temp\" or r[\"_field\"] == \"humidity\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temp\" or r[\"_field\"] == \"humidity\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ]
     },
@@ -41,7 +41,7 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: \"${INFLUX_BUCKET}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"wind_speed\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"windspeed\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ]
     }
