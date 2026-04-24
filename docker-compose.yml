@@ -121,6 +121,8 @@ services:
       - ECOWITT2MQTT_PORT=4004
       - ECOWITT2MQTT_HASS_DISCOVERY=true
       - ECOWITT2MQTT_MQTT_TOPIC=weather/ecowitt
+      - ECOWITT2MQTT_OUTPUT_UNIT_SYSTEM=metric
+      - ECOWITT2MQTT_OUTPUT_UNIT_SPEED=km/h
     ports:
       - "4004:4004"
     networks:

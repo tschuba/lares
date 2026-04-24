@@ -82,7 +82,7 @@ version = 5.1.0
     # - Option A (direct MQTT): topic as configured in Ecowitt app
     # - Option B (ecowitt2mqtt): weather/ecowitt/#
     [[topics]]
-        unit_system = US
+        unit_system = METRIC
         [[[weather/ecowitt]]]
             subscribe = True
             ignore = False

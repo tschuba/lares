@@ -14,6 +14,25 @@
         "type": "influxdb",
         "uid": "influxdb-nas"
       },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "temp" },
+            "properties": [
+              { "id": "unit", "value": "celsius" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "humidity" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
       "targets": [
         {
           "refId": "Temp",
@@ -33,6 +52,10 @@
       "datasource": {
         "type": "influxdb",
         "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": { "unit": "velocitykmh" },
+        "overrides": []
       },
       "targets": [
         {
