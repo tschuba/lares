@@ -44,6 +44,99 @@
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"windspeed\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Wind Direction (from)",
+      "description": "Shows the direction the wind is coming FROM (meteorological convention). Example: 270° means wind originates in the West and blows eastward.",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "id": 3,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "degree",
+          "min": 0,
+          "max": 360,
+          "mappings": [
+            { "type": "range", "options": { "from": 0,     "to": 22.5,  "result": { "text": "N",  "index": 0 } } },
+            { "type": "range", "options": { "from": 22.5,  "to": 67.5,  "result": { "text": "NE", "index": 1 } } },
+            { "type": "range", "options": { "from": 67.5,  "to": 112.5, "result": { "text": "E",  "index": 2 } } },
+            { "type": "range", "options": { "from": 112.5, "to": 157.5, "result": { "text": "SE", "index": 3 } } },
+            { "type": "range", "options": { "from": 157.5, "to": 202.5, "result": { "text": "S",  "index": 4 } } },
+            { "type": "range", "options": { "from": 202.5, "to": 247.5, "result": { "text": "SW", "index": 5 } } },
+            { "type": "range", "options": { "from": 247.5, "to": 292.5, "result": { "text": "W",  "index": 6 } } },
+            { "type": "range", "options": { "from": 292.5, "to": 337.5, "result": { "text": "NW", "index": 7 } } },
+            { "type": "range", "options": { "from": 337.5, "to": 360,   "result": { "text": "N",  "index": 8 } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "rgba(100,150,255,0.12)", "value": null },
+              { "color": "rgba(100,200,100,0.12)", "value": 45  },
+              { "color": "rgba(255,150, 80,0.12)", "value": 135 },
+              { "color": "rgba(180,100,255,0.12)", "value": 225 },
+              { "color": "rgba(100,150,255,0.12)", "value": 315 }
+            ]
+          },
+          "custom": {
+            "thresholdsStyle": { "mode": "area" },
+            "axisLabel": "origin — N=0°  E=90°  S=180°  W=270°",
+            "lineWidth": 1,
+            "fillOpacity": 0
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "winddir" },
+            "properties": [
+              { "id": "custom.drawStyle", "value": "points" },
+              { "id": "custom.pointSize", "value": 3 },
+              { "id": "displayName",      "value": "Instant" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "winddir_avg10m" },
+            "properties": [
+              { "id": "custom.drawStyle", "value": "line" },
+              { "id": "displayName",      "value": "10 min avg" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "refId": "WindDir",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"winddir\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"winddir\")"
+        },
+        {
+          "refId": "WindDir10m",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"winddir_avg10m\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"winddir_avg10m\")"
+        }
+      ]
+    },
+    {
+      "type": "operato-windrose-panel",
+      "title": "Wind Rose (origin)",
+      "description": "Frequency of wind by origin direction and speed. The compass shows where the wind comes FROM, not where it is going.",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "id": 4,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "options": {
+        "speedUnit": "km/h"
+      },
+      "targets": [
+        {
+          "refId": "WindRose",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "direction = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"winddir\")\n\nspeed = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"windspeed\")\n\nunion(tables: [direction, speed])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> rename(columns: {winddir: \"wind_direction\", windspeed: \"wind_speed\"})\n  |> yield(name: \"wind_data\")"
+        }
+      ]
     }
   ]
 }

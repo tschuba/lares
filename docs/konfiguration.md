@@ -208,7 +208,7 @@ Für die Visualisierung der Energieflüsse wird ein Sankey-Diagramm verwendet:
 1. **Sankey Panel Plugin** installieren:
    - Navigation zu **Configuration** → **Plugins**
    - Nach "Sankey" suchen
-   - Plugin installieren (z.B. "Sankey Panel" von fr-ser/grafana-sankey-panel)
+   - Plugin installieren (z.B. "Sankey Panel" von netsage-sankey-panel)
 
 2. **Dashboard erstellen**:
    - **Create** → **Dashboard**

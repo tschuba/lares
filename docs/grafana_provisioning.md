@@ -28,7 +28,7 @@ config/grafana/
 
 Es wurden Basis-Grafana-JSON-Schemata für die drei primären Anwendungsfälle generiert:
 
-- **`energy-sankey.json`**: Implementiert das `fr-ser-sankey-panel` (gemäß ADR-012) und enthält Flux-Queries für `sungrow`, `meross` und `heating` (Novelan) Metriken.
+- **`energy-sankey.json`**: Implementiert das `netsage-sankey-panel` (gemäß ADR-012) und enthält Flux-Queries für `sungrow`, `meross` und `heating` (Novelan) Metriken.
 - **`weather.json`**: Visualisiert Ecowitt-Daten mit Zeitreihen-Panels für Temperatur, Luftfeuchtigkeit und Windgeschwindigkeit.
 - **`system.json`**: Bietet ein Zeitreihen-Monitoring für die NAS-Ressourcen (Telegrafs `cpu` und `mem` Metriken).
 
@@ -40,7 +40,7 @@ Da Grafana über Coolify auf dem Pi läuft, sollten folgende Schritte zur Einbin
 2. Einen Bind-Mount des lokalen Pfads `./config/grafana/provisioning` nach `/etc/grafana/provisioning` im Container einrichten.
 3. Einen Bind-Mount des lokalen Pfads `./config/grafana/dashboards` nach `/var/lib/grafana/dashboards` im Container einrichten.
 4. Die notwendigen Umgebungsvariablen (`INFLUX_ORG`, `INFLUX_BUCKET`, `INFLUX_TOKEN`) im Coolify-Service setzen, damit Grafana diese in der Datenquellen-YAML auflösen kann.
-5. Sicherstellen, dass das Sankey-Plugin installiert wird. Dies kann über die Umgebungsvariable `GF_INSTALL_PLUGINS=fr-ser-sankey-panel` in der Coolify-Service-Konfiguration erfolgen.
+5. Sicherstellen, dass die benötigten Plugins installiert werden. Dies kann über die Umgebungsvariable `GF_PLUGINS_PREINSTALL=netsage-sankey-panel,operato-windrose-panel` in der Coolify-Service-Konfiguration erfolgen.
 
 > [!TIP]
 > Die Dashboard-JSONs sind funktionale Basis-Templates. Um sie zu erweitern, können sie in der Grafana-UI visuell angepasst (Layout, Farben, Schwellenwerte etc.) und anschließend als JSON exportiert werden, um die Dateien in diesem Repository zu überschreiben (Docs-as-Code).
