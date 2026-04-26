@@ -41,8 +41,6 @@ dev = [
 
 [project.scripts]
 meross2homie = "meross2homie.main:main"
-meross_mqtt_password = "meross2homie.main:calc_mqtt_password_main"
-meross_discover = "meross2homie.discover:main"
 
 [tool.setuptools]
 packages = ["meross2homie"]
