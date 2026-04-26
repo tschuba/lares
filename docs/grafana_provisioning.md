@@ -9,7 +9,9 @@ Folgende Verzeichnisstruktur und Dateien wurden unter `config/grafana/` angelegt
 ```text
 config/grafana/
 ├── dashboards/
+│   ├── start.json          ← Standard-Startseite (Übersicht)
 │   ├── energy-sankey.json
+│   ├── heating.json
 │   ├── system.json
 │   └── weather.json
 └── provisioning/
@@ -26,11 +28,13 @@ config/grafana/
 
 ### 2. Dashboards (`dashboards/`)
 
-Es wurden Basis-Grafana-JSON-Schemata für die drei primären Anwendungsfälle generiert:
-
+- **`start.json`**: Standard-Startseite mit einer Übersicht der wichtigsten Kennzahlen: PV-Erzeugung, Batterie-Ladestand, aktueller Energiefluss (Sankey) und Wind Rose. Wird als Grafana-Startseite gesetzt (siehe Coolify-Konfiguration unten).
 - **`energy-sankey.json`**: Implementiert das `netsage-sankey-panel` (gemäß ADR-012) und enthält Flux-Queries für `sungrow`, `meross` und `heating` (Novelan) Metriken.
 - **`weather.json`**: Visualisiert Ecowitt-Daten mit Zeitreihen-Panels für Temperatur, Luftfeuchtigkeit und Windgeschwindigkeit.
+- **`heating.json`**: Temperaturen der Wärmepumpe (Novelan/Luxtronik).
 - **`system.json`**: Bietet ein Zeitreihen-Monitoring für die NAS-Ressourcen (Telegrafs `cpu` und `mem` Metriken).
+
+Alle Dashboards sind auf automatische Aktualisierung alle **15 Sekunden** und einen Standard-Zeitraum von **1 Stunde** konfiguriert.
 
 ## Nächste Schritte für Coolify
 
@@ -41,6 +45,10 @@ Da Grafana über Coolify auf dem Pi läuft, sollten folgende Schritte zur Einbin
 3. Einen Bind-Mount des lokalen Pfads `./config/grafana/dashboards` nach `/var/lib/grafana/dashboards` im Container einrichten.
 4. Die notwendigen Umgebungsvariablen (`INFLUX_ORG`, `INFLUX_BUCKET`, `INFLUX_TOKEN`) im Coolify-Service setzen, damit Grafana diese in der Datenquellen-YAML auflösen kann.
 5. Sicherstellen, dass die benötigten Plugins installiert werden. Dies kann über die Umgebungsvariable `GF_PLUGINS_PREINSTALL=netsage-sankey-panel,operato-windrose-panel` in der Coolify-Service-Konfiguration erfolgen.
+6. Das `start`-Dashboard als Grafana-Startseite setzen. Dazu folgende Umgebungsvariable in der Coolify-Service-Konfiguration hinzufügen:
+   ```
+   GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/start.json
+   ```
 
 > [!TIP]
 > Die Dashboard-JSONs sind funktionale Basis-Templates. Um sie zu erweitern, können sie in der Grafana-UI visuell angepasst (Layout, Farben, Schwellenwerte etc.) und anschließend als JSON exportiert werden, um die Dateien in diesem Repository zu überschreiben (Docs-as-Code).

@@ -1,0 +1,126 @@
+{
+  "title": "Start",
+  "uid": "start",
+  "tags": ["default", "overview"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "15s",
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "15s", "30s", "1m", "5m", "10m", "30m", "1h", "2h", "1d"]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "PV Erzeugung",
+      "description": "Tatsächliche PV-Ausgangsleistung (Inverter AC-Ausgang + Batterie-Ladeleistung)",
+      "gridPos": { "h": 4, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "gray",   "value": null },
+              { "color": "yellow", "value": 100  },
+              { "color": "green",  "value": 1000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "refId": "PV",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "import \"array\"\n\nacPower = (from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")\n  |> last()\n  |> findRecord(fn: (key) => true, idx: 0))._value\n\nbattPower = (from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")\n  |> last()\n  |> findRecord(fn: (key) => true, idx: 0))._value\n\narray.from(rows: [{_time: now(), _value: acPower + battPower, _field: \"pv_gesamt\", _measurement: \"sungrow\"}])"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Batterie-Ladestand",
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red",    "value": null },
+              { "color": "orange", "value": 20   },
+              { "color": "green",  "value": 50   }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "refId": "SoC",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_level\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "netsage-sankey-panel",
+      "title": "Energiefluss (Aktuell)",
+      "description": "Aktueller Leistungsfluss (letzter Messwert, unabhängig vom Dashboard-Zeitraum). Scan-Intervall: 5 Sekunden.",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 4 },
+      "id": 3,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "options": {
+        "monochrome": false,
+        "nodeWidth": 20,
+        "nodePadding": 40,
+        "iteration": 10,
+        "valueField": "Leistung (W)",
+        "labelSize": 14
+      },
+      "targets": [
+        {
+          "refId": "SankeyNow",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "import \"array\"\n\n_acRec    = from(bucket: v.defaultBucket) |> range(start: -2m) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")  |> last() |> findRecord(fn: (key) => true, idx: 0)\n_battRec  = from(bucket: v.defaultBucket) |> range(start: -2m) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")         |> last() |> findRecord(fn: (key) => true, idx: 0)\n_gridRec  = from(bucket: v.defaultBucket) |> range(start: -2m) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"export_power_hybrid\")    |> last() |> findRecord(fn: (key) => true, idx: 0)\nacPower   = if exists _acRec._value   then _acRec._value   else 0.0\nbattPower = if exists _battRec._value then _battRec._value else 0.0\ngridPower = if exists _gridRec._value then _gridRec._value else 0.0\n\npvPower = acPower + battPower\n\nbattDischarge = if battPower < 0.0 then -battPower else 0.0\nbattCharge    = if battPower > 0.0 then battPower else 0.0\ngridImport    = if gridPower < 0.0 then -gridPower else 0.0\ngridExport    = if gridPower > 0.0 then gridPower else 0.0\n\nbattToGrid  = if battDischarge < gridExport then battDischarge else gridExport\ngridToBatt  = if battCharge    < gridImport then battCharge    else gridImport\npvToBatt    = battCharge    - gridToBatt\npvToGrid    = gridExport    - battToGrid\nbattToHouse = battDischarge - battToGrid\ngridToHouse = gridImport    - gridToBatt\npvToHouse   = pvPower       - pvToBatt - pvToGrid\n\narray.from(rows: [\n  {Quelle: \"PV Solar\",  Ziel: \"Haus\",         \"Leistung (W)\": if pvToHouse   > 0.0 then pvToHouse   else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Batterie\",     \"Leistung (W)\": if pvToBatt    > 0.0 then pvToBatt    else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if pvToGrid    > 0.0 then pvToGrid    else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Haus\",         \"Leistung (W)\": if battToHouse > 0.0 then battToHouse else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if battToGrid  > 0.0 then battToGrid  else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Haus\",         \"Leistung (W)\": if gridToHouse > 0.0 then gridToHouse else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Batterie\",     \"Leistung (W)\": if gridToBatt  > 0.0 then gridToBatt  else 0.0},\n])"
+        }
+      ]
+    },
+    {
+      "type": "operato-windrose-panel",
+      "title": "Wind Rose (origin)",
+      "description": "Frequency of wind by origin direction and speed. The compass shows where the wind comes FROM, not where it is going.",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "id": 4,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "options": {
+        "windSpeedUnit": "kmh",
+        "windroseLabels": "compass",
+        "cardinalLabels": "cardinal"
+      },
+      "targets": [
+        {
+          "refId": "WindRose",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "direction = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"winddir\")\n\nspeed = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"windspeed\")\n\nunion(tables: [direction, speed])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> rename(columns: {winddir: \"wind_direction\", windspeed: \"wind_speed\"})\n  |> yield(name: \"wind_data\")"
+        }
+      ]
+    }
+  ]
+}
