@@ -101,6 +101,7 @@ services:
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
       - POLL_INTERVAL=60
+      - LOG_LEVEL=INFO
     networks:
       - lares
     depends_on:

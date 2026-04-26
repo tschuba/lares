@@ -117,15 +117,14 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "heat_energy_heating" }, "properties": [{ "id": "displayName", "value": "Heizung" }] },
-          { "matcher": { "id": "byName", "options": "heat_energy_hot_water" }, "properties": [{ "id": "displayName", "value": "Warmwasser" }] },
-          { "matcher": { "id": "byName", "options": "heat_energy_total" }, "properties": [{ "id": "displayName", "value": "Gesamt (seit Reset)" }] }
+          { "matcher": { "id": "byName", "options": "heat_energy_hot_water" }, "properties": [{ "id": "displayName", "value": "Warmwasser" }] }
         ]
       },
       "targets": [
         {
           "refId": "HeatEnergy",
           "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"heat_energy_heating\" or r[\"_field\"] == \"heat_energy_hot_water\" or r[\"_field\"] == \"heat_energy_total\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")"
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"heat_energy_heating\" or r[\"_field\"] == \"heat_energy_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")"
         }
       ]
     },
