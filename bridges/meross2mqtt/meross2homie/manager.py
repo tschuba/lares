@@ -90,7 +90,7 @@ class BridgeManager:
 
             homie_device = MerossHomieDevice(meross_device, dev_info)
 
-            if not homie_device.nodes:
+            if not homie_device.children:
                 logger.warning(
                     f"Device {dev_info.dev_name} ({uuid}) has no supported capabilities "
                     f"(needs ElectricityMixin or ConsumptionMixin) — skipping"
