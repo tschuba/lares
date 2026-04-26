@@ -40,8 +40,8 @@ class MerossHomieDevice(HomieDevice):
 
     @property
     def channels(self):
-        # ChannelInfo objects expose .index (not dict with channel_id)
-        return [ch.index for ch in self.dev_info.channels]
+        # BaseDevice.channels returns List[ChannelInfo] with .index
+        return [ch.index for ch in self.meross_device.channels]
 
     async def poll(self):
         md = self.meross_device
