@@ -5,7 +5,8 @@ import logging
 import paho.mqtt.client as mqtt
 from luxtronik import Luxtronik
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+_log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
+logging.basicConfig(level=_log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("luxtronik2mqtt")
 
 LUXTRONIK_IP = os.getenv("NOVELAN_IP")
@@ -44,6 +45,11 @@ def main():
         try:
             logger.info("Reading data from Luxtronik...")
             lux.read()
+
+            for _name in ["electric_power_actual", "electric_energy_total",
+                          "electric_energy_heating", "electric_energy_dhw"]:
+                _entry = lux.inputs.get(_name)
+                logger.debug(f"SHI {_name}: entry={_entry}, value={_entry.value if _entry else 'N/A'}")
             
             def calc(name):
                 entry = lux.calculations.get(name)
@@ -77,7 +83,6 @@ def main():
                 # Wärmemengen thermisch (kWh, alle 2 h vom Controller aktualisiert)
                 "heat_energy_heating": calc_kwh("ID_WEB_WMZ_Heizung"),
                 "heat_energy_hot_water": calc_kwh("ID_WEB_WMZ_Brauchwasser"),
-                "heat_energy_total": calc_kwh("ID_WEB_WMZ_Seit"),
                 # Betriebsstunden / Laufzeiten (Sekunden)
                 "runtime_compressor": calc("ID_WEB_Zaehler_BetrZeitVD1"),
                 "runtime_compressor_starts": calc("ID_WEB_Zaehler_BetrZeitImpVD1"),
