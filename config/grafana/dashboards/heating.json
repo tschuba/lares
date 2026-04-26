@@ -99,7 +99,144 @@
         {
           "refId": "Stats",
           "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> last()\n  |> yield(name: \"last\")"
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_hot_water\" or r[\"_field\"] == \"temperature_flow\" or r[\"_field\"] == \"temperature_return\")\n  |> last()\n  |> yield(name: \"last\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Wärmemengen (kWh)",
+      "description": "Kumulierte thermische Energie seit letztem Reset. Auflösung ~2 h (Hardware-Limit).",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 5,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "custom": { "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "heat_energy_heating" }, "properties": [{ "id": "displayName", "value": "Heizung" }] },
+          { "matcher": { "id": "byName", "options": "heat_energy_hot_water" }, "properties": [{ "id": "displayName", "value": "Warmwasser" }] },
+          { "matcher": { "id": "byName", "options": "heat_energy_total" }, "properties": [{ "id": "displayName", "value": "Gesamt (seit Reset)" }] }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "HeatEnergy",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"heat_energy_heating\" or r[\"_field\"] == \"heat_energy_hot_water\" or r[\"_field\"] == \"heat_energy_total\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Betriebsstunden",
+      "description": "Kumulierte Laufzeiten in Stunden.",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 6,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "custom": { "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "runtime_compressor" }, "properties": [{ "id": "displayName", "value": "Verdichter" }] },
+          { "matcher": { "id": "byName", "options": "runtime_heating" }, "properties": [{ "id": "displayName", "value": "Heizung" }] },
+          { "matcher": { "id": "byName", "options": "runtime_hot_water" }, "properties": [{ "id": "displayName", "value": "Warmwasser" }] }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "Runtimes",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor\" or r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"runtime_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: float(v: r._value) / 3600.0 }))\n  |> yield(name: \"last\")"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Betriebsstunden aktuell",
+      "description": "Letzte bekannte Laufzeitwerte.",
+      "gridPos": { "h": 4, "w": 12, "x": 0, "y": 24 },
+      "id": 7,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "runtime_compressor" }, "properties": [{ "id": "displayName", "value": "Verdichter" }] },
+          { "matcher": { "id": "byName", "options": "runtime_heating" }, "properties": [{ "id": "displayName", "value": "Heizung" }] },
+          { "matcher": { "id": "byName", "options": "runtime_hot_water" }, "properties": [{ "id": "displayName", "value": "Warmwasser" }] },
+          { "matcher": { "id": "byName", "options": "runtime_total" }, "properties": [{ "id": "displayName", "value": "WP gesamt" }] }
+        ]
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "horizontal",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "RuntimeStats",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor\" or r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"runtime_hot_water\" or r[\"_field\"] == \"runtime_total\")\n  |> last()\n  |> map(fn: (r) => ({ r with _value: float(v: r._value) / 3600.0 }))\n  |> yield(name: \"last\")"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Verdichter-Starts",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 24 },
+      "id": 8,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "CompressorStarts",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor_starts\")\n  |> last()\n  |> yield(name: \"last\")"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Betriebsmodus",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 24 },
+      "id": 9,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "refId": "OperatingMode",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"operating_mode\")\n  |> last()\n  |> yield(name: \"last\")"
         }
       ]
     }

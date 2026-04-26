@@ -45,11 +45,33 @@ def main():
             logger.info("Reading data from Luxtronik...")
             lux.read()
             
+            def calc(name):
+                entry = lux.calculations.get(name)
+                return entry.value if entry else None
+
+            def calc_kwh(name):
+                """Wert aus kWh/10-Register in kWh umrechnen."""
+                v = calc(name)
+                return round(v / 10.0, 1) if v is not None else None
+
             data = {
-                "temperature_outside": lux.calculations.get("ID_WEB_Temperatur_TA").value if lux.calculations.get("ID_WEB_Temperatur_TA") else None,
-                "temperature_hot_water": lux.calculations.get("ID_WEB_Temperatur_TBW").value if lux.calculations.get("ID_WEB_Temperatur_TBW") else None,
-                "temperature_flow": lux.calculations.get("ID_WEB_Temperatur_TVL").value if lux.calculations.get("ID_WEB_Temperatur_TVL") else None,
-                "temperature_return": lux.calculations.get("ID_WEB_Temperatur_TRL").value if lux.calculations.get("ID_WEB_Temperatur_TRL") else None,
+                # Temperaturen
+                "temperature_outside": calc("ID_WEB_Temperatur_TA"),
+                "temperature_hot_water": calc("ID_WEB_Temperatur_TBW"),
+                "temperature_flow": calc("ID_WEB_Temperatur_TVL"),
+                "temperature_return": calc("ID_WEB_Temperatur_TRL"),
+                # Wärmemengen (kWh, alle 2 h vom Controller aktualisiert)
+                "heat_energy_heating": calc_kwh("ID_WEB_WMZ_Heizung"),
+                "heat_energy_hot_water": calc_kwh("ID_WEB_WMZ_Brauchwasser"),
+                "heat_energy_total": calc_kwh("ID_WEB_WMZ_Seit"),
+                # Betriebsstunden / Laufzeiten (Sekunden)
+                "runtime_compressor": calc("ID_WEB_Zaehler_BetrZeitVD1"),
+                "runtime_compressor_starts": calc("ID_WEB_Zaehler_BetrZeitImpVD1"),
+                "runtime_heating": calc("ID_WEB_Zaehler_BetrZeitHz"),
+                "runtime_hot_water": calc("ID_WEB_Zaehler_BetrZeitBW"),
+                "runtime_total": calc("ID_WEB_Zaehler_BetrZeitWP"),
+                # Betriebsmodus
+                "operating_mode": calc("ID_WEB_WP_BZ_akt"),
             }
             
             data = {k: v for k, v in data.items() if v is not None}
