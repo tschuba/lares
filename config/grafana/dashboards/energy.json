@@ -338,7 +338,7 @@
       "title": "Energiefluss (Durchschnitt)",
       "description": "Mittlere Leistungsflüsse über den gewählten Zeitraum. Flows erscheinen nur wenn der Mittelwert in die jeweilige Richtung positiv ist.",
       "gridPos": {
-        "h": 14,
+        "h": 18,
         "w": 24,
         "x": 0,
         "y": 4
@@ -351,7 +351,7 @@
       "options": {
         "monochrome": false,
         "nodeWidth": 20,
-        "nodePadding": 40,
+        "nodePadding": 15,
         "iteration": 10,
         "valueField": "Leistung (W)",
         "labelSize": 14
@@ -363,7 +363,7 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "import \"array\"\n\n_acRec    = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")  |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_battRec  = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")         |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_gridRec  = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"export_power_hybrid\")    |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_wpRec    = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_power_actual\")   |> mean() |> findRecord(fn: (key) => true, idx: 0)\nacPower   = if exists _acRec._value   then _acRec._value   else 0.0\nbattPower = if exists _battRec._value then _battRec._value else 0.0\ngridPower = if exists _gridRec._value then _gridRec._value else 0.0\nwpPower   = if exists _wpRec._value   then _wpRec._value * 1000.0 else 0.0\n\npvPower = acPower + battPower\n\nbattDischarge = if battPower < 0.0 then -battPower else 0.0\nbattCharge    = if battPower > 0.0 then battPower else 0.0\ngridImport    = if gridPower < 0.0 then -gridPower else 0.0\ngridExport    = if gridPower > 0.0 then gridPower else 0.0\n\nbattToGrid  = if battDischarge < gridExport then battDischarge else gridExport\ngridToBatt  = if battCharge    < gridImport then battCharge    else gridImport\npvToBatt    = battCharge    - gridToBatt\npvToGrid    = gridExport    - battToGrid\nbattToHouse = battDischarge - battToGrid\ngridToHouse = gridImport    - gridToBatt\npvToHouse   = pvPower       - pvToBatt - pvToGrid\n\nhausVerbrauch = pvToHouse + battToHouse + gridToHouse\n\narray.from(rows: [\n  {Quelle: \"PV Solar\",  Ziel: \"Haus\",         \"Leistung (W)\": if pvToHouse   > 0.0 then pvToHouse   else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Batterie\",     \"Leistung (W)\": if pvToBatt    > 0.0 then pvToBatt    else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if pvToGrid    > 0.0 then pvToGrid    else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Haus\",         \"Leistung (W)\": if battToHouse > 0.0 then battToHouse else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if battToGrid  > 0.0 then battToGrid  else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Haus\",         \"Leistung (W)\": if gridToHouse > 0.0 then gridToHouse else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Batterie\",     \"Leistung (W)\": if gridToBatt  > 0.0 then gridToBatt  else 0.0},\n  {Quelle: \"Haus\",      Ziel: \"Wärmepumpe\",   \"Leistung (W)\": if wpPower > 0.0 then wpPower else 0.0},\n  {Quelle: \"Haus\",      Ziel: \"Sonstiges\",    \"Leistung (W)\": if hausVerbrauch - wpPower > 0.0 then hausVerbrauch - wpPower else 0.0},\n])"
+          "query": "import \"array\"\n\n_acRec     = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")   |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_battRec   = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")          |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_importRec = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"import_from_grid\")       |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_exportRec = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"export_to_grid\")         |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_wpRec     = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_power_actual\")   |> mean() |> findRecord(fn: (key) => true, idx: 0)\nacPower    = if exists _acRec._value     then _acRec._value     else 0.0\nbattPower  = if exists _battRec._value   then _battRec._value   else 0.0\ngridImport = if exists _importRec._value then _importRec._value else 0.0\ngridExport = if exists _exportRec._value then _exportRec._value else 0.0\nwpPower    = if exists _wpRec._value     then _wpRec._value * 1000.0 else 0.0\n\npvPower       = acPower + battPower\nbattDischarge = if battPower < 0.0 then -battPower else 0.0\nbattCharge    = if battPower > 0.0 then battPower  else 0.0\n\nbattToGrid  = if battDischarge < gridExport then battDischarge else gridExport\ngridToBatt  = if battCharge    < gridImport then battCharge    else gridImport\npvToBatt    = battCharge    - gridToBatt\npvToGrid    = gridExport    - battToGrid\nbattToHouse = battDischarge - battToGrid\ngridToHouse = gridImport    - gridToBatt\npvToHouse   = pvPower       - pvToBatt - pvToGrid\n\nhausVerbrauch = pvToHouse + battToHouse + gridToHouse\nwpShare       = if hausVerbrauch > 0.0 then wpPower / hausVerbrauch else 0.0\nwpShareCapped = if wpShare > 1.0 then 1.0 else wpShare\n\narray.from(rows: [\n  {Quelle: \"PV Solar\",  Ziel: \"Wärmepumpe\",  \"Leistung (W)\": if pvToHouse   * wpShareCapped > 0.0 then pvToHouse   * wpShareCapped else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Sonstiges\",   \"Leistung (W)\": if pvToHouse   * (1.0 - wpShareCapped) > 0.0 then pvToHouse   * (1.0 - wpShareCapped) else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Batterie\",    \"Leistung (W)\": if pvToBatt    > 0.0 then pvToBatt    else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Einspeisung\", \"Leistung (W)\": if pvToGrid    > 0.0 then pvToGrid    else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Wärmepumpe\",  \"Leistung (W)\": if battToHouse * wpShareCapped > 0.0 then battToHouse * wpShareCapped else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Sonstiges\",   \"Leistung (W)\": if battToHouse * (1.0 - wpShareCapped) > 0.0 then battToHouse * (1.0 - wpShareCapped) else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Einspeisung\", \"Leistung (W)\": if battToGrid  > 0.0 then battToGrid  else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Wärmepumpe\",  \"Leistung (W)\": if gridToHouse * wpShareCapped > 0.0 then gridToHouse * wpShareCapped else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Sonstiges\",   \"Leistung (W)\": if gridToHouse * (1.0 - wpShareCapped) > 0.0 then gridToHouse * (1.0 - wpShareCapped) else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Batterie\",    \"Leistung (W)\": if gridToBatt  > 0.0 then gridToBatt  else 0.0},\n])"
         }
       ]
     },
@@ -374,7 +374,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 22
       },
       "id": 6,
       "datasource": {
@@ -387,7 +387,21 @@
           "custom": {
             "lineWidth": 2
           }
-        }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "heating Wärmepumpe (W) heating/novelan/state"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Wärmepumpe"
+              }
+            ]
+          }
+        ]
       },
       "targets": [
         {
