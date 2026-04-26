@@ -1,6 +1,6 @@
 {
-  "title": "Energie (Sungrow)",
-  "uid": "energy-sankey",
+  "title": "Energie",
+  "uid": "energy",
   "tags": [
     "energy",
     "sungrow",
@@ -10,9 +10,24 @@
   "schemaVersion": 38,
   "refresh": "15s",
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "15s", "30s", "1m", "5m", "10m", "30m", "1h", "2h", "1d"]
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "15s",
+      "30s",
+      "1m",
+      "5m",
+      "10m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
   },
-  "time": { "from": "now-1h", "to": "now" },
+  "time": {
+    "from": "now/d",
+    "to": "now"
+  },
   "panels": [
     {
       "type": "stat",
@@ -320,47 +335,13 @@
     },
     {
       "type": "netsage-sankey-panel",
-      "title": "Energiefluss (Aktuell)",
-      "description": "Aktueller Leistungsfluss (letzter Messwert, unabhängig vom Dashboard-Zeitraum). Scan-Intervall: 5 Sekunden.",
-      "gridPos": {
-        "h": 12,
-        "w": 24,
-        "x": 0,
-        "y": 4
-      },
-      "id": 8,
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "options": {
-        "monochrome": false,
-        "nodeWidth": 20,
-        "nodePadding": 40,
-        "iteration": 10,
-        "valueField": "Leistung (W)",
-        "labelSize": 14
-      },
-      "targets": [
-        {
-          "refId": "SankeyNow",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "import \"array\"\n\n_acRec    = from(bucket: v.defaultBucket) |> range(start: -2m) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")  |> last() |> findRecord(fn: (key) => true, idx: 0)\n_battRec  = from(bucket: v.defaultBucket) |> range(start: -2m) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")         |> last() |> findRecord(fn: (key) => true, idx: 0)\n_gridRec  = from(bucket: v.defaultBucket) |> range(start: -2m) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"export_power_hybrid\")    |> last() |> findRecord(fn: (key) => true, idx: 0)\nacPower   = if exists _acRec._value   then _acRec._value   else 0.0\nbattPower = if exists _battRec._value then _battRec._value else 0.0\ngridPower = if exists _gridRec._value then _gridRec._value else 0.0\n\npvPower = acPower + battPower\n\nbattDischarge = if battPower < 0.0 then -battPower else 0.0\nbattCharge    = if battPower > 0.0 then battPower else 0.0\ngridImport    = if gridPower < 0.0 then -gridPower else 0.0\ngridExport    = if gridPower > 0.0 then gridPower else 0.0\n\nbattToGrid  = if battDischarge < gridExport then battDischarge else gridExport\ngridToBatt  = if battCharge    < gridImport then battCharge    else gridImport\npvToBatt    = battCharge    - gridToBatt\npvToGrid    = gridExport    - battToGrid\nbattToHouse = battDischarge - battToGrid\ngridToHouse = gridImport    - gridToBatt\npvToHouse   = pvPower       - pvToBatt - pvToGrid\n\narray.from(rows: [\n  {Quelle: \"PV Solar\",  Ziel: \"Haus\",         \"Leistung (W)\": if pvToHouse   > 0.0 then pvToHouse   else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Batterie\",     \"Leistung (W)\": if pvToBatt    > 0.0 then pvToBatt    else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if pvToGrid    > 0.0 then pvToGrid    else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Haus\",         \"Leistung (W)\": if battToHouse > 0.0 then battToHouse else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if battToGrid  > 0.0 then battToGrid  else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Haus\",         \"Leistung (W)\": if gridToHouse > 0.0 then gridToHouse else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Batterie\",     \"Leistung (W)\": if gridToBatt  > 0.0 then gridToBatt  else 0.0},\n])"
-        }
-      ]
-    },
-    {
-      "type": "netsage-sankey-panel",
       "title": "Energiefluss (Durchschnitt)",
       "description": "Mittlere Leistungsflüsse über den gewählten Zeitraum. Flows erscheinen nur wenn der Mittelwert in die jeweilige Richtung positiv ist.",
       "gridPos": {
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 4
       },
       "id": 5,
       "datasource": {
@@ -382,7 +363,7 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "import \"array\"\n\n_acRec    = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")  |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_battRec  = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")         |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_gridRec  = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"export_power_hybrid\")    |> mean() |> findRecord(fn: (key) => true, idx: 0)\nacPower   = if exists _acRec._value   then _acRec._value   else 0.0\nbattPower = if exists _battRec._value then _battRec._value else 0.0\ngridPower = if exists _gridRec._value then _gridRec._value else 0.0\n\npvPower = acPower + battPower\n\nbattDischarge = if battPower < 0.0 then -battPower else 0.0\nbattCharge    = if battPower > 0.0 then battPower else 0.0\ngridImport    = if gridPower < 0.0 then -gridPower else 0.0\ngridExport    = if gridPower > 0.0 then gridPower else 0.0\n\nbattToGrid  = if battDischarge < gridExport then battDischarge else gridExport\ngridToBatt  = if battCharge    < gridImport then battCharge    else gridImport\npvToBatt    = battCharge    - gridToBatt\npvToGrid    = gridExport    - battToGrid\nbattToHouse = battDischarge - battToGrid\ngridToHouse = gridImport    - gridToBatt\npvToHouse   = pvPower       - pvToBatt - pvToGrid\n\narray.from(rows: [\n  {Quelle: \"PV Solar\",  Ziel: \"Haus\",         \"Leistung (W)\": if pvToHouse   > 0.0 then pvToHouse   else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Batterie\",     \"Leistung (W)\": if pvToBatt    > 0.0 then pvToBatt    else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if pvToGrid    > 0.0 then pvToGrid    else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Haus\",         \"Leistung (W)\": if battToHouse > 0.0 then battToHouse else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if battToGrid  > 0.0 then battToGrid  else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Haus\",         \"Leistung (W)\": if gridToHouse > 0.0 then gridToHouse else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Batterie\",     \"Leistung (W)\": if gridToBatt  > 0.0 then gridToBatt  else 0.0},\n])"
+          "query": "import \"array\"\n\n_acRec    = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"total_active_power\")  |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_battRec  = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_power\")         |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_gridRec  = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"export_power_hybrid\")    |> mean() |> findRecord(fn: (key) => true, idx: 0)\n_wpRec    = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_power_actual\")   |> mean() |> findRecord(fn: (key) => true, idx: 0)\nacPower   = if exists _acRec._value   then _acRec._value   else 0.0\nbattPower = if exists _battRec._value then _battRec._value else 0.0\ngridPower = if exists _gridRec._value then _gridRec._value else 0.0\nwpPower   = if exists _wpRec._value   then _wpRec._value * 1000.0 else 0.0\n\npvPower = acPower + battPower\n\nbattDischarge = if battPower < 0.0 then -battPower else 0.0\nbattCharge    = if battPower > 0.0 then battPower else 0.0\ngridImport    = if gridPower < 0.0 then -gridPower else 0.0\ngridExport    = if gridPower > 0.0 then gridPower else 0.0\n\nbattToGrid  = if battDischarge < gridExport then battDischarge else gridExport\ngridToBatt  = if battCharge    < gridImport then battCharge    else gridImport\npvToBatt    = battCharge    - gridToBatt\npvToGrid    = gridExport    - battToGrid\nbattToHouse = battDischarge - battToGrid\ngridToHouse = gridImport    - gridToBatt\npvToHouse   = pvPower       - pvToBatt - pvToGrid\n\nhausVerbrauch = pvToHouse + battToHouse + gridToHouse\n\narray.from(rows: [\n  {Quelle: \"PV Solar\",  Ziel: \"Haus\",         \"Leistung (W)\": if pvToHouse   > 0.0 then pvToHouse   else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Batterie\",     \"Leistung (W)\": if pvToBatt    > 0.0 then pvToBatt    else 0.0},\n  {Quelle: \"PV Solar\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if pvToGrid    > 0.0 then pvToGrid    else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Haus\",         \"Leistung (W)\": if battToHouse > 0.0 then battToHouse else 0.0},\n  {Quelle: \"Batterie\",  Ziel: \"Einspeisung\",  \"Leistung (W)\": if battToGrid  > 0.0 then battToGrid  else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Haus\",         \"Leistung (W)\": if gridToHouse > 0.0 then gridToHouse else 0.0},\n  {Quelle: \"Netz\",      Ziel: \"Batterie\",     \"Leistung (W)\": if gridToBatt  > 0.0 then gridToBatt  else 0.0},\n  {Quelle: \"Haus\",      Ziel: \"Wärmepumpe\",   \"Leistung (W)\": if wpPower > 0.0 then wpPower else 0.0},\n  {Quelle: \"Haus\",      Ziel: \"Sonstiges\",    \"Leistung (W)\": if hausVerbrauch - wpPower > 0.0 then hausVerbrauch - wpPower else 0.0},\n])"
         }
       ]
     },
@@ -393,7 +374,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 18
       },
       "id": 6,
       "datasource": {
@@ -416,6 +397,14 @@
             "uid": "influxdb-nas"
           },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\")\n  |> filter(fn: (r) => r[\"_field\"] == \"total_active_power\" or r[\"_field\"] == \"battery_power\" or r[\"_field\"] == \"export_power_hybrid\" or r[\"_field\"] == \"load_power_hybrid\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({\n      _time: r._time,\n      \"PV Erzeugung\":              r.total_active_power + r.battery_power,\n      \"Hausverbrauch\":             r.load_power_hybrid,\n      \"Batterie (+lädt/-entlädt)\": r.battery_power,\n      \"Netz (+Einsp./-Bezug)\":     r.export_power_hybrid\n  }))\n  |> yield(name: \"mean\")"
+        },
+        {
+          "refId": "WP",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_power_actual\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value * 1000.0, _field: \"Wärmepumpe (W)\" }))\n  |> yield(name: \"mean\")"
         }
       ]
     }

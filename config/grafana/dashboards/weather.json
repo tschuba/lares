@@ -1,5 +1,5 @@
 {
-  "title": "Weather (Ecowitt)",
+  "title": "Wetter (Ecowitt)",
   "uid": "weather",
   "tags": ["weather"],
   "timezone": "browser",
@@ -8,11 +8,11 @@
   "timepicker": {
     "refresh_intervals": ["5s", "10s", "15s", "30s", "1m", "5m", "10m", "30m", "1h", "2h", "1d"]
   },
-  "time": { "from": "now-1h", "to": "now" },
+  "time": { "from": "now/d", "to": "now" },
   "panels": [
     {
       "type": "timeseries",
-      "title": "Temperature & Humidity",
+      "title": "Temperatur & Luftfeuchtigkeit",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "id": 1,
       "datasource": {
@@ -51,7 +51,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Wind Speed",
+      "title": "Windgeschwindigkeit",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
       "id": 2,
       "datasource": {
@@ -75,8 +75,8 @@
     },
     {
       "type": "timeseries",
-      "title": "Wind Direction (from)",
-      "description": "Shows the direction the wind is coming FROM (meteorological convention). Example: 270° means wind originates in the West and blows eastward.",
+      "title": "Windrichtung (von)",
+      "description": "Zeigt die Richtung, aus der der Wind kommt (meteorologische Konvention). Beispiel: 270° bedeutet, dass der Wind aus Westen kommt und nach Osten weht.",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
       "id": 3,
       "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
@@ -145,8 +145,8 @@
     },
     {
       "type": "operato-windrose-panel",
-      "title": "Wind Rose (origin)",
-      "description": "Frequency of wind by origin direction and speed. The compass shows where the wind comes FROM, not where it is going.",
+      "title": "Wind Rose (Herkunft)",
+      "description": "Häufigkeit des Windes nach Herkunftsrichtung und -geschwindigkeit. Der Kompass zeigt, woher der Wind kommt, nicht wohin er geht.",
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
       "id": 4,
       "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
