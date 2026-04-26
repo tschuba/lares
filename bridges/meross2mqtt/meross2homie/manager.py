@@ -1,19 +1,23 @@
 import asyncio
+import json
 import random
 from contextlib import AsyncExitStack
+from pathlib import Path
 from typing import Optional, Dict
 
 import aiomqtt
 from loguru import logger
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
-from meross_iot.model.enums import OnlineStatus
+from meross_iot.model.credentials import MerossCloudCreds
+from meross_iot.model.http.exception import TooManyTokensException, UnauthorizedException
 
 from meross2homie.config import CONFIG
 from meross2homie.device import MerossHomieDevice
 from meross2homie.homie import Homie, HomieState
 
 MEROSS_API_URL = "https://iotx-eu.meross.com"
+CREDS_FILE = Path("/config/meross_creds.json")
 
 
 def _mqtt_factory(will: Optional[aiomqtt.Will] = None, client_id_prefix: Optional[str] = None) -> aiomqtt.Client:
@@ -33,6 +37,63 @@ def _mqtt_factory(will: Optional[aiomqtt.Will] = None, client_id_prefix: Optiona
     return client
 
 
+def _load_cached_creds() -> Optional[MerossCloudCreds]:
+    if not CREDS_FILE.exists():
+        return None
+    try:
+        creds = MerossCloudCreds.from_json(CREDS_FILE.read_text())
+        logger.info(f"Loaded cached Meross credentials from {CREDS_FILE}")
+        return creds
+    except Exception:
+        logger.warning(f"Failed to load cached credentials from {CREDS_FILE}, will re-login")
+        return None
+
+
+def _save_creds(creds: MerossCloudCreds):
+    try:
+        CREDS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        CREDS_FILE.write_text(creds.to_json())
+        logger.debug(f"Saved Meross credentials to {CREDS_FILE}")
+    except Exception:
+        logger.warning(f"Failed to save credentials to {CREDS_FILE}")
+
+
+def _delete_cached_creds():
+    try:
+        if CREDS_FILE.exists():
+            CREDS_FILE.unlink()
+            logger.info(f"Deleted cached credentials {CREDS_FILE}")
+    except Exception:
+        logger.warning(f"Failed to delete cached credentials {CREDS_FILE}")
+
+
+async def _login() -> MerossHttpClient:
+    """Login with email/password, save token, return http client."""
+    logger.info("Logging in to Meross Cloud with email/password...")
+    http_client = await MerossHttpClient.async_from_user_password(
+        api_base_url=MEROSS_API_URL,
+        email=CONFIG.meross_email,
+        password=CONFIG.meross_password,
+    )
+    _save_creds(http_client.cloud_credentials)
+    return http_client
+
+
+async def _get_http_client() -> MerossHttpClient:
+    """Return an authenticated MerossHttpClient, using cached token if available."""
+    creds = _load_cached_creds()
+    if creds is not None:
+        try:
+            http_client = await MerossHttpClient.async_from_cloud_creds(creds)
+            logger.info("Connected to Meross Cloud using cached token")
+            return http_client
+        except (UnauthorizedException, TooManyTokensException):
+            logger.warning("Cached token is invalid or expired, re-logging in...")
+            _delete_cached_creds()
+
+    return await _login()
+
+
 class BridgeManager:
     def __init__(self):
         self.homie = Homie(_mqtt_factory, CONFIG.homie_prefix)
@@ -45,13 +106,9 @@ class BridgeManager:
         self._ctx = AsyncExitStack()
         await self._ctx.__aenter__()
 
-        # Connect to Meross Cloud
+        # Connect to Meross Cloud (reuse cached token if available)
         logger.info("Connecting to Meross Cloud...")
-        self._http_client = await MerossHttpClient.async_from_user_password(
-            api_base_url=MEROSS_API_URL,
-            email=CONFIG.meross_email,
-            password=CONFIG.meross_password,
-        )
+        self._http_client = await _get_http_client()
         self._meross_manager = MerossManager(http_client=self._http_client)
         await self._meross_manager.async_init()
         logger.info("Connected to Meross Cloud")
@@ -67,8 +124,8 @@ class BridgeManager:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self._meross_manager:
             self._meross_manager.close()
-        if self._http_client:
-            await self._http_client.async_logout()
+        # Do NOT logout — that would invalidate the cached token.
+        # The token will be reused on next start.
         await self._ctx.__aexit__(exc_type, exc_val, exc_tb)
 
     async def _discover_devices(self):
