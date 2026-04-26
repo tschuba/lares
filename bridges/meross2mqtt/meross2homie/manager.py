@@ -80,7 +80,7 @@ class BridgeManager:
 
         for meross_device in devices:
             uuid = meross_device.uuid
-            dev_info = meross_device.device_info
+            dev_info = meross_device.cached_http_info
 
             # Determine Homie topic
             if (dev_cfg := CONFIG.devices.get(uuid)) and dev_cfg.pretty_topic:

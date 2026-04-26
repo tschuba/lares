@@ -1,12 +1,9 @@
 import asyncio
-from datetime import datetime
-from typing import TypeVar, Iterable
+from typing import TypeVar
 
 from loguru import logger
 from meross_iot.controller.device import BaseDevice
-
-# noinspection PyProtectedMember
-from meross_iot.controller.mixins.consumption import ConsumptionMixin, ConsumptionXMixin, _DATE_FORMAT
+from meross_iot.controller.mixins.consumption import ConsumptionMixin, ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.model.http.device import HttpDeviceInfo
 
@@ -31,7 +28,6 @@ def _channel_name(name: str, channel_id: int) -> str:
 
 class MerossHomieDevice(HomieDevice):
     def __init__(self, meross_device: MD, dev_info: HttpDeviceInfo):
-        # Use pretty_name from config if available, otherwise fall back to cloud name
         uuid = dev_info.uuid
         if (dev_cfg := CONFIG.devices.get(uuid)) and dev_cfg.pretty_name:
             name = dev_cfg.pretty_name
@@ -43,35 +39,9 @@ class MerossHomieDevice(HomieDevice):
         self._populate()
 
     @property
-    def channels(self) -> Iterable[int]:
-        return [channel["channel_id"] for channel in self.dev_info.channels]
-
-    async def _ingest_consumption_payload(self, payload: dict, channel_id: int):
-        updates = []
-        data = payload.get("consumption", payload.get("consumptionx", []))
-
-        stats = [
-            {
-                "timestamp": (
-                    datetime.fromtimestamp(data["timestamp"])
-                    if "timestamp" in data
-                    else datetime.strptime(x.get("date"), _DATE_FORMAT)
-                ),
-                "total_consumption_kwh": float(x.get("value")) / 1000,
-            }
-            for x in data
-        ]
-
-        if not stats:
-            return
-
-        last = sorted(stats, key=lambda x: x["timestamp"], reverse=True)[0]
-        total = sum(x["total_consumption_kwh"] for x in stats)
-        updates.append(self[_channel_topic("energy", channel_id)]["history"].update_value(stats))
-        updates.append(self[_channel_topic("energy", channel_id)]["daily"].update_value(last["total_consumption_kwh"]))
-        updates.append(self[_channel_topic("energy", channel_id)]["total"].update_value(total))
-
-        await asyncio.gather(*updates)
+    def channels(self):
+        # ChannelInfo objects expose .index (not dict with channel_id)
+        return [ch.index for ch in self.dev_info.channels]
 
     async def poll(self):
         md = self.meross_device
@@ -82,20 +52,31 @@ class MerossHomieDevice(HomieDevice):
 
         if isinstance(md, (ConsumptionMixin, ConsumptionXMixin)):
             for channel_id in self.channels:
-                namespace = (
-                    "Appliance.Control.Consumption"
-                    if isinstance(md, ConsumptionMixin)
-                    else "Appliance.Control.ConsumptionX"
-                )
                 try:
-                    result = await md.async_execute_cmd(
-                        method="GET",
-                        namespace=namespace,
-                        payload={"channel": channel_id},
-                    )
-                    updates.append(self._ingest_consumption_payload(result, channel_id))
+                    stats = await md.async_get_daily_power_consumption(channel=channel_id)
+                    # stats: List[{'date': datetime, 'total_consumption_kwh': float}]
+                    if stats:
+                        last = sorted(stats, key=lambda x: x["date"], reverse=True)[0]
+                        total = sum(x["total_consumption_kwh"] for x in stats)
+                        history = [
+                            {"timestamp": x["date"].isoformat(), "total_consumption_kwh": x["total_consumption_kwh"]}
+                            for x in stats
+                        ]
+                        updates.append(
+                            self[_channel_topic("energy", channel_id)]["history"].update_value(history)
+                        )
+                        updates.append(
+                            self[_channel_topic("energy", channel_id)]["daily"].update_value(
+                                last["total_consumption_kwh"]
+                            )
+                        )
+                        updates.append(
+                            self[_channel_topic("energy", channel_id)]["total"].update_value(total)
+                        )
                 except Exception:
-                    logger.exception(f"Failed to poll consumption for {self.dev_info.uuid} channel {channel_id}")
+                    logger.exception(
+                        f"Failed to poll consumption for {self.dev_info.uuid} channel {channel_id}"
+                    )
 
         if isinstance(md, ElectricityMixin):
             for channel_id in self.channels:
@@ -111,7 +92,9 @@ class MerossHomieDevice(HomieDevice):
                         self[_channel_topic("electricity", channel_id)]["power"].update_value(stats.power)
                     )
                 except Exception:
-                    logger.exception(f"Failed to poll electricity for {self.dev_info.uuid} channel {channel_id}")
+                    logger.exception(
+                        f"Failed to poll electricity for {self.dev_info.uuid} channel {channel_id}"
+                    )
 
         await asyncio.gather(*updates)
 
