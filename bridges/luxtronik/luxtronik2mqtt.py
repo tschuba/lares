@@ -64,15 +64,6 @@ def main():
                 entry = lux.inputs.get(name)
                 return entry.value if entry else None
 
-            def inp_kwh(name):
-                """Wert aus kWh/10-Register (SHI) in kWh umrechnen."""
-                v = inp(name)
-                return round(v / 10.0, 1) if v is not None else None
-
-            def inp_kw(name):
-                """Wert aus kW/10-Register (SHI) in kW umrechnen."""
-                v = inp(name)
-                return round(v / 10.0, 2) if v is not None else None
 
             data = {
                 # Temperaturen
@@ -92,10 +83,11 @@ def main():
                 # Betriebsmodus
                 "operating_mode": calc("ID_WEB_WP_BZ_akt"),
                 # Elektrischer Verbrauch (SHI, Modbus TCP Port 502, FW >= 3.90.1)
-                "electric_power_actual": inp_kw("electric_power_actual"),
-                "electric_energy_total": inp_kwh("electric_energy_total"),
-                "electric_energy_heating": inp_kwh("electric_energy_heating"),
-                "electric_energy_dhw": inp_kwh("electric_energy_dhw"),
+                # Bibliothek liefert bereits umgerechnete Werte (kW bzw. kWh), kein /10 nötig
+                "electric_power_actual": inp("electric_power_actual"),
+                "electric_energy_total": inp("electric_energy_total"),
+                "electric_energy_heating": inp("electric_energy_heating"),
+                "electric_energy_dhw": inp("electric_energy_dhw"),
             }
             
             data = {k: v for k, v in data.items() if v is not None}
