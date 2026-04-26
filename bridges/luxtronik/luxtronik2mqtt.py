@@ -50,9 +50,23 @@ def main():
                 return entry.value if entry else None
 
             def calc_kwh(name):
-                """Wert aus kWh/10-Register in kWh umrechnen."""
+                """Wert aus kWh/10-Register (CFI) in kWh umrechnen."""
                 v = calc(name)
                 return round(v / 10.0, 1) if v is not None else None
+
+            def inp(name):
+                entry = lux.inputs.get(name)
+                return entry.value if entry else None
+
+            def inp_kwh(name):
+                """Wert aus kWh/10-Register (SHI) in kWh umrechnen."""
+                v = inp(name)
+                return round(v / 10.0, 1) if v is not None else None
+
+            def inp_kw(name):
+                """Wert aus kW/10-Register (SHI) in kW umrechnen."""
+                v = inp(name)
+                return round(v / 10.0, 2) if v is not None else None
 
             data = {
                 # Temperaturen
@@ -60,7 +74,7 @@ def main():
                 "temperature_hot_water": calc("ID_WEB_Temperatur_TBW"),
                 "temperature_flow": calc("ID_WEB_Temperatur_TVL"),
                 "temperature_return": calc("ID_WEB_Temperatur_TRL"),
-                # Wärmemengen (kWh, alle 2 h vom Controller aktualisiert)
+                # Wärmemengen thermisch (kWh, alle 2 h vom Controller aktualisiert)
                 "heat_energy_heating": calc_kwh("ID_WEB_WMZ_Heizung"),
                 "heat_energy_hot_water": calc_kwh("ID_WEB_WMZ_Brauchwasser"),
                 "heat_energy_total": calc_kwh("ID_WEB_WMZ_Seit"),
@@ -72,6 +86,11 @@ def main():
                 "runtime_total": calc("ID_WEB_Zaehler_BetrZeitWP"),
                 # Betriebsmodus
                 "operating_mode": calc("ID_WEB_WP_BZ_akt"),
+                # Elektrischer Verbrauch (SHI, Modbus TCP Port 502, FW >= 3.90.1)
+                "electric_power_actual": inp_kw("electric_power_actual"),
+                "electric_energy_total": inp_kwh("electric_energy_total"),
+                "electric_energy_heating": inp_kwh("electric_energy_heating"),
+                "electric_energy_dhw": inp_kwh("electric_energy_dhw"),
             }
             
             data = {k: v for k, v in data.items() if v is not None}

@@ -239,6 +239,119 @@
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"operating_mode\")\n  |> last()\n  |> yield(name: \"last\")"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Elektrische Leistung (kW)",
+      "description": "Aktueller Stromverbrauch der Wärmepumpe in Echtzeit (SHI/Modbus).",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "id": 10,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "custom": { "lineWidth": 2 },
+          "color": { "mode": "fixed", "fixedColor": "orange" }
+        }
+      },
+      "targets": [
+        {
+          "refId": "ElectricPower",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_power_actual\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Elektrische Energie (kWh)",
+      "description": "Kumulierter elektrischer Energieverbrauch (SHI/Modbus, FW >= 3.90.1).",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "id": 11,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "custom": { "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "electric_energy_total" }, "properties": [{ "id": "displayName", "value": "Gesamt" }] },
+          { "matcher": { "id": "byName", "options": "electric_energy_heating" }, "properties": [{ "id": "displayName", "value": "Heizung" }] },
+          { "matcher": { "id": "byName", "options": "electric_energy_dhw" }, "properties": [{ "id": "displayName", "value": "Warmwasser" }] }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "ElectricEnergy",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_energy_total\" or r[\"_field\"] == \"electric_energy_heating\" or r[\"_field\"] == \"electric_energy_dhw\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Elektrische Energie aktuell",
+      "description": "Letzte bekannte kWh-Zählerstände.",
+      "gridPos": { "h": 4, "w": 12, "x": 0, "y": 36 },
+      "id": 12,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "electric_energy_total" }, "properties": [{ "id": "displayName", "value": "Gesamt" }] },
+          { "matcher": { "id": "byName", "options": "electric_energy_heating" }, "properties": [{ "id": "displayName", "value": "Heizung" }] },
+          { "matcher": { "id": "byName", "options": "electric_energy_dhw" }, "properties": [{ "id": "displayName", "value": "Warmwasser" }] }
+        ]
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "horizontal",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "ElectricStats",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_energy_total\" or r[\"_field\"] == \"electric_energy_heating\" or r[\"_field\"] == \"electric_energy_dhw\")\n  |> last()\n  |> yield(name: \"last\")"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Aktuelle elektr. Leistung",
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 36 },
+      "id": 13,
+      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "refId": "ElectricPowerStat",
+          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_power_actual\")\n  |> last()\n  |> yield(name: \"last\")"
+        }
+      ]
     }
   ]
 }
