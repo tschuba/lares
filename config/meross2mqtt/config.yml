@@ -1,37 +1,36 @@
-# Meross to MQTT Bridge Configuration
-# For Meross energy metrics collection (ADR-011 hybrid approach)
+# Meross to MQTT Homie Bridge – Konfiguration (ADR-011)
+#
+# MQTT-Credentials (mqtt_username, mqtt_password) werden beim Start
+# automatisch aus den Umgebungsvariablen MQTT_USERNAME / MQTT_PASSWORD injiziert.
+#
+# meross_key und devices werden beim ersten Start automatisch per Cloud-Discovery
+# befuellt (einmalig). Siehe docs/konfiguration.md, Abschnitt "Meross-Steckdosen".
 
-# Logging level: TRACE, DEBUG, INFO, WARNING, ERROR
 log_level: INFO
 
-# MQTT broker settings
-mqtt_host: "mosquitto"
+# MQTT-Broker (wird per Env-Variable ueberschrieben, hier nur Fallback)
+mqtt_host: mosquitto
 mqtt_port: 1883
-mqtt_username: ""
-mqtt_password: ""
 mqtt_clean_session: true
 
-# Meross MQTT protocol settings
-# Enable HTTP for device communication (recommended for stability)
+# Direkte HTTP-Kommunikation mit Geraeten (stabiler als MQTT, empfohlen)
 enable_http: true
 
-# Topic prefix that this bridge will see
-meross_prefix: "/appliance"
+# Meross MQTT-Protokoll
+meross_prefix: /appliance
+meross_sent_prefix: /appliance
+meross_bridge_topic: bridge
 
-# Topic prefix that the devices will see
-meross_sent_prefix: "/appliance"
+# Globaler Meross-Key (wird bei Discovery automatisch gesetzt)
+meross_key: ""
 
-# Identifier used by this bridge
-meross_bridge_topic: "bridge"
+# Homie MQTT-Prefix
+homie_prefix: homie
 
-# Homie MQTT protocol settings
-# Topic prefix for Homie devices
-homie_prefix: "homie"
-
-# Device-specific configuration
-# Add device UUIDs with custom names if desired
+# Geraete (werden bei Discovery automatisch befuellt)
+# Format:
+#   <uuid>:
+#     pretty_name: "Lesbarer Name"
+#     pretty_topic: "homie-topic-id"   # optional
+#     meross_key: ""                   # optional, ueberschreibt globalen Key
 devices: {}
-  # Example:
-  # device_uuid_here:
-  #   pretty_name: "BambuLab P1S"
-  #   meross_key: ""

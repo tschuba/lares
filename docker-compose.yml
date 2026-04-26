@@ -11,7 +11,40 @@ networks:
         - subnet: 172.20.0.0/16
 
 services:
+
+  # TLS Certificate Init (ADR-015)
+  # Generiert selbst-signiertes TLS-Zertifikat fuer iot.meross.com beim ersten Start.
+  # Laeuft einmalig als One-Shot Container; Zertifikate ueberleben Restarts in
+  # ./config/mosquitto/certs/ (innerhalb des bestehenden Mosquitto-Config-Volumes).
+  cert-init:
+    image: alpine
+    container_name: cert-init
+    command:
+      - sh
+      - -c
+      - |
+        if [ ! -f /certs/server.crt ]; then
+          echo '[cert-init] Generiere TLS-Zertifikate fuer iot.meross.com...'
+          apk add --no-cache openssl
+          openssl genrsa -out /certs/ca.key 2048
+          openssl req -new -x509 -days 3650 -key /certs/ca.key \
+            -out /certs/ca.crt -subj '/CN=Lares CA'
+          openssl genrsa -out /certs/server.key 2048
+          openssl req -new -key /certs/server.key \
+            -out /certs/server.csr -subj '/CN=iot.meross.com'
+          openssl x509 -req -days 3650 \
+            -in /certs/server.csr -CA /certs/ca.crt -CAkey /certs/ca.key \
+            -CAcreateserial -out /certs/server.crt
+          echo '[cert-init] Zertifikate erfolgreich erstellt.'
+        else
+          echo '[cert-init] Zertifikate bereits vorhanden, ueberspringe.'
+        fi
+    volumes:
+      - ./config/mosquitto/certs:/certs
+
   # Core MQTT Broker
+  # Port 1883: interne Services und Home Assistant
+  # Port 8883: TLS fuer Meross-Geraete (ADR-015)
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: mosquitto
@@ -20,6 +53,7 @@ services:
       - lares
     ports:
       - "1883:1883"
+      - "8883:8883"
     volumes:
       - ./config/mosquitto:/mosquitto/config
       - ./data/mosquitto:/mosquitto/data
@@ -27,6 +61,39 @@ services:
     environment:
       - MOSQUITTO_USERNAME=${MQTT_USERNAME}
       - MOSQUITTO_PASSWORD=${MQTT_PASSWORD}
+    depends_on:
+      cert-init:
+        condition: service_completed_successfully
+
+  # DNS Interception fuer Meross-Geraete (ADR-015)
+  # Leitet iot.meross.com -> NAS-IP um; alle anderen Anfragen an FritzBox weitergeleitet.
+  # Voraussetzung: FritzBox DHCP auf NAS (192.168.178.163) als Primaer-DNS konfigurieren,
+  # FritzBox selbst (192.168.178.1) als Sekundaer-DNS fuer Ausfallsicherheit.
+  dnsmasq:
+    image: andyshinn/dnsmasq:latest
+    container_name: dnsmasq
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    command:
+      - "-k"
+      - "--address=/iot.meross.com/192.168.178.163"
+      - "--server=192.168.178.1"
+      - "--no-resolv"
+      - "--log-queries"
+      - "--listen-address=0.0.0.0"
+    ports:
+      - "192.168.178.163:53:53/udp"
+      - "192.168.178.163:53:53/tcp"
+    networks:
+      - lares
+    healthcheck:
+      test: ["CMD", "nslookup", "iot.meross.com", "127.0.0.1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - meross
 
   # Modbus Proxy for Sungrow (ADR-004)
   modbus-proxy:
@@ -162,6 +229,9 @@ services:
       - weather
 
   # Meross to MQTT Bridge (ADR-011)
+  # Erster Start: einmalige Cloud-Auth zur Ermittlung von UUID und Key aller Geraete.
+  # Danach vollstaendig lokale Kommunikation per TLS/MQTT und HTTP.
+  # MEROSS_EMAIL und MEROSS_PASSWORD in .env nur fuer die initiale Discovery noetig.
   meross2mqtt:
     image: ghcr.io/tschuba/lares/meross2mqtt:latest
     container_name: meross2mqtt
@@ -169,17 +239,20 @@ services:
     networks:
       - lares
     volumes:
-      - ./config/meross2mqtt/config.yml:/config/config.yml:ro
+      - ./config/meross2mqtt:/config
     environment:
       - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MEROSS_EMAIL=${MEROSS_EMAIL}
+      - MEROSS_PASSWORD=${MEROSS_PASSWORD}
       - ENABLE_HTTP=true
       - HOMIE_PREFIX=homie
       - LOG_LEVEL=INFO
     depends_on:
       - mosquitto
+      - dnsmasq
     profiles:
       - meross
 

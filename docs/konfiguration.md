@@ -263,3 +263,95 @@ Grafana kann Alerts basierend auf Schwellwerten senden:
 - **Lange Zeitreihen**: InfluxDB auf NAS ist für Langzeitspeicherung optimiert – Dashboards können Monats/Jahres-Übersichten anzeigen
 - **Performance**: Aggregation in Flux-Queries verwenden (z.B. `aggregateWindow(every: 1h, fn: mean)`) für große Zeitbereiche
 - **Backup**: Dashboard-JSONs exportieren und versionieren (z.B. in `config/grafana/dashboards/`)
+
+## Meross-Steckdosen
+
+Vier Meross-Steckdosen (2× MSS310, 2× MSS315) sind lokal per TLS/MQTT und HTTP angebunden (ADR-011, ADR-015).
+
+### Übersicht der Geräte
+
+| Gerät | Modell | Verwendung |
+|---|---|---|
+| MSS310 (1) | Einzelsteckdose mit Energiemessung | BambuLab P1S |
+| MSS310 (2) | Einzelsteckdose mit Energiemessung | Arbeitstisch |
+| MSS315 (1) | Einzelsteckdose mit Energiemessung | Waschmaschine |
+| MSS315 (2) | Einzelsteckdose mit Energiemessung | Trockner |
+
+### Schritt 1: FritzBox DNS konfigurieren (einmalig, manuell)
+
+1. FritzBox öffnen: `http://192.168.178.1`
+2. **Heimnetz → Netzwerk → IPv4-Adressen**
+3. Unter DHCP-Server:
+   - **Lokaler DNS-Server** (Primär): `192.168.178.163`
+   - **Weiterer DNS-Server** (Sekundär): `192.168.178.1`
+4. Speichern. Meross-Geräte kurz vom Strom trennen damit sie neuen DNS-Lease holen.
+
+> **Ausfallsicherheit**: Sekundär-DNS `192.168.178.1` (FritzBox) stellt sicher, dass bei
+> NAS-Ausfall der Internetzugang für alle Netzwerkgeräte erhalten bleibt.
+
+### Schritt 2: Meross-Credentials in .env eintragen
+
+```bash
+MEROSS_EMAIL=deine@email.de
+MEROSS_PASSWORD=deinPasswort
+```
+
+### Schritt 3: Meross-Profil starten
+
+```bash
+cd /pfad/zu/lares
+docker compose --profile meross up -d
+```
+
+Beim ersten Start läuft automatisch:
+
+- `cert-init`: TLS-Zertifikate für `iot.meross.com` generieren
+- `mosquitto`: Startet mit TLS auf Port 8883
+- `dnsmasq`: Leitet `iot.meross.com` auf `192.168.178.163` um
+- `meross2mqtt`: Discovery → `config.yml` befüllen → Bridge starten
+
+### Schritt 4: Verifikation
+
+```bash
+# Logs prüfen
+docker compose logs -f meross2mqtt
+
+# DNS-Auflösung testen (soll 192.168.178.163 zurückgeben)
+docker compose exec dnsmasq nslookup iot.meross.com 127.0.0.1
+
+# Homie-Topics prüfen (nach Verbindung der Geräte)
+mosquitto_sub -h 192.168.178.163 -t "homie/#" -v
+
+# Zertifikate prüfen
+ls -la config/mosquitto/certs/
+```
+
+### Discovery manuell ausführen
+
+```bash
+docker compose run --rm meross2mqtt meross_discover
+```
+
+### Gerätekonfiguration anpassen
+
+Nach Discovery enthält `config/meross2mqtt/config.yml` alle Geräte.
+`pretty_name` kann manuell angepasst werden:
+
+```yaml
+devices:
+  <uuid>:
+    pretty_name: "BambuLab P1S"
+  <uuid>:
+    pretty_name: "Arbeitstisch"
+  <uuid>:
+    pretty_name: "Waschmaschine"
+  <uuid>:
+    pretty_name: "Trockner"
+```
+
+Nach Änderungen: `docker compose restart meross2mqtt`
+
+### Bekannte Einschränkungen
+
+- **MQTT-Stabilität**: Meross-Geräte trennen sich nach Stunden. `enable_http: true` umgeht dies.
+- **MSS315**: Vom Upstream-Autor nur MSS310 getestet; MSS315 sollte funktionieren (gleiche Library).

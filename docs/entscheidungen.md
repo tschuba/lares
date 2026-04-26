@@ -9,12 +9,13 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - [ADR-003: MQTT als Integrationsbus](#adr-003-mqtt-als-integrationsbus)
 - [ADR-004: modbus-proxy vor Sungrow](#adr-004-modbus-proxy-vor-sungrow)
 - [ADR-005: InfluxDB nur auf NAS](#adr-005-influxdb-nur-auf-nas)
-- [ADR-006: Vallox-Integration als custom MQTT-Bridge (Option A)](#adr-006-vallox-integration-als-custom-mqtt-bridge-option-a)
+- [ADR-006: Custom Code für Vallox, WeeWX und Meross](#adr-006-custom-code-für-vallox-weewx-und-meross)
 - [ADR-007: Externe Erreichbarkeit strikt minimieren](#adr-007-externe-erreichbarkeit-strikt-minimieren)
 - [ADR-008: Authentik für alle internet-erreichbaren Oberflächen](#adr-008-authentik-für-alle-internet-erreichbaren-oberflächen)
 - [ADR-009: Blink als akzeptierte Cloud-Ausnahme](#adr-009-blink-als-akzeptierte-cloud-ausnahme)
 - [ADR-010: Wetterdaten mit WeeWX an mehrere Dienste veröffentlichen](#adr-010-wetterdaten-mit-weewx-an-mehrere-dienste-veröffentlichen)
-- [ADR-011: Hybride Meross-Integration (HA-Kontrolle + MQTT-Metriken)](#adr-011-hybride-meross-integration-ha-kontrolle--mqtt-metriken)
+- [ADR-011: Hybride Meross-Integration (HA-Kontrolle + lokale MQTT-Metriken)](#adr-011-hybride-meross-integration-ha-kontrolle--lokale-mqtt-metriken)
+- [ADR-015: DNS-Interception für Meross via dnsmasq](#adr-015-dns-interception-für-meross-via-dnsmasq)
 - [ADR-012: Energieflüsse doppelt visualisieren (HA + Grafana Sankey)](#adr-012-energieflüsse-doppelt-visualisieren-ha--grafana-sankey)
 - [ADR-013: Sungrow-Integration als off-the-shelf Image](#adr-013-sungrow-integration-als-off-the-shelf-image)
 - [ADR-014: NAS-zentrierte Service-Verteilung](#adr-014-nas-zentrierte-service-verteilung)
@@ -57,16 +58,20 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Begründung: geringere Komplexität, keine Replikationsverwaltung, klarer Datenspeicherort.
 - Trade-off: Bei NAS-Ausfall pausiert Zeitreihenaufnahme temporär.
 
-## ADR-006: Custom Code für Vallox und WeeWX
+## ADR-006: Custom Code für Vallox, WeeWX und Meross
 
 - Status: Angenommen
-- Kontext: Für Vallox und WeeWX sind Anpassungen erforderlich, die nicht durch Standard-Images abgedeckt sind.
+- Kontext: Für Vallox, WeeWX und Meross sind Anpassungen erforderlich, die nicht durch Standard-Images abgedeckt sind.
 - Entscheidung:
   - Vallox: Eigene schlanke Python-Bridge (`vallox2mqtt`) mit Dockerfile
   - WeeWX: Custom Image basierend auf `felddy/weewx:latest` mit vorgeinstalliertem `gettext-base` und `weewx-mqtt-subscribe` sowie custom entrypoint für `envsubst`-Templating
+  - Meross: Custom Image basierend auf meross2homie (https://github.com/Depau/meross2homie)
+    mit eigenem entrypoint.sh (auto-Discovery beim Start) und discover.py
+    (einmaliger Cloud-Login zur UUID/Key-Ermittlung)
 - Begründung:
   - Vallox: Kein etabliertes Standard-Image für Vallox->MQTT in dieser Zielarchitektur; einheitliche Datenführung über MQTT, volle Kontrolle über Topics und Polling
   - WeeWX: MQTT-Subscribe-Erweiterung nicht über PyPI verfügbar, muss aus GitHub installiert werden; envsubst-Templating vereinfacht Konfiguration; Custom Image reduziert Container-Startzeit durch vorgeinstallierte Abhängigkeiten
+  - Meross: meross2homie bietet Homie-konforme MQTT-Topics; custom entrypoint ermöglicht automatische UUID/Key-Discovery beim ersten Start ohne manuelle Konfiguration
 
 ## ADR-007: Externe Erreichbarkeit strikt minimieren
 
@@ -96,13 +101,16 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Entscheidung: WeeWX wird als Weiterleitungs-Hub eingesetzt; Zielplattformen sind AWEKAS, Windy.com, Weather Underground, CWOP/APRS und OpenWeatherMap.
 - Begründung: Entkopplung zwischen lokalem Smart-Home-Pfad und externer Veröffentlichung, flexible Mehrfach-Uploads, etablierte Open-Source-Komponente.
 
-## ADR-011: Hybride Meross-Integration (HA-Kontrolle + MQTT-Metriken)
+## ADR-011: Hybride Meross-Integration (HA-Kontrolle + lokale MQTT-Metriken)
 
 - Status: Angenommen
 - Kontext: Vier Meross-Einzelsteckdosen (2x MSS310, 2x MSS315) sollen in die Energieauswertung einfließen. Ziel ist direkter Metrik-Flow zu InfluxDB ohne HA als Middleman, während HA die Steuerung behält.
 - Entscheidung: Dual-Path-Integration:
   - Steuerung/Automatisierung: `meross_lan` in Home Assistant
   - Energiemetriken: `meross2mqtt` → Mosquitto → Telegraf → InfluxDB
+- Lokale Anbindung (nach einmaligem Cloud-Login für Discovery):
+  Geraete verbinden per TLS/MQTT zu lokalem Mosquitto (Port 8883) via DNS-Interception (ADR-015).
+  enable_http: true fuer stabilen direkten HTTP-Zugriff auf Geraete-IP.
 - Begründung: HA behält bewährte Kontrolle, während Metriken direkt über MQTT-Bus in InfluxDB fließen (effizienter, reduziert Abhängigkeit von HA für reinen Datensammelpfad). Telegraf als offizielle InfluxData-Lösung gewährleistet Stabilität und Wartbarkeit.
 
 ## ADR-012: Energieflüsse doppelt visualisieren (HA + Grafana Sankey)
@@ -136,3 +144,25 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
   - Bei NAS-Ausfall fallen alle Integrationsdienste aus (MQTT, Bridges, Telegraf)
   - Home Assistant bleibt lokal bedienbar, verliert aber MQTT-Daten-Feed
   - Erhöhte Netzwerklatenz zwischen HA (Pi) und MQTT (NAS) im Vergleich zu lokaler Deployment-Option
+
+## ADR-015: DNS-Interception für Meross via dnsmasq
+
+- Status: Angenommen
+- Kontext: Meross-Geraete verbinden sich per TLS/MQTT zu iot.meross.com.
+  Fuer lokale Anbindung (ADR-011) muss dieser Hostname auf den NAS zeigen.
+  FritzBox unterstuetzt keine Custom-DNS-Records fuer Internet-Domains ueber die Standard-UI.
+  FritzBox-SSH waere moeglich, aber nicht versionierbar und wird bei Firmware-Updates zurueckgesetzt.
+- Entscheidung: Ein dnsmasq-Container auf dem NAS ueberschreibt
+  iot.meross.com → 192.168.178.163. Die FritzBox DHCP-Konfiguration verteilt den NAS
+  als Primaer-DNS und die FritzBox selbst (192.168.178.1) als Sekundaer-DNS (Fallback).
+- Begruendung:
+  - Versionierbar und reproduzierbar als Teil von docker-compose.yml
+  - Kein SSH-Zugriff auf FritzBox noetig
+  - Sekundaer-DNS-Fallback (FritzBox) sichert Internetkonnektivitaet bei NAS-Ausfall
+  - Meross-Geraete verifizieren TLS-Zertifikate nicht (community-bestaetigt)
+  - dnsmasq ist extrem ressourcenschonend (~5 MB RAM) und hochstabil
+- Trade-off:
+  - Kurze DNS-Unterbrechungen (< 5s) bei Container-Restart moeglich;
+    restart: always und Healthcheck minimieren das Risiko
+  - Bei NAS-Ausfall verbinden Meross-Geraete zur Meross-Cloud (Fallback, nicht lokal)
+- Konfiguration: siehe docs/konfiguration.md, Abschnitt "Meross-Steckdosen"

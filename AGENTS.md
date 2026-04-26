@@ -4,7 +4,7 @@
 - This repo is currently planning/documentation-first. There is no runnable app yet.
 - No build/test/lint/typecheck/format toolchain is configured (no manifests, CI, or task runner).
 - `config/` contains configuration templates and subdirectories for various services.
-- `bridges/` contains custom bridge code (vallox, luxtronik).
+- `bridges/` contains custom bridge code (vallox, luxtronik, meross2mqtt).
 
 ## Language and docs
 - Repository documentation is German-first (`README.md`, `docs/*.md`); keep new docs and ADR updates in German.
@@ -20,8 +20,9 @@
 - Internal services (MQTT, bridges, InfluxDB, modbus-proxy) are not meant to be public.
 
 ## Planned custom code boundary
-- Only `bridges/vallox/` is planned as custom code (`vallox2mqtt`, Python bridge) (ADR-006).
-- Prefer off-the-shelf container images for other integrations unless docs/ADRs change.
+- `bridges/vallox/` – custom Python bridge (`vallox2mqtt`) (ADR-006)
+- `bridges/meross2mqtt/` – custom image based on meross2homie; adds `discover.py` (one-time cloud auth for UUID/key discovery) and `entrypoint.sh` (auto-discovery on first start) (ADR-006, ADR-011)
+- Prefer off-the-shelf container images for all other integrations unless docs/ADRs change.
 
 ## Before making infra/code changes
 - Read, in order:

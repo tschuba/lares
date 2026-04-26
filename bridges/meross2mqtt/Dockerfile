@@ -10,7 +10,10 @@ RUN --mount=target=/app \
     rm -Rf /tmp/app && \
     mkdir -p /config
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 WORKDIR /config
 VOLUME /config
 
-ENTRYPOINT ["python3", "-m", "meross2homie"]
+ENTRYPOINT ["/entrypoint.sh"]

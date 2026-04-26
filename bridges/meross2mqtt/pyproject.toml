@@ -22,12 +22,13 @@ classifiers = [
 ]
 dependencies = [
     "aiomqtt==2.0.0",
-    "meross_iot==0.4.6.2",
+    "meross_iot>=0.4.9.0",
     "aiohttp>=3.8.3,<4.0.0",
     "isodate",
     "yamldataclassconfig",
     "dataclasses_json",
-    "loguru"
+    "loguru",
+    "pyyaml",
 ]
 dynamic = ["version"]
 
@@ -41,6 +42,7 @@ dev = [
 [project.scripts]
 meross2homie = "meross2homie.main:main"
 meross_mqtt_password = "meross2homie.main:calc_mqtt_password_main"
+meross_discover = "meross2homie.discover:main"
 
 [tool.setuptools]
 packages = ["meross2homie"]

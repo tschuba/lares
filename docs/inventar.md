@@ -32,10 +32,10 @@ Dieses Dokument führt alle relevanten Komponenten, Dienste, Ports und Integrati
 | Vallox ValloPlus 350 MV-E | Lüftungsanlage | HTTP API :80 | LAN/Ethernet | `vallox2mqtt` (custom, Option A) |
 | Ecowitt GW1201 | Wetter-Gateway | HTTP Push -> :4004 | LAN | `ecowitt2mqtt` |
 | BambuLab P1S | 3D-Drucker | lokaler MQTT-Mechanismus | WLAN | Home Assistant Bambu-Integration |
-| Meross MSS310 (1) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
-| Meross MSS310 (2) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
-| Meross MSS315 (1) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
-| Meross MSS315 (2) | Einzelsteckdose mit Energiemessung | lokal via `meross_lan` + `meross2mqtt` | WLAN | Home Assistant `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| Meross MSS310 (BambuLab P1S) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| Meross MSS310 (Arbeitstisch) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| Meross MSS315 (Waschmaschine) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| Meross MSS315 (Trockner) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
 | Blink Outdoor 4 (2x) + Sync Module 2 | Kamera-System | Blink Cloud API | WLAN + Internet | Home Assistant Blink-Integration |
 | Amazon Echo Dot (2x), Echo Show (1x) | Sprach-/Audio-Geräte | Alexa API | WLAN + Internet | `alexa_media_player` in HA |
 
@@ -57,18 +57,20 @@ Zuordnung der Meross-Steckdosen:
 
 ## 4) Service-Inventar (NAS - 192.168.178.163)
 
-| Service | Image/Artefakt | Intern/Extern | Ports | Persistenz |
-|---|---|---|---|---|
-| Mosquitto | `eclipse-mosquitto` | Intern | 1883/tcp | ja |
-| modbus-proxy | `ghcr.io/tiagocoutinho/modbus-proxy` | Intern | 502/tcp | nein |
-| sungrow2mqtt | `bohdan0/sungrow2mqtt` | Intern | - | nein |
-| luxtronik2mqtt | Python Service | Intern | - | optional |
-| vallox2mqtt | custom Python Bridge | Intern | - | optional |
-| meross2mqtt | `depau/meross2mqtt` | Intern | - | optional |
-| ecowitt2mqtt | `bachya/ecowitt2mqtt` | Intern | 4004/tcp (listener) | optional |
-| Telegraf | `telegraf` | Intern | - | optional |
-| WeeWX | `felddy/weewx` | Intern + ausgehend ins Internet | pluginabhängig | ja |
-| InfluxDB 2.x | `influxdb:2` | Intern | 8086/tcp | ja |
+| Service | Image/Artefakt | Intern/Extern | Ports | Persistenz | Profil |
+|---|---|---|---|---|---|
+| cert-init | alpine (One-Shot) | Intern | – | nein | – (immer) |
+| Mosquitto | `eclipse-mosquitto` | Intern | 1883/tcp (intern), 8883/tcp (TLS, Meross) | ja | – (immer) |
+| dnsmasq | `andyshinn/dnsmasq` | Intern + LAN DNS | 53/udp+tcp | nein | meross |
+| modbus-proxy | `ghcr.io/tiagocoutinho/modbus-proxy` | Intern | 502/tcp | nein | sungrow |
+| sungrow2mqtt | `bohdan0/sungrow2mqtt` | Intern | - | nein | sungrow |
+| luxtronik2mqtt | Python Service | Intern | - | optional | heating |
+| vallox2mqtt | custom Python Bridge | Intern | - | optional | ventilation |
+| meross2mqtt | custom (meross2homie) | Intern | - | ja (devices.json) | meross |
+| ecowitt2mqtt | `bachya/ecowitt2mqtt` | Intern | 4004/tcp (listener) | optional | weather |
+| Telegraf | `telegraf` | Intern | - | optional | meross |
+| WeeWX | `felddy/weewx` | Intern + ausgehend ins Internet | pluginabhängig | ja | weather |
+| InfluxDB 2.x | `influxdb:2` | Intern | 8086/tcp | ja | – (immer) |
 
 ## 5) Netzwerke
 
@@ -121,6 +123,8 @@ Diese Werte werden vor Umsetzung mit Realwerten ersetzt:
 - `CWOP_PASSWORD=<...>`
 - `OPENWEATHER_STATION_ID=<...>`
 - `OPENWEATHER_API_KEY=<...>`
+- `MEROSS_EMAIL=<...>`
+- `MEROSS_PASSWORD=<...>`
 
 ## 8) Wetterdatenfreigabe (Ecowitt)
 
@@ -159,6 +163,7 @@ Primäre Energiequellen und -senken:
 | Blink | keine vollwertige lokale API verfügbar |
 | Alexa/Echo | API-basiert, internetgebunden |
 | Wetterfreigabe-Dienste | externe Veröffentlichung erfordert ausgehende Internetverbindung |
+| Meross (einmalig) | UUID/Key-Ermittlung beim ersten Start via Cloud-API; danach vollstaendig lokal |
 
 Alle anderen Kernpfade sind lokal-first ausgelegt.
 
@@ -171,3 +176,4 @@ Siehe `docs/konfiguration.md` für Details zu:
 - Ecowitt GW1201: Push-Target URL konfigurieren
 - WeeWX: Wetterdienst-Zugangsdaten konfigurieren
 - Grafana: InfluxDB-Datenquelle und Dashboards einrichten
+- Meross-Steckdosen: DNS-Setup (FritzBox), Discovery, Verifikation
