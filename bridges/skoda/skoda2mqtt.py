@@ -34,7 +34,7 @@ async def fetch_state(myskoda: MySkoda, vin: str) -> dict:
         "charging_state": status.state.value if status and status.state else None,
         "charge_power_kw": status.charge_power_in_kw if status else None,
         "charge_type": status.charge_type.value if status and status.charge_type else None,
-        "charging_rate_km_per_h": status.charge_rate_in_km_per_hour if status else None,
+        "charging_rate_km_per_h": status.charging_rate_in_kilometers_per_hour if status else None,
         "remaining_charge_min": status.remaining_time_to_fully_charged_in_minutes if status else None,
         "battery_soc_pct": battery.state_of_charge_in_percent if battery else None,
         "remaining_range_km": (
