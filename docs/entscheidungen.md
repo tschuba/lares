@@ -65,7 +65,7 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Entscheidung:
   - Vallox: Eigene schlanke Python-Bridge (`vallox2mqtt`) mit Dockerfile
   - WeeWX: Custom Image basierend auf `felddy/weewx:latest` mit vorgeinstalliertem `gettext-base` und `weewx-mqtt-subscribe` sowie custom entrypoint für `envsubst`-Templating
-  - Meross: Custom Image basierend auf meross2homie (https://github.com/Depau/meross2homie)
+  - Meross: Custom Image basierend auf [meross2homie](https://github.com/Depau/meross2homie)
     mit eigenem entrypoint.sh (auto-Discovery beim Start) und discover.py
     (einmaliger Cloud-Login zur UUID/Key-Ermittlung)
 - Begründung:
@@ -152,3 +152,22 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
   - Globaler DNS-Override blockiert die Meross App vollstaendig (kein Remote-Zugriff, keine Firmware-Updates).
   - dnsmasq als Single-Point-of-Failure fuer das gesamte Heimnetz ist nicht akzeptabel.
 - Nachfolger: ADR-011 (aktualisiert) — Cloud-Anbindung via `meross_iot.MerossManager`.
+
+## ADR-016: Cloud-abhängige Skoda Enyaq Integration (skoda2mqtt)
+
+- Status: Angenommen
+- Kontext: Der Skoda Enyaq bietet kein lokales LAN-API. Fahrzeugdaten (Ladestatus, SoC, Reichweite) und Steuerkommandos (Start/Stop, Ladelimit) sind ausschließlich über die mySkoda Cloud API erreichbar. Das Fahrzeug wird mit dem Original-ICCB-Ladekabel an einer CEE-Steckdose geladen (keine Smart-Wallbox).
+- Entscheidung: Eigene Python-Bridge `skoda2mqtt` (analog zu `luxtronik2mqtt` und `vallox2mqtt`):
+  - Liest alle 60 Sekunden via `myskoda`-Bibliothek (community reverse-engineered OAuth2/OIDC) den Fahrzeugzustand
+  - Publiziert als JSON-Blob auf `ev/skoda/state` (retain=True) → Telegraf → InfluxDB
+  - Abonniert `ev/skoda/command` für Steuerkommandos (start_charging, stop_charging, set_charge_limit)
+  - Benötigt Python 3.13 (myskoda-Anforderung, abweichend von anderen Bridges mit 3.12)
+- Begründung:
+  - Einheitliches Muster: gleicher Bridge-Ansatz wie alle anderen lares-Integrationen
+  - EVCC als Alternative verworfen: erfordert Smart-Wallbox für Steuerung, kein Mehrwert ohne diese
+  - Cloud-Abhängigkeit ist bewusste Ausnahme, analog zu ADR-009 (Blink) und ADR-011 (Meross)
+- Einschränkungen (ICCB ohne Smart-Wallbox):
+  - Keine Ladestromregelung (kW-Drosselung) möglich
+  - Kein PV-Überschuss-Laden möglich
+  - Start/Stop und Ladelimit (SoC%) funktionieren vollständig
+- Erweiterbarkeit: Ein Shelly EM an der CEE-Steckdose kann als separater Telegraf-Consumer (`ev/charger/power_w`) ergänzt werden ohne Code-Änderung an der Bridge.

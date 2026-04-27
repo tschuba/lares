@@ -189,6 +189,28 @@ services:
     profiles:
       - meross
 
+  # Skoda Enyaq bridge: mySkoda Cloud API → MQTT (ADR-016)
+  skoda2mqtt:
+    image: ghcr.io/tschuba/lares/skoda2mqtt:latest
+    container_name: skoda2mqtt
+    restart: unless-stopped
+    environment:
+      - MYSKODA_USERNAME=${MYSKODA_USERNAME}
+      - MYSKODA_PASSWORD=${MYSKODA_PASSWORD}
+      - MYSKODA_VIN=${MYSKODA_VIN}
+      - POLL_INTERVAL=60
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - LOG_LEVEL=INFO
+    networks:
+      - lares
+    depends_on:
+      - mosquitto
+    profiles:
+      - ev
+
   # Telegraf for MQTT to InfluxDB bridge (ADR-011)
   telegraf:
     image: telegraf:latest

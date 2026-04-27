@@ -36,6 +36,7 @@ Dieses Dokument führt alle relevanten Komponenten, Dienste, Ports und Integrati
 | Meross MSS310 (Arbeitstisch) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
 | Meross MSS315 (Waschmaschine) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
 | Meross MSS315 (Trockner) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| Skoda Enyaq | Elektrofahrzeug | mySkoda Cloud API | Internet | `skoda2mqtt` (ADR-016) |
 | Blink Outdoor 4 (2x) + Sync Module 2 | Kamera-System | Blink Cloud API | WLAN + Internet | Home Assistant Blink-Integration |
 | Amazon Echo Dot (2x), Echo Show (1x) | Sprach-/Audio-Geräte | Alexa API | WLAN + Internet | `alexa_media_player` in HA |
 
@@ -68,6 +69,7 @@ Zuordnung der Meross-Steckdosen:
 | vallox2mqtt | custom Python Bridge | Intern | - | optional | ventilation |
 | meross2mqtt | custom (meross2homie) | Intern | - | ja (devices.json) | meross |
 | ecowitt2mqtt | `bachya/ecowitt2mqtt` | Intern | 4004/tcp (listener) | optional | weather |
+| skoda2mqtt | custom Python Bridge | Intern | - | nein | ev |
 | Telegraf | `telegraf` | Intern | - | optional | meross |
 | WeeWX | `felddy/weewx` | Intern + ausgehend ins Internet | pluginabhängig | ja | weather |
 | InfluxDB 2.x | `influxdb:2` | Intern | 8086/tcp | ja | – (immer) |
@@ -125,6 +127,9 @@ Diese Werte werden vor Umsetzung mit Realwerten ersetzt:
 - `OPENWEATHER_API_KEY=<...>`
 - `MEROSS_EMAIL=<...>`
 - `MEROSS_PASSWORD=<...>`
+- `MYSKODA_USERNAME=<...>`
+- `MYSKODA_PASSWORD=<...>`
+- `MYSKODA_VIN=<17-stellige Fahrzeug-Identifikationsnummer aus mySkoda App>`
 
 ## 8) Wetterdatenfreigabe (Ecowitt)
 
@@ -164,6 +169,7 @@ Primäre Energiequellen und -senken:
 | Alexa/Echo | API-basiert, internetgebunden |
 | Wetterfreigabe-Dienste | externe Veröffentlichung erfordert ausgehende Internetverbindung |
 | Meross (einmalig) | UUID/Key-Ermittlung beim ersten Start via Cloud-API; danach vollstaendig lokal |
+| mySkoda (dauerhaft) | kein lokales Fahrzeug-API; Ladestatus und Steuerung ausschließlich über mySkoda Cloud (ADR-016) |
 
 Alle anderen Kernpfade sind lokal-first ausgelegt.
 
