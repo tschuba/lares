@@ -460,7 +460,7 @@
       "description": "Kumulierte Energie seit Beginn des gewählten Zeitraums. Eigenversorgung = PV-Erzeugung + Heimspeicher-Entladung.",
       "gridPos": {
         "h": 8,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 4
       },
@@ -471,7 +471,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "kwatth",
+          "unit": "kWh",
           "custom": {
             "lineWidth": 2,
             "fillOpacity": 0
@@ -491,6 +491,55 @@
             "uid": "influxdb-nas"
           },
           "query": "eigenversorgung = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and (r[\"_field\"] == \"total_active_power\" or r[\"_field\"] == \"battery_power\"))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({_time: r._time, _value: (r.total_active_power + (if r.battery_power < 0.0 then -r.battery_power else 0.0)) * float(v: int(v: v.windowPeriod)) / 3600000000000000.0, _field: \"Eigenversorgung\"}))\n  |> group(columns: [\"_field\"])\n  |> cumulativeSum()\n\nnetzbezug = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"import_from_grid\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, _value: (if r._value > 0.0 then r._value else 0.0) * float(v: int(v: v.windowPeriod)) / 3600000000000000.0, _field: \"Netzbezug\"}))\n  |> group(columns: [\"_field\"])\n  |> cumulativeSum()\n\nhausverbrauch = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"load_power_hybrid\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, _value: r._value * float(v: int(v: v.windowPeriod)) / 3600000000000000.0, _field: \"Gesamtverbrauch\"}))\n  |> group(columns: [\"_field\"])\n  |> cumulativeSum()\n\nunion(tables: [eigenversorgung, netzbezug, hausverbrauch])\n  |> yield(name: \"cumulative\")"
+        }
+      ]
+    },
+    {
+      "type": "piechart",
+      "title": "Verbrauchsanteile",
+      "description": "Mittlerer Leistungsanteil jedes Verbrauchers über den gewählten Zeitraum.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "id": 9,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kWh"
+        },
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Wärmepumpe"},  "properties": [{"id": "color", "value": {"fixedColor": "#D62728", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Trockner"},    "properties": [{"id": "color", "value": {"fixedColor": "#E377C2", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Waschmaschine"}, "properties": [{"id": "color", "value": {"fixedColor": "#17BECF", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "BambuLab P1S"}, "properties": [{"id": "color", "value": {"fixedColor": "#9467BD", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Arbeitstisch"}, "properties": [{"id": "color", "value": {"fixedColor": "#2CA02C", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Sonstiges"},  "properties": [{"id": "color", "value": {"fixedColor": "#C7C7C7", "mode": "fixed"}}]}
+        ]
+      },
+      "options": {
+        "pieType": "pie",
+        "displayLabels": ["percent"],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["percent", "value"]
+        },
+        "tooltip": {"mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "refId": "Shares",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "import \"array\"\n\ndurationH = float(v: int(v: v.timeRangeStop) - int(v: v.timeRangeStart)) / 3600000000000.0\n\ntotalRec     = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"load_power_hybrid\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nwpRec        = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_power_actual\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\ntrocknerRec  = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307067395364351080248e1e9ceaeab\" and r[\"property\"] == \"power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nwaschmRec    = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307068416409851080248e1e9ceb390\" and r[\"property\"] == \"power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nbambuRec     = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307145526576151080848e1e9d11e5e\" and r[\"property\"] == \"power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\narbeitRec    = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307140501764051080848e1e9d123f7\" and r[\"property\"] == \"power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nwpKwh          = wpRec._value * durationH\ntrocknerKwh    = trocknerRec._value * durationH / 1000.0\nwaschmaschKwh  = waschmRec._value * durationH / 1000.0\nbambuKwh       = bambuRec._value * durationH / 1000.0\narbeitstischKwh = arbeitRec._value * durationH / 1000.0\ntotalKwh       = totalRec._value * durationH / 1000.0\nknownKwh       = wpKwh + trocknerKwh + waschmaschKwh + bambuKwh + arbeitstischKwh\nsonstigesKwh   = if totalKwh > knownKwh then totalKwh - knownKwh else 0.0\n\narray.from(rows: [\n  {_time: now(), _value: wpKwh,          _field: \"Wärmepumpe\"},\n  {_time: now(), _value: trocknerKwh,    _field: \"Trockner\"},\n  {_time: now(), _value: waschmaschKwh,  _field: \"Waschmaschine\"},\n  {_time: now(), _value: bambuKwh,       _field: \"BambuLab P1S\"},\n  {_time: now(), _value: arbeitstischKwh, _field: \"Arbeitstisch\"},\n  {_time: now(), _value: sonstigesKwh,   _field: \"Sonstiges\"},\n])\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"shares\")"
         }
       ]
     }
