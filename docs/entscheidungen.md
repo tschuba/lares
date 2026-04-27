@@ -14,8 +14,8 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - [ADR-008: Authentik für alle internet-erreichbaren Oberflächen](#adr-008-authentik-für-alle-internet-erreichbaren-oberflächen)
 - [ADR-009: Blink als akzeptierte Cloud-Ausnahme](#adr-009-blink-als-akzeptierte-cloud-ausnahme)
 - [ADR-010: Wetterdaten mit WeeWX an mehrere Dienste veröffentlichen](#adr-010-wetterdaten-mit-weewx-an-mehrere-dienste-veröffentlichen)
-- [ADR-011: Hybride Meross-Integration (HA-Kontrolle + lokale MQTT-Metriken)](#adr-011-hybride-meross-integration-ha-kontrolle--lokale-mqtt-metriken)
-- [ADR-015: DNS-Interception für Meross via dnsmasq](#adr-015-dns-interception-für-meross-via-dnsmasq)
+- [ADR-011: Hybride Meross-Integration (HA-Kontrolle + Cloud-MQTT-Metriken)](#adr-011-hybride-meross-integration-ha-kontrolle--cloud-mqtt-metriken)
+- [ADR-015: DNS-Interception für Meross via dnsmasq (abgelöst)](#adr-015-dns-interception-für-meross-via-dnsmasq)
 - [ADR-012: Energieflüsse doppelt visualisieren (HA + Grafana Sankey)](#adr-012-energieflüsse-doppelt-visualisieren-ha--grafana-sankey)
 - [ADR-013: Sungrow-Integration als off-the-shelf Image](#adr-013-sungrow-integration-als-off-the-shelf-image)
 - [ADR-014: NAS-zentrierte Service-Verteilung](#adr-014-nas-zentrierte-service-verteilung)
@@ -101,17 +101,15 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Entscheidung: WeeWX wird als Weiterleitungs-Hub eingesetzt; Zielplattformen sind AWEKAS, Windy.com, Weather Underground, CWOP/APRS und OpenWeatherMap.
 - Begründung: Entkopplung zwischen lokalem Smart-Home-Pfad und externer Veröffentlichung, flexible Mehrfach-Uploads, etablierte Open-Source-Komponente.
 
-## ADR-011: Hybride Meross-Integration (HA-Kontrolle + lokale MQTT-Metriken)
+## ADR-011: Hybride Meross-Integration (HA-Kontrolle + Cloud-MQTT-Metriken)
 
-- Status: Angenommen
-- Kontext: Vier Meross-Einzelsteckdosen (2x MSS310, 2x MSS315) sollen in die Energieauswertung einfließen. Ziel ist direkter Metrik-Flow zu InfluxDB ohne HA als Middleman, während HA die Steuerung behält.
+- Status: Angenommen (aktualisiert: Cloud-Anbindung statt lokaler DNS-Interception)
+- Kontext: Vier Meross-Einzelsteckdosen (2x MSS310, 2x MSS315) sollen in die Energieauswertung einfließen. Ziel ist direkter Metrik-Flow zu InfluxDB ohne HA als Middleman, während HA die Steuerung behält. DNS-Interception (ADR-015) wurde verworfen, da sie die Meross App (Remote-Steuerung, Firmware-Updates) blockiert und dnsmasq als Single-Point-of-Failure fuer das gesamte Heimnetz fungiert.
 - Entscheidung: Dual-Path-Integration:
   - Steuerung/Automatisierung: `meross_lan` in Home Assistant
-  - Energiemetriken: `meross2mqtt` → Mosquitto → Telegraf → InfluxDB
-- Lokale Anbindung (nach einmaligem Cloud-Login für Discovery):
-  Geraete verbinden per TLS/MQTT zu lokalem Mosquitto (Port 8883) via DNS-Interception (ADR-015).
-  enable_http: true fuer stabilen direkten HTTP-Zugriff auf Geraete-IP.
-- Begründung: HA behält bewährte Kontrolle, während Metriken direkt über MQTT-Bus in InfluxDB fließen (effizienter, reduziert Abhängigkeit von HA für reinen Datensammelpfad). Telegraf als offizielle InfluxData-Lösung gewährleistet Stabilität und Wartbarkeit.
+  - Energiemetriken: `meross2mqtt` (Cloud-Anbindung via `meross_iot.MerossManager`) → Mosquitto → Telegraf → InfluxDB
+- Anbindung: `meross2mqtt` verbindet sich dauerhaft zur Meross Cloud und liest Energiemetriken (Spannung, Strom, Leistung, Tages- und Gesamtverbrauch) per Polling. Die Bridge ist rein lesend; Steuerung erfolgt ausschliesslich ueber `meross_lan` in HA.
+- Begründung: Kein Eingriff in die Netzwerkinfrastruktur (kein dnsmasq, kein TLS-Trick). Meross App bleibt vollstaendig nutzbar (Remote-Steuerung, Firmware-Updates). Metriken fliessen weiterhin direkt NAS → InfluxDB ohne HA als Middleman. Einziger Trade-off: Metrik-Pfad haengt von Meross Cloud-Verfuegbarkeit ab.
 
 ## ADR-012: Energieflüsse doppelt visualisieren (HA + Grafana Sankey)
 
@@ -147,22 +145,10 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 
 ## ADR-015: DNS-Interception für Meross via dnsmasq
 
-- Status: Angenommen
-- Kontext: Meross-Geraete verbinden sich per TLS/MQTT zu iot.meross.com.
-  Fuer lokale Anbindung (ADR-011) muss dieser Hostname auf den NAS zeigen.
-  FritzBox unterstuetzt keine Custom-DNS-Records fuer Internet-Domains ueber die Standard-UI.
-  FritzBox-SSH waere moeglich, aber nicht versionierbar und wird bei Firmware-Updates zurueckgesetzt.
-- Entscheidung: Ein dnsmasq-Container auf dem NAS ueberschreibt
-  iot.meross.com → 192.168.178.163. Die FritzBox DHCP-Konfiguration verteilt den NAS
-  als Primaer-DNS und die FritzBox selbst (192.168.178.1) als Sekundaer-DNS (Fallback).
-- Begruendung:
-  - Versionierbar und reproduzierbar als Teil von docker-compose.yml
-  - Kein SSH-Zugriff auf FritzBox noetig
-  - Sekundaer-DNS-Fallback (FritzBox) sichert Internetkonnektivitaet bei NAS-Ausfall
-  - Meross-Geraete verifizieren TLS-Zertifikate nicht (community-bestaetigt)
-  - dnsmasq ist extrem ressourcenschonend (~5 MB RAM) und hochstabil
-- Trade-off:
-  - Kurze DNS-Unterbrechungen (< 5s) bei Container-Restart moeglich;
-    restart: always und Healthcheck minimieren das Risiko
-  - Bei NAS-Ausfall verbinden Meross-Geraete zur Meross-Cloud (Fallback, nicht lokal)
-- Konfiguration: siehe docs/konfiguration.md, Abschnitt "Meross-Steckdosen"
+- Status: Abgelöst durch ADR-011 (Cloud-Anbindung)
+- Kontext: Urspruenglich sollte dnsmasq iot.meross.com auf den NAS umleiten, damit Meross-Geraete den lokalen Mosquitto-Broker nutzen.
+- Grund fuer Abloesung:
+  - FritzBox 7590 AX unterstuetzt nur einen einzigen DNS-Server (kein Sekundaer-DNS-Fallback moeglich).
+  - Globaler DNS-Override blockiert die Meross App vollstaendig (kein Remote-Zugriff, keine Firmware-Updates).
+  - dnsmasq als Single-Point-of-Failure fuer das gesamte Heimnetz ist nicht akzeptabel.
+- Nachfolger: ADR-011 (aktualisiert) — Cloud-Anbindung via `meross_iot.MerossManager`.

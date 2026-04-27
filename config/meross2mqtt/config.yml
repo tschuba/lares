@@ -1,10 +1,8 @@
 # Meross to MQTT Homie Bridge – Konfiguration (ADR-011)
 #
-# MQTT-Credentials (mqtt_username, mqtt_password) werden beim Start
-# automatisch aus den Umgebungsvariablen MQTT_USERNAME / MQTT_PASSWORD injiziert.
-#
-# meross_key und devices werden beim ersten Start automatisch per Cloud-Discovery
-# befuellt (einmalig). Siehe docs/konfiguration.md, Abschnitt "Meross-Steckdosen".
+# MQTT-Credentials (mqtt_username, mqtt_password) und Meross-Cloud-Credentials
+# (meross_email, meross_password) werden beim Start automatisch aus den
+# Umgebungsvariablen injiziert.
 
 log_level: INFO
 
@@ -13,24 +11,12 @@ mqtt_host: mosquitto
 mqtt_port: 1883
 mqtt_clean_session: true
 
-# Direkte HTTP-Kommunikation mit Geraeten (stabiler als MQTT, empfohlen)
-enable_http: true
-
-# Meross MQTT-Protokoll
-meross_prefix: /appliance
-meross_sent_prefix: /appliance
-meross_bridge_topic: bridge
-
-# Globaler Meross-Key (wird bei Discovery automatisch gesetzt)
-meross_key: ""
-
 # Homie MQTT-Prefix
 homie_prefix: homie
 
-# Geraete (werden bei Discovery automatisch befuellt)
+# Geraete: optionale Umbenennung pro UUID
 # Format:
 #   <uuid>:
 #     pretty_name: "Lesbarer Name"
 #     pretty_topic: "homie-topic-id"   # optional
-#     meross_key: ""                   # optional, ueberschreibt globalen Key
 devices: {}
