@@ -225,7 +225,9 @@ class HomieDevice(
     async def __aenter__(self):
         await self.mqtt.__aenter__()
         logger.debug(f"Device {self.name} subscribing to {list(self.get_subscriptions())}")
-        await self.mqtt.subscribe([(i, 1) for i in self.get_subscriptions()])
+        subscriptions = [(i, 1) for i in self.get_subscriptions()]
+        if subscriptions:
+            await self.mqtt.subscribe(subscriptions)
         await self.refresh()
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
