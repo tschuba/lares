@@ -341,7 +341,7 @@
         "h": 18,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 12
       },
       "id": 5,
       "datasource": {
@@ -374,7 +374,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 30
       },
       "id": 6,
       "datasource": {
@@ -451,6 +451,46 @@
             "uid": "influxdb-nas"
           },
           "query": "trockner     = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307067395364351080248e1e9ceaeab\" and r[\"property\"] == \"power\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> map(fn: (r) => ({_time: r._time, _value: r._value, _field: \"Trockner\"}))\nwaschmaschine = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307068416409851080248e1e9ceb390\" and r[\"property\"] == \"power\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> map(fn: (r) => ({_time: r._time, _value: r._value, _field: \"Waschmaschine\"}))\nbambu         = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307145526576151080848e1e9d11e5e\" and r[\"property\"] == \"power\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> map(fn: (r) => ({_time: r._time, _value: r._value, _field: \"BambuLab P1S\"}))\narbeitstisch  = from(bucket: v.defaultBucket) |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307140501764051080848e1e9d123f7\" and r[\"property\"] == \"power\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> map(fn: (r) => ({_time: r._time, _value: r._value, _field: \"Arbeitstisch\"}))\nunion(tables: [trockner, waschmaschine, bambu, arbeitstisch])\n  |> yield(name: \"mean\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Energiebilanz kumuliert",
+      "description": "Kumulierte Energie seit Beginn des gewählten Zeitraums. Eigenversorgung = PV-Erzeugung + Heimspeicher-Entladung.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 8,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0
+          }
+        },
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Eigenversorgung"}, "properties": [{"id": "color", "value": {"fixedColor": "#E8C200", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Gesamtverbrauch"}, "properties": [{"id": "color", "value": {"fixedColor": "#FF7F0E", "mode": "fixed"}}]},
+          {"matcher": {"id": "byName", "options": "Netzbezug"}, "properties": [{"id": "color", "value": {"fixedColor": "#7F7F7F", "mode": "fixed"}}]}
+        ]
+      },
+      "targets": [
+        {
+          "refId": "Energie",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "eigenversorgung = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and (r[\"_field\"] == \"total_active_power\" or r[\"_field\"] == \"battery_power\"))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({_time: r._time, _value: (r.total_active_power + (if r.battery_power < 0.0 then -r.battery_power else 0.0)) * float(v: int(v: v.windowPeriod)) / 3600000000000000.0, _field: \"Eigenversorgung\"}))\n  |> group(columns: [\"_field\"])\n  |> cumulativeSum()\n\nnetzbezug = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"import_from_grid\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, _value: (if r._value > 0.0 then r._value else 0.0) * float(v: int(v: v.windowPeriod)) / 3600000000000000.0, _field: \"Netzbezug\"}))\n  |> group(columns: [\"_field\"])\n  |> cumulativeSum()\n\nhausverbrauch = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"load_power_hybrid\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, _value: r._value * float(v: int(v: v.windowPeriod)) / 3600000000000000.0, _field: \"Gesamtverbrauch\"}))\n  |> group(columns: [\"_field\"])\n  |> cumulativeSum()\n\nunion(tables: [eigenversorgung, netzbezug, hausverbrauch])\n  |> yield(name: \"cumulative\")"
         }
       ]
     }
