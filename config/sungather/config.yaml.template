@@ -7,7 +7,7 @@ inverter:
   port: 502
   slave: 0x01
   connection: modbus
-  level: 1
+  level: 2
   smart_meter: false
   scan_interval: 5
 
