@@ -548,5 +548,51 @@
         }
       ]
     }
+  ,
+    {
+      "type": "timeseries",
+      "title": "Heimspeicher Ladestand",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "id": 10,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "battery_level"},
+            "properties": [
+              {"id": "displayName",  "value": "Ladestand"},
+              {"id": "color",        "value": {"mode": "fixed", "fixedColor": "#1F77B4"}},
+              {"id": "min",          "value": 0},
+              {"id": "max",          "value": 100}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "SoC",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"battery_level\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+        }
+      ]
+    }
   ]
 }
