@@ -82,6 +82,9 @@ def main():
                 "runtime_total": calc("ID_WEB_Zaehler_BetrZeitWP"),
                 # Betriebsmodus
                 "operating_mode": calc("ID_WEB_WP_BZ_akt"),
+                # Fehlerdiagnose
+                "error_code":  calc("ID_WEB_ERROR_Nr0"),
+                "error_count": calc("ID_WEB_AnzahlFehlerInSpeicher"),
                 # Elektrischer Verbrauch (SHI, Modbus TCP Port 502, FW >= 3.90.1)
                 # Bibliothek liefert bereits umgerechnete Werte (kW bzw. kWh), kein /10 nötig
                 "electric_power_actual": inp("electric_power_actual"),
