@@ -60,6 +60,14 @@ def main():
                 v = calc(name)
                 return round(v / 10.0, 1) if v is not None else None
 
+            def calc_int(name):
+                """Luxtronik-Wert als plain int – schützt vor nicht-serialisierbaren Enum-Typen."""
+                v = calc(name)
+                try:
+                    return int(v) if v is not None else None
+                except (TypeError, ValueError):
+                    return None
+
             def inp(name):
                 entry = lux.inputs.get(name)
                 return entry.value if entry else None
@@ -83,8 +91,8 @@ def main():
                 # Betriebsmodus
                 "operating_mode": calc("ID_WEB_WP_BZ_akt"),
                 # Fehlerdiagnose
-                "error_code":  calc("ID_WEB_ERROR_Nr0"),
-                "error_count": calc("ID_WEB_AnzahlFehlerInSpeicher"),
+                "error_code":  calc_int("ID_WEB_ERROR_Nr0"),
+                "error_count": calc_int("ID_WEB_AnzahlFehlerInSpeicher"),
                 # Elektrischer Verbrauch (SHI, Modbus TCP Port 502, FW >= 3.90.1)
                 # Bibliothek liefert bereits umgerechnete Werte (kW bzw. kWh), kein /10 nötig
                 "electric_power_actual": inp("electric_power_actual"),
