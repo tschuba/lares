@@ -1,0 +1,164 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Lares
+    folder: Lares
+    interval: 1m
+    rules:
+
+      # CO₂ Warnung — DIN EN 13779 IDA 3 (>1000 ppm, sustained 5 min)
+      - uid: lares-co2-warning
+        title: CO₂ Warnung IDA 3
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "ventilation" and r["metric"] == "co2_level")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [1000], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: CO₂-Wert überschreitet 1000 ppm (IDA-3-Grenze, Lüftung prüfen)
+        labels:
+          severity: warning
+
+      # CO₂ Kritisch — DIN EN 13779 IDA 4 (>1400 ppm, sustained 2 min)
+      - uid: lares-co2-critical
+        title: CO₂ Kritisch IDA 4
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "ventilation" and r["metric"] == "co2_level")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [1400], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: CO₂-Wert überschreitet 1400 ppm (IDA-4-Grenze, sofort lüften)
+        labels:
+          severity: critical
+
+      # Sungrow Systemfehler — system_state != "Run"
+      # Requires json_string_fields = ["system_state"] in Telegraf sungrow consumer.
+      # Flux maps string to numeric: "Run" → 0.0, any other state → 1.0
+      - uid: lares-sungrow-fault
+        title: Wechselrichter Fehler
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "sungrow" and r["_field"] == "system_state")
+                  |> last()
+                  |> map(fn: (r) => ({_time: r._time, _value: if r._value == "Run" then 0.0 else 1.0}))
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [0.5], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: Sungrow SH8.0RT meldet keinen normalen Betriebsstatus (nicht "Run")
+        labels:
+          severity: critical
+
+      # Wärmepumpe Fehler — error_code > 0
+      # Requires error_code field in luxtronik2mqtt.py (ID_WEB_ERROR_Nr0, 0 = no error).
+      - uid: lares-heatpump-fault
+        title: Wärmepumpe Fehler
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "heating" and r["_field"] == "error_code")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: Novelan Wärmepumpe meldet einen Fehlercode (ID_WEB_ERROR_Nr0 > 0)
+        labels:
+          severity: critical

@@ -1,0 +1,13 @@
+apiVersion: 1
+
+templates:
+  - orgId: 1
+    name: ntfy_body
+    template: |
+      {{ define "ntfy_body" -}}
+      {{ if gt (len .Alerts.Firing) 0 -}}
+      {"topic":"lares","title":"Lares: {{ (index .Alerts.Firing 0).Labels.alertname }}","message":"{{ range .Alerts.Firing }}{{ .Annotations.summary }}{{ end }}","priority":4,"tags":["lares"]}
+      {{- else -}}
+      {"topic":"lares","title":"Lares: Behoben","message":"{{ range .Alerts.Resolved }}{{ .Labels.alertname }} behoben{{ end }}","priority":3,"tags":["lares"]}
+      {{- end }}
+      {{- end }}

@@ -1,0 +1,17 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: ntfy
+    receivers:
+      - uid: ntfy-receiver
+        type: webhook
+        settings:
+          url: ${NTFY_URL}
+          httpMethod: POST
+          authorization_scheme: Bearer
+          authorization_credentials: ${NTFY_TOKEN}
+          httpHeaders:
+            Content-Type: application/json
+          message: '{{ template "ntfy_body" . }}'
+        disableResolveMessage: false
