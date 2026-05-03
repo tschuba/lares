@@ -25,6 +25,7 @@
           {
             "matcher": { "id": "byName", "options": "temp" },
             "properties": [
+              { "id": "displayName", "value": "Temperatur" },
               { "id": "unit", "value": "celsius" },
               { "id": "custom.axisPlacement", "value": "left" }
             ]
@@ -32,6 +33,7 @@
           {
             "matcher": { "id": "byName", "options": "humidity" },
             "properties": [
+              { "id": "displayName", "value": "Luftfeuchtigkeit" },
               { "id": "unit", "value": "percent" },
               { "id": "custom.axisPlacement", "value": "right" }
             ]
@@ -60,7 +62,14 @@
       },
       "fieldConfig": {
         "defaults": { "unit": "velocitykmh" },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "windspeed" },
+            "properties": [
+              { "id": "displayName", "value": "Windgeschwindigkeit" }
+            ]
+          }
+        ]
       },
       "targets": [
         {
@@ -114,14 +123,14 @@
             "properties": [
               { "id": "custom.drawStyle", "value": "points" },
               { "id": "custom.pointSize", "value": 3 },
-              { "id": "displayName",      "value": "Instant" }
+              { "id": "displayName",      "value": "Momentanwert" }
             ]
           },
           {
             "matcher": { "id": "byName", "options": "winddir_avg10m" },
             "properties": [
               { "id": "custom.drawStyle", "value": "line" },
-              { "id": "displayName",      "value": "10 min avg" }
+              { "id": "displayName",      "value": "10-min-Mittel" }
             ]
           }
         ]
