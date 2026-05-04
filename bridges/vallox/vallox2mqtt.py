@@ -68,14 +68,17 @@ def parse_vallox_data(metrics):
         # WebSocket API returns a dictionary with metric keys like A_CYC_TEMP_EXHAUST_AIR
         return {
             'fan_speed': metrics.get('A_CYC_FAN_SPEED', 0),
+            'extract_fan_speed': metrics.get('A_CYC_EXTR_FAN_SPEED', 0),
+            'supply_fan_speed': metrics.get('A_CYC_SUPP_FAN_SPEED', 0),
             'temperature_supply_air': metrics.get('A_CYC_TEMP_SUPPLY_AIR', 0.0),
             'temperature_exhaust_air': metrics.get('A_CYC_TEMP_EXHAUST_AIR', 0.0),
             'temperature_extract_air': metrics.get('A_CYC_TEMP_EXTRACT_AIR', 0.0),
             'temperature_outdoor_air': metrics.get('A_CYC_TEMP_OUTDOOR_AIR', 0.0),
             'temperature_supply_cell_air': metrics.get('A_CYC_TEMP_SUPPLY_CELL_AIR', 0.0),
-            'humidity': metrics.get('A_CYC_HUMIDITY', 0),
-            'co2_level': metrics.get('A_CYC_CO2_SENSOR', 0),
-            'operating_mode': str(metrics.get('A_CYC_MODE', 'unknown'))
+            'humidity': metrics.get('A_CYC_RH_VALUE', 0),
+            'co2_level': metrics.get('A_CYC_CO2_VALUE', 0),
+            'operating_mode': metrics.get('A_CYC_MODE', 0),
+            'remaining_filter_days': metrics.get('A_CYC_REMAINING_TIME_FOR_FILTER', 0),
         }
     except Exception as e:
         logger.error(f"Data parsing error: {str(e)}")

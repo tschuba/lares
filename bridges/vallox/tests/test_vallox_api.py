@@ -1,105 +1,95 @@
+import asyncio
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 import sys
 import os
 
-# Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from vallox2mqtt import ValloxAPI, parse_vallox_data
 
+SAMPLE_METRICS = {
+    'A_CYC_FAN_SPEED': 29,
+    'A_CYC_EXTR_FAN_SPEED': 1450,
+    'A_CYC_SUPP_FAN_SPEED': 1380,
+    'A_CYC_TEMP_SUPPLY_AIR': 20.9,
+    'A_CYC_TEMP_EXHAUST_AIR': 23.5,
+    'A_CYC_TEMP_EXTRACT_AIR': 24.3,
+    'A_CYC_TEMP_OUTDOOR_AIR': 19.6,
+    'A_CYC_TEMP_SUPPLY_CELL_AIR': 20.4,
+    'A_CYC_RH_VALUE': 45,
+    'A_CYC_CO2_VALUE': 620,
+    'A_CYC_MODE': 0,
+    'A_CYC_REMAINING_TIME_FOR_FILTER': 180,
+}
+
 
 class TestValloxAPI(unittest.TestCase):
-    @patch('vallox2mqtt.requests.get')
-    def test_get_metrics_success(self, mock_get):
-        # Arrange
-        mock_response = MagicMock()
-        mock_response.json.return_value = {'fanSpeed': 2, 'supplyAirTemperature': 21.5}
-        mock_response.raise_for_status.return_value = None
-        mock_get.return_value = mock_response
-
-        # Act
+    def test_get_metrics_success(self):
         api = ValloxAPI('192.168.1.100')
-        result = api.get_metrics()
+        api.client = MagicMock()
+        api.client.fetch_metric_data = AsyncMock(return_value=SAMPLE_METRICS)
 
-        # Assert
+        result = asyncio.run(api.get_metrics())
+
         self.assertIsNotNone(result)
-        self.assertEqual(result['fanSpeed'], 2)
-        mock_get.assert_called_once()
+        self.assertEqual(result['A_CYC_FAN_SPEED'], 29)
+        api.client.fetch_metric_data.assert_called_once()
 
-    @patch('vallox2mqtt.requests.get')
-    def test_get_metrics_failure(self, mock_get):
-        # Arrange
-        mock_get.side_effect = Exception("Connection error")
-
-        # Act
+    def test_get_metrics_failure(self):
         api = ValloxAPI('192.168.1.100')
-        result = api.get_metrics()
+        api.client = MagicMock()
+        api.client.fetch_metric_data = AsyncMock(side_effect=Exception("Connection error"))
 
-        # Assert
+        result = asyncio.run(api.get_metrics())
+
         self.assertIsNone(result)
-
-    @patch('vallox2mqtt.requests.get')
-    def test_get_system_info_success(self, mock_get):
-        # Arrange
-        mock_response = MagicMock()
-        mock_response.json.return_value = {'model': 'ValloPlus 350 MV-E', 'serial': '12345'}
-        mock_response.raise_for_status.return_value = None
-        mock_get.return_value = mock_response
-
-        # Act
-        api = ValloxAPI('192.168.1.100')
-        result = api.get_system_info()
-
-        # Assert
-        self.assertIsNotNone(result)
-        self.assertEqual(result['model'], 'ValloPlus 350 MV-E')
 
 
 class TestDataParsing(unittest.TestCase):
-    def test_parse_vallox_data_success(self):
-        # Arrange
-        metrics = {
-            'fanSpeed': 3,
-            'supplyAirTemperature': 22.5,
-            'exhaustAirTemperature': 20.0,
-            'outdoorAirTemperature': 15.0,
-            'humidity': 45,
-            'co2Level': 600,
-            'filterCondition': 80,
-            'operatingMode': 'home'
-        }
+    def test_parse_vallox_data_correct_keys(self):
+        result = parse_vallox_data(SAMPLE_METRICS)
 
-        # Act
-        result = parse_vallox_data(metrics)
-
-        # Assert
         self.assertIsNotNone(result)
-        self.assertEqual(result['fan_speed'], 3)
-        self.assertEqual(result['temperature_supply_air'], 22.5)
         self.assertEqual(result['humidity'], 45)
+        self.assertEqual(result['co2_level'], 620)
+        self.assertEqual(result['operating_mode'], 0)
+
+    def test_parse_vallox_data_new_metrics(self):
+        result = parse_vallox_data(SAMPLE_METRICS)
+
+        self.assertEqual(result['extract_fan_speed'], 1450)
+        self.assertEqual(result['supply_fan_speed'], 1380)
+        self.assertEqual(result['remaining_filter_days'], 180)
+
+    def test_parse_vallox_data_temperatures(self):
+        result = parse_vallox_data(SAMPLE_METRICS)
+
+        self.assertEqual(result['temperature_supply_air'], 20.9)
+        self.assertEqual(result['temperature_exhaust_air'], 23.5)
+        self.assertEqual(result['temperature_extract_air'], 24.3)
+        self.assertEqual(result['temperature_outdoor_air'], 19.6)
+        self.assertEqual(result['temperature_supply_cell_air'], 20.4)
 
     def test_parse_vallox_data_empty(self):
-        # Arrange
-        metrics = None
+        result = parse_vallox_data(None)
 
-        # Act
-        result = parse_vallox_data(metrics)
-
-        # Assert
         self.assertIsNone(result)
 
     def test_parse_vallox_data_missing_fields(self):
-        # Arrange
-        metrics = {'fanSpeed': 2}
+        result = parse_vallox_data({'A_CYC_FAN_SPEED': 2})
 
-        # Act
-        result = parse_vallox_data(metrics)
-
-        # Assert
         self.assertIsNotNone(result)
         self.assertEqual(result['fan_speed'], 2)
         self.assertEqual(result['temperature_supply_air'], 0.0)
+        self.assertEqual(result['humidity'], 0)
+        self.assertEqual(result['co2_level'], 0)
+        self.assertEqual(result['operating_mode'], 0)
+
+    def test_parse_vallox_data_operating_mode_is_numeric(self):
+        result = parse_vallox_data(SAMPLE_METRICS)
+
+        self.assertIsInstance(result['operating_mode'], (int, float))
 
 
 if __name__ == '__main__':
