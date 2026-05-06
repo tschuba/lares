@@ -95,7 +95,7 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "heating_indoor" },
+            "matcher": { "id": "byName", "options": "_value" },
             "properties": [
               { "id": "displayName", "value": "Außenluft − Innenluft" },
               { "id": "unit", "value": "celsius" },
@@ -292,7 +292,7 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "delta" },
+            "matcher": { "id": "byName", "options": "_value" },
             "properties": [
               { "id": "displayName", "value": "Δ Zuluft − Innenluft" }
             ]
