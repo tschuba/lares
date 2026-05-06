@@ -124,11 +124,11 @@ groups:
         labels:
           severity: critical
 
-      # Lüftung heizt Innenraum — supply_air > extract_air + 1°C für 15 min
-      # Zuluft (nach Wärmetauscher) wärmer als Innenluft → Lüftung trägt Wärme ins Haus
+      # Lüftung heizt Innenraum — gleiche Bedingung wie automatische Steuerung:
+      #   supply_air > extract_air + 1°C  UND  outdoor_air > 20°C  für 30 min
       - uid: lares-ventilation-heating
         title: Lüftung heizt Innenraum
-        condition: D
+        condition: F
         data:
           - refId: A
             relativeTimeRange: {from: 900, to: 0}
@@ -153,32 +153,56 @@ groups:
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: C
-            relativeTimeRange: {from: 0, to: 0}
-            datasourceUid: __expr__
+            relativeTimeRange: {from: 900, to: 0}
+            datasourceUid: influxdb-nas
             model:
-              type: math
-              refId: C
-              datasource: {type: __expr__, uid: __expr__}
-              expression: "$A - $B"
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -15m)
+                  |> filter(fn: (r) => r._measurement == "ventilation" and r["metric"] == "temperature_outdoor_air" and r._field == "value")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
           - refId: D
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: C
+              type: math
               refId: D
               datasource: {type: __expr__, uid: __expr__}
+              expression: "$A - $B - 1.0"
+          - refId: E
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: math
+              refId: E
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "$C - 20.0"
+          - refId: F
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: D
+              refId: F
+              datasource: {type: __expr__, uid: __expr__}
               conditions:
-                - evaluator: {params: [1.0], type: gt}
+                - evaluator: {params: [0], type: gt}
                   operator: {type: and}
-                  query: {params: [C]}
+                  query: {params: [D]}
+                  reducer: {params: [], type: last}
+                  type: query
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [E]}
                   reducer: {params: [], type: last}
                   type: query
         noDataState: NoData
         execErrState: Error
-        for: 15m
+        for: 30m
         annotations:
-          summary: "Zuluft ist seit 15 min wärmer als Innenluft (Δ > 1°C) — Lüftung ausschalten erwägen"
+          summary: "Zuluft seit 30 min wärmer als Innenluft (Δ > 1°C) bei Außenluft > 20°C — Lüftung ausschalten erwägen"
         labels:
           severity: warning
 
