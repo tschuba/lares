@@ -83,6 +83,9 @@ services:
       - MQTT_PASSWORD=${MQTT_PASSWORD}
       - MQTT_TOPIC_PREFIX=ventilation/vallox
       - LOG_LEVEL=INFO
+      # Heat protection (opt-in): switch to AWAY when supply air > indoor air for 30 min
+      # Uncomment and set to "true" to enable automatic control:
+      #- VALLOX_HEAT_PROTECTION=true
     volumes:
       - ./logs/vallox2mqtt:/app/logs
     depends_on:
