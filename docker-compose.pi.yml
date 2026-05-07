@@ -1,0 +1,26 @@
+# Lares System Monitoring on Raspberry Pi (192.168.178.69)
+# Deploy as a Coolify Docker Compose project on the Pi.
+# Set environment variables in the Coolify project UI:
+#   INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
+# INFLUX_HOST and INFLUX_PORT are hardcoded to the NAS.
+
+services:
+  telegraf-pi:
+    image: telegraf:latest
+    container_name: telegraf-pi
+    restart: unless-stopped
+    user: "0:0"
+    group_add:
+      - "${DOCKER_GID}"
+    volumes:
+      - ./config/telegraf/telegraf-pi.conf:/etc/telegraf/telegraf.conf
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/rootfs:ro
+    environment:
+      - HOST_MOUNT_PREFIX=/rootfs
+      - HOST_PROC=/rootfs/proc
+      - INFLUX_TOKEN=${INFLUX_TOKEN}
+      - INFLUX_ORG=${INFLUX_ORG}
+      - INFLUX_BUCKET=${INFLUX_BUCKET}
+      - INFLUX_HOST=192.168.178.163
+      - INFLUX_PORT=8086
