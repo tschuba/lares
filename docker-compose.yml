@@ -214,16 +214,22 @@ services:
     profiles:
       - ev
 
-  # Telegraf for MQTT to InfluxDB bridge (ADR-011)
+  # Telegraf for MQTT to InfluxDB bridge and system metrics (ADR-011)
+  # No profile: runs always alongside mosquitto and influxdb so system metrics
+  # (CPU, memory, disk, Docker) are collected independently of the meross profile.
   telegraf:
     image: telegraf:latest
     container_name: telegraf
     restart: unless-stopped
     user: "0:0"
+    group_add:
+      - "${DOCKER_GID}"
     networks:
       - lares
     volumes:
       - ./config/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/rootfs:ro
     environment:
       - INFLUX_TOKEN=${INFLUX_TOKEN}
       - INFLUX_ORG=${INFLUX_ORG}
@@ -234,10 +240,10 @@ services:
       - MQTT_PORT=1883
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - HOST_MOUNT_PREFIX=/rootfs
+      - HOST_PROC=/rootfs/proc
     depends_on:
       - mosquitto
-    profiles:
-      - meross
 
   # InfluxDB 2.x (ADR-005)
   influxdb:
