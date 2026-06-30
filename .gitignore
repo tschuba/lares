@@ -61,3 +61,10 @@ config/sungather/config.yaml
 
 # Archive directories
 *.archive/
+
+# Claude
+.claude
+!.claude/agents/*
+
+# OpenCode
+.opencode
