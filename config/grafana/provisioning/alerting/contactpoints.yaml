@@ -2,6 +2,18 @@ apiVersion: 1
 
 contactPoints:
   - orgId: 1
+    name: pushover
+    receivers:
+      - uid: pushover-receiver
+        type: pushover
+        settings:
+          apiToken: ${PUSHOVER_API_KEY}
+          userKey: ${PUSHOVER_USER_KEY}
+          priority: 0
+          sound: default
+        disableResolveMessage: false
+
+  - orgId: 1
     name: ntfy
     receivers:
       - uid: ntfy-receiver

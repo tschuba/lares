@@ -395,44 +395,154 @@
         },
         "overrides": [
           {
-            "matcher": {"id": "byName", "options": "PV Erzeugung"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#E8C200", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "PV Erzeugung"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E8C200",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Hausverbrauch"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#FF7F0E", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "Hausverbrauch"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FF7F0E",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Heimspeicher (+lädt/-entlädt)"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#1F77B4", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "Heimspeicher (+lädt/-entlädt)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#1F77B4",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Netz (+Einsp./-Bezug)"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#7F7F7F", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "Netz (+Einsp./-Bezug)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#7F7F7F",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Heizung"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#D62728", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "Heizung"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#D62728",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Warmwasser"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#AEC7E8", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "Warmwasser"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#AEC7E8",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Waschmaschine"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#17BECF", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "Waschmaschine"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#17BECF",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Trockner"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#E377C2", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "Trockner"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E377C2",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "BambuLab P1S"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#9467BD", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "BambuLab P1S"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#9467BD",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Arbeitstisch"},
-            "properties": [{"id": "color", "value": {"fixedColor": "#2CA02C", "mode": "fixed"}}]
+            "matcher": {
+              "id": "byName",
+              "options": "Arbeitstisch"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2CA02C",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
@@ -487,17 +597,86 @@
           }
         },
         "overrides": [
-          {"matcher": {"id": "byName", "options": "Eigenversorgung"}, "properties": [{"id": "color", "value": {"fixedColor": "#E8C200", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "Gesamtverbrauch"}, "properties": [{"id": "color", "value": {"fixedColor": "#FF7F0E", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "Netzbezug"},       "properties": [{"id": "color", "value": {"fixedColor": "#7F7F7F", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "Ladestand"}, "properties": [
-            {"id": "color",              "value": {"fixedColor": "#1F77B4", "mode": "fixed"}},
-            {"id": "unit",               "value": "percent"},
-            {"id": "min",                "value": 0},
-            {"id": "max",                "value": 100},
-            {"id": "custom.axisPlacement","value": "right"},
-            {"id": "custom.fillOpacity", "value": 5}
-          ]}
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Eigenversorgung"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E8C200",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Gesamtverbrauch"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FF7F0E",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Netzbezug"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#7F7F7F",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ladestand"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#1F77B4",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 5
+              }
+            ]
+          }
         ]
       },
       "targets": [
@@ -539,24 +718,130 @@
           "unit": "kWh"
         },
         "overrides": [
-          {"matcher": {"id": "byName", "options": "Heizung"},     "properties": [{"id": "color", "value": {"fixedColor": "#D62728", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "Warmwasser"}, "properties": [{"id": "color", "value": {"fixedColor": "#AEC7E8", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "Trockner"},    "properties": [{"id": "color", "value": {"fixedColor": "#E377C2", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "Waschmaschine"}, "properties": [{"id": "color", "value": {"fixedColor": "#17BECF", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "BambuLab P1S"}, "properties": [{"id": "color", "value": {"fixedColor": "#9467BD", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "Arbeitstisch"}, "properties": [{"id": "color", "value": {"fixedColor": "#2CA02C", "mode": "fixed"}}]},
-          {"matcher": {"id": "byName", "options": "Sonstiges"},  "properties": [{"id": "color", "value": {"fixedColor": "#C7C7C7", "mode": "fixed"}}]}
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Heizung"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#D62728",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Warmwasser"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#AEC7E8",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trockner"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E377C2",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Waschmaschine"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#17BECF",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "BambuLab P1S"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#9467BD",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Arbeitstisch"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2CA02C",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sonstiges"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#C7C7C7",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
         ]
       },
       "options": {
         "pieType": "pie",
-        "displayLabels": ["percent"],
+        "displayLabels": [
+          "percent"
+        ],
         "legend": {
           "displayMode": "table",
           "placement": "right",
-          "values": ["percent", "value"]
+          "values": [
+            "percent",
+            "value"
+          ]
         },
-        "tooltip": {"mode": "single", "sort": "none"}
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "targets": [
         {
@@ -566,6 +851,236 @@
             "uid": "influxdb-nas"
           },
           "query": "import \"array\"\n\ndurationH = float(v: int(v: v.timeRangeStop) - int(v: v.timeRangeStart)) / 3600000000000.0\n\ntotalRec     = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r[\"_field\"] == \"load_power_hybrid\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nhzFirstRec   = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_energy_heating\")\n  |> first()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nhzLastRec    = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_energy_heating\")\n  |> last()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nwwFirstRec   = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_energy_dhw\")\n  |> first()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nwwLastRec    = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r[\"_field\"] == \"electric_energy_dhw\")\n  |> last()\n  |> findRecord(fn: (key) => true, idx: 0)\n\ntrocknerRec  = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307067395364351080248e1e9ceaeab\" and r[\"property\"] == \"power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nwaschmRec    = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307068416409851080248e1e9ceb390\" and r[\"property\"] == \"power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nbambuRec     = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307145526576151080848e1e9d11e5e\" and r[\"property\"] == \"power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\narbeitRec    = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meross\" and r[\"device\"] == \"2307140501764051080848e1e9d123f7\" and r[\"property\"] == \"power\")\n  |> mean()\n  |> findRecord(fn: (key) => true, idx: 0)\n\nheizungKwh     = if exists hzLastRec._value    and exists hzFirstRec._value then (if hzLastRec._value    >= hzFirstRec._value    then hzLastRec._value    - hzFirstRec._value    else 0.0) else 0.0\nwarmwasserKwh  = if exists wwLastRec._value    and exists wwFirstRec._value then (if wwLastRec._value    >= wwFirstRec._value    then wwLastRec._value    - wwFirstRec._value    else 0.0) else 0.0\ntrocknerKwh    = if exists trocknerRec._value then trocknerRec._value * durationH / 1000.0      else 0.0\nwaschmaschKwh  = if exists waschmRec._value   then waschmRec._value * durationH / 1000.0        else 0.0\nbambuKwh       = if exists bambuRec._value    then bambuRec._value * durationH / 1000.0          else 0.0\narbeitstischKwh = if exists arbeitRec._value  then arbeitRec._value * durationH / 1000.0         else 0.0\ntotalKwh       = if exists totalRec._value    then totalRec._value * durationH / 1000.0          else 0.0\nknownKwh       = heizungKwh + warmwasserKwh + trocknerKwh + waschmaschKwh + bambuKwh + arbeitstischKwh\nsonstigesKwh   = if totalKwh > knownKwh then totalKwh - knownKwh else 0.0\n\narray.from(rows: [\n  {_time: now(), _value: heizungKwh,     _field: \"Heizung\"},\n  {_time: now(), _value: warmwasserKwh,  _field: \"Warmwasser\"},\n  {_time: now(), _value: trocknerKwh,    _field: \"Trockner\"},\n  {_time: now(), _value: waschmaschKwh,  _field: \"Waschmaschine\"},\n  {_time: now(), _value: bambuKwh,       _field: \"BambuLab P1S\"},\n  {_time: now(), _value: arbeitstischKwh, _field: \"Arbeitstisch\"},\n  {_time: now(), _value: sonstigesKwh,   _field: \"Sonstiges\"},\n])\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"shares\")"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Stromzähler (FRITZ!Smart Energy 250)",
+      "id": 10,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Netzbezug (Zählerstand)",
+      "description": "Kumulativer Gesamtbezug vom Netz laut digitalem Stromzähler",
+      "id": 11,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 39
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwh",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"fritz_energy\" and r[\"_field\"] == \"Bezug\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Einspeisung (Zählerstand)",
+      "description": "Kumulativer Gesamtbezug laut digitalem Stromzähler",
+      "id": 12,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 39
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwh",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"fritz_energy\" and r[\"_field\"] == \"Einspeisung\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "gauge",
+      "title": "Sensor Batteriestand",
+      "description": "Batteriestand des FRITZ!Smart Energy 250",
+      "id": 13,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 39
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "green",
+                "value": 40
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"fritz_energy\" and r[\"_field\"] == \"battery_pct\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Netz-Leistung (abgeleitet aus Zählerstand)",
+      "description": "Momentanleistung berechnet als derivative(energy_kwh) × 1000 = Watt",
+      "id": 14,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "Bezug",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fritz_energy\" and r[\"_field\"] == \"Bezug\")\n  |> derivative(unit: 1h, nonNegative: true)\n  |> map(fn: (r) => ({r with _value: r._value * 1000.0}))"
+        },
+        {
+          "refId": "Einspeisung",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fritz_energy\" and r[\"_field\"] == \"Einspeisung\")\n  |> derivative(unit: 1h, nonNegative: true)\n  |> map(fn: (r) => ({r with _value: r._value * 1000.0}))"
         }
       ]
     }

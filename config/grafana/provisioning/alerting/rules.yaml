@@ -244,3 +244,42 @@ groups:
           summary: Novelan Wärmepumpe meldet einen Fehlercode (ID_WEB_ERROR_Nr0 > 0)
         labels:
           severity: critical
+
+      # FRITZ!Smart Energy 250 — Batteriestand niedrig
+      - uid: lares-fritz-battery-low
+        title: Fritz Energy 250 – Batterie niedrig
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "fritz_energy" and r["_field"] == "battery_pct")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [20], type: lt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "FRITZ!Smart Energy 250 Batteriestand unter 20% – Batterien wechseln"
+        labels:
+          severity: warning
+          receiver: pushover
