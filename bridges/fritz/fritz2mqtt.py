@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 import paho.mqtt.client as mqtt
 from pyfritzhome import Fritzhome
+from pyfritzhome.errors import LoginError
 
 _log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
 logging.basicConfig(level=_log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -86,12 +87,18 @@ def main() -> None:
             if payload:
                 client.publish(TOPIC, json.dumps(payload), retain=True)
                 logger.info("Published to %s: %s", TOPIC, payload)
+        except LoginError:
+            logger.error("FritzBox auth error – check FRITZ_USER/FRITZ_PASSWORD. Stopping to avoid account lockout.")
+            break
         except Exception as e:
-            logger.error("Poll error: %s", e)
+            logger.error("Poll error: %s – attempting re-login", e)
             try:
                 fritz.login()
-            except Exception:
-                pass
+            except LoginError:
+                logger.error("Re-login failed with auth error. Stopping to avoid account lockout.")
+                break
+            except Exception as re_err:
+                logger.error("Re-login failed: %s", re_err)
         time.sleep(POLL_INTERVAL)
 
 
