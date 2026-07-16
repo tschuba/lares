@@ -171,3 +171,19 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
   - Kein PV-Überschuss-Laden möglich
   - Start/Stop und Ladelimit (SoC%) funktionieren vollständig
 - Erweiterbarkeit: Ein Shelly EM an der CEE-Steckdose kann als separater Telegraf-Consumer (`ev/charger/power_w`) ergänzt werden ohne Code-Änderung an der Bridge.
+
+## ADR-017: FRITZ!Smart Energy 250 Integration via fritz2mqtt
+
+- Status: Angenommen
+- Kontext: Der FRITZ!Smart Energy 250 ist am digitalen Haushaltsstromzähler befestigt und misst bidirektional Netzbezug und Einspeisung. Die Daten sollen in InfluxDB persistiert und in Grafana visualisiert werden. Eine Abhängigkeit von Home Assistant soll vermieden werden.
+- Entscheidung: Eigene Python-Bridge `fritz2mqtt` (analog zu `luxtronik2mqtt`):
+  - Pollt alle 60 Sekunden die lokale FritzBox AHA-HTTP-API via `pyfritzhome`
+  - AVM exponiert eine physische Device-Entity (mit Batteriestand) und zwei virtuelle Powermeter-Entities (Bezug, Einspeisung) — die Bridge erkennt diese capability-basiert ohne Namens-Hardcoding
+  - Publiziert JSON-Blob auf `energy/fritz/state` (retain=True) → Telegraf → InfluxDB
+  - Grafana-Alert bei Batteriestand < 20% via Pushover
+  - Der 250 liefert nur kumulative kWh (Zählerstand), keinen Momentanwert; Leistung wird per `derivative()` in Flux berechnet
+- Begründung:
+  - Einheitliches Bridge-Muster, keine HA-Abhängigkeit
+  - Lokale AHA-API (kein Cloud-Zwang), FritzBox 7590 AX bereits im Netz
+  - `pyfritzhome` ist aktiv gewartet und wird intern auch von der HA fritzbox-Integration genutzt
+  - Spike hat Kompatibilität mit FritzOS 8.25 bestätigt

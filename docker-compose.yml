@@ -214,6 +214,28 @@ services:
     profiles:
       - ev
 
+  # FRITZ!Smart Energy 250 bridge: FritzBox AHA API → MQTT
+  fritz2mqtt:
+    image: ghcr.io/tschuba/lares/fritz2mqtt:latest
+    container_name: fritz2mqtt
+    restart: unless-stopped
+    environment:
+      - FRITZ_HOST=${FRITZ_HOST:-fritz.box}
+      - FRITZ_USER=${FRITZ_USER}
+      - FRITZ_PASSWORD=${FRITZ_PASSWORD}
+      - POLL_INTERVAL=60
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - LOG_LEVEL=INFO
+    networks:
+      - lares
+    depends_on:
+      - mosquitto
+    profiles:
+      - fritz
+
   # Telegraf for MQTT to InfluxDB bridge and system metrics (ADR-011)
   # No profile: runs always alongside mosquitto and influxdb so system metrics
   # (CPU, memory, disk, Docker) are collected independently of the meross profile.

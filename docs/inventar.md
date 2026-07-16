@@ -36,6 +36,7 @@ Dieses Dokument führt alle relevanten Komponenten, Dienste, Ports und Integrati
 | Meross MSS310 (Arbeitstisch) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
 | Meross MSS315 (Waschmaschine) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
 | Meross MSS315 (Trockner) | Einzelsteckdose mit Energiemessung | TLS/MQTT lokal + HTTP | WLAN | HA `meross_lan` (Steuerung) + `meross2mqtt` (Metriken) |
+| FRITZ!Smart Energy 250 | Stromsensor (Stromzähler) | DECT-ULE → FritzBox AHA-API | LAN | `fritz2mqtt` |
 | Skoda Enyaq | Elektrofahrzeug | mySkoda Cloud API | Internet | `skoda2mqtt` (ADR-016) |
 | Blink Outdoor 4 (2x) + Sync Module 2 | Kamera-System | Blink Cloud API | WLAN + Internet | Home Assistant Blink-Integration |
 | Amazon Echo Dot (2x), Echo Show (1x) | Sprach-/Audio-Geräte | Alexa API | WLAN + Internet | `alexa_media_player` in HA |

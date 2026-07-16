@@ -79,6 +79,15 @@ INFLUX_TOKEN=your_influx_admin_token
 INFLUX_HOST=192.168.178.163
 INFLUX_PORT=8086
 
+# FritzBox (fritz2mqtt)
+FRITZ_HOST=192.168.178.1
+FRITZ_USER=your_fritzbox_user
+FRITZ_PASSWORD=your_fritzbox_password
+
+# Pushover (Grafana Alerting)
+PUSHOVER_API_KEY=your_pushover_app_api_key
+PUSHOVER_USER_KEY=your_pushover_user_key
+
 # Weather Service Credentials
 AWEKAS_USERNAME=
 AWEKAS_PASSWORD=
@@ -102,6 +111,7 @@ OPENWEATHER_API_KEY=
 | heating | luxtronik2mqtt | Novelan heat pump integration |
 | weather | ecowitt2mqtt, weewx | Weather station and external uploads |
 | meross | meross2mqtt, telegraf | Meross energy metrics to InfluxDB (ADR-011 hybrid) |
+| fritz | fritz2mqtt | FRITZ!Smart Energy 250 Zähler-Integration |
 
 ## Network Configuration
 
