@@ -16,9 +16,9 @@
 
 ## 4. Verifizierung
 
-- [ ] 4.1 Bridge lokal bauen und gegen FritzBox testen: `docker build -t fritz2mqtt bridges/fritz && docker run --env-file .env fritz2mqtt`
-- [ ] 4.2 MQTT-Output verifizieren: `mosquitto_sub -t energy/fritz/state` zeigt validen JSON-Blob
-- [ ] 4.3 InfluxDB-Ingestion prüfen: Measurement `fritz_energy` mit Feldern `Bezug_kwh`, `Einspeisung_kwh`, `battery_pct` vorhanden
+- [x] 4.1 Bridge lokal bauen und gegen FritzBox testen: `docker build -t fritz2mqtt bridges/fritz && docker run --env-file .env fritz2mqtt`
+- [x] 4.2 MQTT-Output verifizieren: `mosquitto_sub -t energy/fritz/state` zeigt validen JSON-Blob
+- [x] 4.3 InfluxDB-Ingestion prüfen: Measurement `fritz_energy` mit Feldern `Bezug_kwh`, `Einspeisung_kwh`, `battery_pct` vorhanden
 
 ## 5. Grafana
 
