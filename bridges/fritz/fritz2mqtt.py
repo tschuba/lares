@@ -8,8 +8,7 @@ import paho.mqtt.client as mqtt
 from pyfritzhome import Fritzhome
 from pyfritzhome.errors import LoginError
 
-_log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
-logging.basicConfig(level=_log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper(), format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("fritz2mqtt")
 
 FRITZ_HOST = os.getenv("FRITZ_HOST", "fritz.box")
@@ -34,7 +33,7 @@ def poll(fritz: Fritzhome) -> dict | None:
         return None
 
     physical = next((d for d in energy_devices if d.battery_level is not None), None)
-    powermeters = [d for d in energy_devices if getattr(d, "has_powermeter", False)]
+    powermeters = [d for d in energy_devices if d.has_powermeter]
 
     if not physical:
         logger.warning("Physical Energy 250 device not found (no battery_level)")
