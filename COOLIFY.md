@@ -132,21 +132,41 @@ If you're migrating from the old Pi-centric deployment:
 ## Troubleshooting
 
 ### Services not starting on NAS
+
 - Check NAS Docker logs: `docker compose logs`
 - Verify environment variables in `config/.env`
 - Ensure device IPs are reachable from the NAS
 
 ### Home Assistant cannot connect to MQTT
+
 - Verify Mosquitto is running on NAS: `ssh nas 'docker ps | grep mosquitto'`
 - Test MQTT connection from Pi: `telnet 192.168.178.163 1883`
 - Check firewall rules on NAS
 
 ### Grafana cannot connect to InfluxDB
+
 - Verify InfluxDB is running on NAS: `ssh nas 'docker ps | grep influxdb'`
 - Test InfluxDB connection from Pi: `curl -I http://192.168.178.163:8086/health`
 - Check InfluxDB token and bucket configuration
 
+### Telegraf: `permission denied` on `/etc/telegraf/telegraf.conf`
+
+Symptom: `E! loading config file /etc/telegraf/telegraf.conf failed: open /etc/telegraf/telegraf.conf: permission denied`
+
+Cause: The file is not owned by the NAS user, and a Synology ACL blocks access even when Unix bits look open (`rwxrwxrwx+`).
+
+Fix:
+
+```bash
+sudo chown tschuba:admin /volume1/docker/lares/config/telegraf/telegraf.conf
+sudo chmod 644 /volume1/docker/lares/config/telegraf/telegraf.conf
+docker compose up -d telegraf
+```
+
+Prevention: the `:ro` mount flag in `docker-compose.yml` prevents the container from overwriting the file. After a `git pull`, ownership stays as `tschuba:admin`.
+
 ### Network latency issues
+
 - Pi and NAS should be on the same subnet (192.168.178.0/24)
 - Verify LAN cable connections
 - Check for network congestion
