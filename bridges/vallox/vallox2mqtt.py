@@ -166,6 +166,7 @@ def parse_vallox_data(metrics):
             'co2_level': metrics.get('A_CYC_CO2_VALUE', 0),
             'operating_mode': metrics.get('A_CYC_MODE', 0),
             'remaining_filter_days': metrics.get('A_CYC_REMAINING_TIME_FOR_FILTER', 0),
+            'cell_state': metrics.get('A_CYC_CELL_STATE', 0),
         }
     except Exception as e:
         logger.error(f"Data parsing error: {str(e)}")

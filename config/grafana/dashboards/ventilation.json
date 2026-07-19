@@ -679,7 +679,7 @@
             "lineWidth": 2,
             "fillOpacity": 15,
             "thresholdsStyle": {
-              "mode": "line"
+              "mode": "area"
             }
           },
           "color": {
@@ -693,8 +693,12 @@
                 "value": null
               },
               {
+                "color": "light-blue",
+                "value": -3
+              },
+              {
                 "color": "green",
-                "value": -0.1
+                "value": -1
               },
               {
                 "color": "orange",

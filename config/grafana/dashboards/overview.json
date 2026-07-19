@@ -951,6 +951,167 @@
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"winddir\")\n  |> last()"
         }
       ]
+    },
+    {
+      "type": "stat",
+      "title": "Lüftungs-Effekt",
+      "gridPos": {
+        "h": 4,
+        "w": 16,
+        "x": 8,
+        "y": 14
+      },
+      "id": 11,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "delta"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Δ Zuluft − Innenluft"
+              },
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "light-blue",
+                      "value": -3
+                    },
+                    {
+                      "color": "green",
+                      "value": -1
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 3
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cell_state"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Wärmetauscher"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "Wärmerückgewinnung",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "Kälterückgewinnung",
+                        "color": "light-blue",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "Bypass",
+                        "color": "blue",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "Abtauung",
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "Delta",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "supply = from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_supply_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"supply\"})\n\nextract = from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_extract_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"extract\"})\n\njoin(tables: {supply: supply, extract: extract}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _field: \"delta\", _value: r.supply - r.extract}))\n  |> last()\n  |> yield(name: \"last\")"
+        },
+        {
+          "refId": "CellState",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"cell_state\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> map(fn: (r) => ({r with _field: \"cell_state\"}))\n  |> yield(name: \"last\")"
+        }
+      ]
     }
   ]
 }
