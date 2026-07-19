@@ -29,12 +29,98 @@
   },
   "panels": [
     {
+      "type": "bargauge",
+      "title": "Luftfeuchtigkeit",
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 7,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "displayMode": "lcd",
+        "text": {}
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 30
+              },
+              {
+                "color": "green",
+                "value": 40
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "humidity"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Luftfeuchtigkeit"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "Humidity",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"humidity\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> map(fn: (r) => ({r with _field: \"humidity\"}))\n  |> yield(name: \"last\")"
+        }
+      ]
+    },
+    {
       "type": "stat",
       "title": "Aktueller Status",
       "gridPos": {
         "h": 6,
-        "w": 24,
-        "x": 0,
+        "w": 16,
+        "x": 8,
         "y": 0
       },
       "id": 1,
@@ -48,7 +134,7 @@
             "lastNotNull"
           ]
         },
-        "orientation": "horizontal",
+        "orientation": "auto",
         "textMode": "auto",
         "colorMode": "background",
         "graphMode": "none"
@@ -96,42 +182,6 @@
                     {
                       "color": "orange",
                       "value": 80
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "humidity"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Luftfeuchtigkeit"
-              },
-              {
-                "id": "unit",
-                "value": "percent"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "blue",
-                      "value": null
-                    },
-                    {
-                      "color": "green",
-                      "value": 30
-                    },
-                    {
-                      "color": "orange",
-                      "value": 70
                     }
                   ]
                 }
@@ -190,7 +240,7 @@
               },
               {
                 "id": "unit",
-                "value": "d"
+                "value": "none"
               },
               {
                 "id": "thresholds",
@@ -264,14 +314,6 @@
             "uid": "influxdb-nas"
           },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"fan_speed\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> map(fn: (r) => ({r with _field: \"fan_speed\"}))\n  |> yield(name: \"last\")"
-        },
-        {
-          "refId": "Humidity",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"humidity\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> map(fn: (r) => ({r with _field: \"humidity\"}))\n  |> yield(name: \"last\")"
         },
         {
           "refId": "CO2",
