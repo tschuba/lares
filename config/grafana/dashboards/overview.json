@@ -896,7 +896,7 @@
           ]
         },
         "orientation": "auto",
-        "textMode": "value_and_name",
+        "textMode": "auto",
         "colorMode": "background"
       },
       "targets": [
