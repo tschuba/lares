@@ -207,6 +207,11 @@ services:
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
       - LOG_LEVEL=INFO
+      - AUTH_MAX_RETRIES=3
+      - AUTH_BACKOFF_BASE=10
+      - AUTH_COOLDOWN_BASE=1800
+      - AUTH_COOLDOWN_MAX=86400
+      - AUTH_COOLDOWN_MAX_RETRIES=0
     networks:
       - lares
     depends_on:

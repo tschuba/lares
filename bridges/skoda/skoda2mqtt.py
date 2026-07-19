@@ -7,6 +7,14 @@ from datetime import datetime, timezone
 import aiohttp
 import aiomqtt
 from myskoda import MySkoda
+from myskoda.auth.authorization import (
+    AuthorizationError,
+    AuthorizationFailedError,
+    CSRFError,
+    MarketingConsentError,
+    TermsAndConditionsError,
+    TokenExpiredError,
+)
 
 _LOG_LEVEL = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
 logging.basicConfig(level=_LOG_LEVEL, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -22,6 +30,23 @@ MQTT_USER = os.getenv("MQTT_USERNAME")
 MQTT_PASS = os.getenv("MQTT_PASSWORD")
 TOPIC_STATE = "ev/skoda/state"
 TOPIC_COMMAND = "ev/skoda/command"
+TOPIC_STATUS = "ev/skoda/status"
+
+AUTH_MAX_RETRIES = int(os.getenv("AUTH_MAX_RETRIES", 3))
+AUTH_BACKOFF_BASE = int(os.getenv("AUTH_BACKOFF_BASE", 10))
+BACKOFF_CAP = 300
+AUTH_COOLDOWN_BASE = int(os.getenv("AUTH_COOLDOWN_BASE", 1800))
+AUTH_COOLDOWN_MAX = int(os.getenv("AUTH_COOLDOWN_MAX", 86400))
+AUTH_COOLDOWN_MAX_RETRIES = int(os.getenv("AUTH_COOLDOWN_MAX_RETRIES", 0))
+
+AUTH_EXCEPTIONS = (
+    AuthorizationError,
+    AuthorizationFailedError,
+    CSRFError,
+    MarketingConsentError,
+    TermsAndConditionsError,
+    TokenExpiredError,
+)
 
 
 async def fetch_state(myskoda: MySkoda, vin: str) -> dict:
@@ -83,6 +108,11 @@ async def handle_command(myskoda: MySkoda, vin: str, payload: str) -> None:
         logger.warning("Unknown command action: %s", action)
 
 
+async def publish_status(mqtt: aiomqtt.Client, state: str, **fields) -> None:
+    payload = {"state": state, "last_updated": datetime.now(timezone.utc).isoformat(), **fields}
+    await mqtt.publish(TOPIC_STATUS, json.dumps(payload), retain=True)
+
+
 async def polling_loop(myskoda: MySkoda, mqtt: aiomqtt.Client) -> None:
     while True:
         try:
@@ -94,6 +124,8 @@ async def polling_loop(myskoda: MySkoda, mqtt: aiomqtt.Client) -> None:
                 state.get("charging_state"),
                 state.get("charge_power_kw"),
             )
+        except AUTH_EXCEPTIONS:
+            raise
         except Exception:
             logger.exception("Error in polling loop")
         await asyncio.sleep(POLL_INTERVAL)
@@ -106,6 +138,8 @@ async def command_loop(myskoda: MySkoda, mqtt: aiomqtt.Client) -> None:
         logger.info("Received command: %s", payload)
         try:
             await handle_command(myskoda, VIN, payload)
+        except AUTH_EXCEPTIONS:
+            raise
         except Exception:
             logger.exception("Error handling command")
 
@@ -121,17 +155,58 @@ async def run() -> None:
     if MQTT_PASS:
         mqtt_kwargs["password"] = MQTT_PASS
 
-    async with aiohttp.ClientSession() as session:
-        myskoda = MySkoda(session)
-        logger.info("Authenticating with mySkoda API...")
-        await myskoda.connect(USERNAME, PASSWORD)
-        logger.info("Authenticated. VIN: %s", VIN)
+    async with aiomqtt.Client(**mqtt_kwargs) as mqtt:
+        logger.info("Connected to MQTT at %s:%d", MQTT_HOST, MQTT_PORT)
+        auth_failures = 0
+        cooldown_failures = 0
 
-        async with aiomqtt.Client(**mqtt_kwargs) as mqtt:
-            logger.info("Connected to MQTT at %s:%d", MQTT_HOST, MQTT_PORT)
-            async with asyncio.TaskGroup() as tg:
-                tg.create_task(polling_loop(myskoda, mqtt))
-                tg.create_task(command_loop(myskoda, mqtt))
+        while True:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    myskoda = MySkoda(session)
+                    logger.info("Authenticating with mySkoda API...")
+                    await myskoda.connect(USERNAME, PASSWORD)
+                    logger.info("Authenticated. VIN: %s", VIN)
+                    auth_failures = 0
+                    cooldown_failures = 0
+                    await publish_status(mqtt, "ok")
+                    async with asyncio.TaskGroup() as tg:
+                        tg.create_task(polling_loop(myskoda, mqtt))
+                        tg.create_task(command_loop(myskoda, mqtt))
+            except* AUTH_EXCEPTIONS as eg:
+                for exc in eg.exceptions:
+                    logger.error("Auth failure (%s): %s", type(exc).__name__, exc)
+
+                if auth_failures < AUTH_MAX_RETRIES:
+                    auth_failures += 1
+                    delay = min(AUTH_BACKOFF_BASE * 2 ** (auth_failures - 1), BACKOFF_CAP)
+                    logger.warning(
+                        "Fast-tier auth retry %d/%d in %ds",
+                        auth_failures,
+                        AUTH_MAX_RETRIES,
+                        delay,
+                    )
+                    await publish_status(mqtt, "auth_retry", attempt=auth_failures, next_retry_in_s=delay)
+                    await asyncio.sleep(delay)
+                else:
+                    cooldown_failures += 1
+                    if AUTH_COOLDOWN_MAX_RETRIES > 0 and cooldown_failures >= AUTH_COOLDOWN_MAX_RETRIES:
+                        logger.error(
+                            "Permanent auth stop after %d cooldown failures — manual restart required",
+                            cooldown_failures,
+                        )
+                        await publish_status(mqtt, "auth_error", cooldown_attempt=cooldown_failures, final=True)
+                        await asyncio.Event().wait()  # block forever; never exit (avoids Docker restart resetting counters)
+                    delay = min(AUTH_COOLDOWN_BASE * 2 ** (cooldown_failures - 1), AUTH_COOLDOWN_MAX)
+                    logger.warning(
+                        "Cooldown-tier auth retry %d in %ds",
+                        cooldown_failures,
+                        delay,
+                    )
+                    await publish_status(
+                        mqtt, "auth_error", cooldown_attempt=cooldown_failures, next_retry_in_s=delay
+                    )
+                    await asyncio.sleep(delay)
 
 
 async def main() -> None:
@@ -143,7 +218,7 @@ async def main() -> None:
             for exc in eg.exceptions:
                 logger.error("Fatal error (%s), restarting in %ds", exc, backoff)
             await asyncio.sleep(backoff)
-            backoff = min(backoff * 2, 300)
+            backoff = min(backoff * 2, BACKOFF_CAP)
         else:
             backoff = 10
 

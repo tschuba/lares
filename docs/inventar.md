@@ -131,6 +131,11 @@ Diese Werte werden vor Umsetzung mit Realwerten ersetzt:
 - `MYSKODA_USERNAME=<...>`
 - `MYSKODA_PASSWORD=<...>`
 - `MYSKODA_VIN=<17-stellige Fahrzeug-Identifikationsnummer aus mySkoda App>`
+- `AUTH_MAX_RETRIES=3` — Anzahl schneller Wiederholungsversuche bei Auth-Fehlern (Fast-Tier), bevor die Cooldown-Phase beginnt
+- `AUTH_BACKOFF_BASE=10` — Basiswartezeit in Sekunden für den Fast-Tier-Backoff (verdoppelt sich je Versuch, max. 300s)
+- `AUTH_COOLDOWN_BASE=1800` — Basiswartezeit in Sekunden für den Cooldown-Tier (verdoppelt sich je Versuch)
+- `AUTH_COOLDOWN_MAX=86400` — Maximale Wartezeit in Sekunden im Cooldown-Tier (Standard: 24h)
+- `AUTH_COOLDOWN_MAX_RETRIES=0` — Maximale Anzahl Cooldown-Versuche; `0` = unbegrenzt (Standard), positiver Wert = Bridge stoppt dauerhaft nach N Cooldown-Fehlern und erfordert manuellen Neustart
 
 ## 8) Wetterdatenfreigabe (Ecowitt)
 

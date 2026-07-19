@@ -171,6 +171,7 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
   - Kein PV-Überschuss-Laden möglich
   - Start/Stop und Ladelimit (SoC%) funktionieren vollständig
 - Erweiterbarkeit: Ein Shelly EM an der CEE-Steckdose kann als separater Telegraf-Consumer (`ev/charger/power_w`) ergänzt werden ohne Code-Änderung an der Bridge.
+- **Nachtrag — Auth-Resilienz und Lockout-Prävention:** Skodas Identity-Backend sperrt Accounts bei wiederholten fehlgeschlagenen Logins (community-gemeldete Rate-Limits und Account-Locks). Die Bridge unterscheidet Auth-Fehler (`AuthorizationFailedError`, `AuthorizationError`, `CSRFError`, `TermsAndConditionsError`, `MarketingConsentError`, `TokenExpiredError`) von transienten Verbindungsfehlern und behandelt sie mit einem zweistufigen Backoff: Fast-Tier (bis zu `AUTH_MAX_RETRIES` schnelle Wiederholungen mit exponentiellem Backoff bis 300s), dann Cooldown-Tier (beginnend bei `AUTH_COOLDOWN_BASE` Sekunden, verdoppelnd bis `AUTH_COOLDOWN_MAX`). Mit `AUTH_COOLDOWN_MAX_RETRIES=0` (Standard) läuft der Cooldown-Tier unbegrenzt; ein positiver Wert stoppt die Bridge dauerhaft nach N Cooldown-Fehlern — der Prozess bleibt jedoch aktiv (kein Exit), damit `restart: unless-stopped` die Zähler nicht zurücksetzt. Auth-Status wird retained auf `ev/skoda/status` publiziert (`ok`, `auth_retry`, `auth_error`, bei finalem Stop zusätzlich `final: true`) und fließt wie alle anderen Messwerte über MQTT → Telegraf → InfluxDB → Grafana.
 
 ## ADR-017: FRITZ!Smart Energy 250 Integration via fritz2mqtt
 
