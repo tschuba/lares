@@ -1,19 +1,41 @@
 {
   "title": "Wetter (Ecowitt)",
   "uid": "weather",
-  "tags": ["weather"],
+  "tags": [
+    "weather"
+  ],
   "timezone": "browser",
   "schemaVersion": 38,
   "refresh": "15s",
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "15s", "30s", "1m", "5m", "10m", "30m", "1h", "2h", "1d"]
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "15s",
+      "30s",
+      "1m",
+      "5m",
+      "10m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
   },
-  "time": { "from": "now/d", "to": "now" },
+  "time": {
+    "from": "now/d",
+    "to": "now"
+  },
   "panels": [
     {
       "type": "timeseries",
       "title": "Temperatur & Luftfeuchtigkeit",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "datasource": {
         "type": "influxdb",
@@ -23,19 +45,43 @@
         "defaults": {},
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "temp" },
+            "matcher": {
+              "id": "byName",
+              "options": "temp"
+            },
             "properties": [
-              { "id": "displayName", "value": "Temperatur" },
-              { "id": "unit", "value": "celsius" },
-              { "id": "custom.axisPlacement", "value": "left" }
+              {
+                "id": "displayName",
+                "value": "Temperatur"
+              },
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "humidity" },
+            "matcher": {
+              "id": "byName",
+              "options": "humidity"
+            },
             "properties": [
-              { "id": "displayName", "value": "Luftfeuchtigkeit" },
-              { "id": "unit", "value": "percent" },
-              { "id": "custom.axisPlacement", "value": "right" }
+              {
+                "id": "displayName",
+                "value": "Luftfeuchtigkeit"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
             ]
           }
         ]
@@ -54,19 +100,32 @@
     {
       "type": "timeseries",
       "title": "Windgeschwindigkeit",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
       "id": 2,
       "datasource": {
         "type": "influxdb",
         "uid": "influxdb-nas"
       },
       "fieldConfig": {
-        "defaults": { "unit": "velocitykmh" },
+        "defaults": {
+          "unit": "velocitykmh"
+        },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "windspeed" },
+            "matcher": {
+              "id": "byName",
+              "options": "windspeed"
+            },
             "properties": [
-              { "id": "displayName", "value": "Windgeschwindigkeit" }
+              {
+                "id": "displayName",
+                "value": "Windgeschwindigkeit"
+              }
             ]
           }
         ]
@@ -86,32 +145,94 @@
       "type": "timeseries",
       "title": "Windrichtung (von)",
       "description": "Zeigt die Richtung, aus der der Wind kommt (meteorologische Konvention). Beispiel: 270° bedeutet, dass der Wind aus Westen kommt und nach Osten weht.",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
       "id": 3,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "degree",
           "min": 0,
           "max": 360,
           "mappings": [
-            { "type": "value", "options": { "0":   { "text": "N",  "index": 0 } } },
-            { "type": "value", "options": { "100": { "text": "E",  "index": 1 } } },
-            { "type": "value", "options": { "200": { "text": "S",  "index": 2 } } },
-            { "type": "value", "options": { "300": { "text": "W",  "index": 3 } } },
-            { "type": "value", "options": { "360": { "text": "N",  "index": 4 } } }
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "N",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "value",
+              "options": {
+                "100": {
+                  "text": "E",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "value",
+              "options": {
+                "200": {
+                  "text": "S",
+                  "index": 2
+                }
+              }
+            },
+            {
+              "type": "value",
+              "options": {
+                "300": {
+                  "text": "W",
+                  "index": 3
+                }
+              }
+            },
+            {
+              "type": "value",
+              "options": {
+                "360": {
+                  "text": "N",
+                  "index": 4
+                }
+              }
+            }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "rgba(100,150,255,0.50)", "value": null },
-              { "color": "rgba(100,200,100,0.50)", "value": 90  },
-              { "color": "rgba(255,150, 80,0.50)", "value": 180 },
-              { "color": "rgba(180,100,255,0.50)", "value": 270 }
+              {
+                "color": "rgba(100,150,255,0.50)",
+                "value": null
+              },
+              {
+                "color": "rgba(100,200,100,0.50)",
+                "value": 90
+              },
+              {
+                "color": "rgba(255,150, 80,0.50)",
+                "value": 180
+              },
+              {
+                "color": "rgba(180,100,255,0.50)",
+                "value": 270
+              }
             ]
           },
           "custom": {
-            "thresholdsStyle": { "mode": "line" },
+            "thresholdsStyle": {
+              "mode": "line"
+            },
             "axisLabel": "origin",
             "lineWidth": 1,
             "fillOpacity": 0
@@ -119,35 +240,68 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "winddir" },
+            "matcher": {
+              "id": "byName",
+              "options": "winddir"
+            },
             "properties": [
-              { "id": "custom.drawStyle", "value": "points" },
-              { "id": "custom.pointSize", "value": 3 },
-              { "id": "displayName",      "value": "Momentanwert" }
+              {
+                "id": "custom.drawStyle",
+                "value": "points"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 3
+              },
+              {
+                "id": "displayName",
+                "value": "Momentanwert"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "winddir_avg10m" },
+            "matcher": {
+              "id": "byName",
+              "options": "winddir_avg10m"
+            },
             "properties": [
-              { "id": "custom.drawStyle", "value": "line" },
-              { "id": "displayName",      "value": "10-min-Mittel" }
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "displayName",
+                "value": "10-min-Mittel"
+              }
             ]
           }
         ]
       },
       "options": {
-        "tooltip": { "mode": "multi", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom" }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       },
       "targets": [
         {
           "refId": "WindDir",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"winddir\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"winddir\")"
         },
         {
           "refId": "WindDir10m",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"winddir_avg10m\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"winddir_avg10m\")"
         }
       ]
@@ -155,44 +309,93 @@
     {
       "type": "timeseries",
       "title": "Niederschlag",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
       "id": 5,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
-        "defaults": { "unit": "lengthmm" },
+        "defaults": {
+          "unit": "lengthmm"
+        },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "rainrate" },
+            "matcher": {
+              "id": "byName",
+              "options": "rainrate"
+            },
             "properties": [
-              { "id": "displayName", "value": "Regenrate (mm/h)" },
-              { "id": "custom.drawStyle", "value": "bars" },
-              { "id": "custom.fillOpacity", "value": 60 },
-              { "id": "custom.axisPlacement", "value": "left" }
+              {
+                "id": "displayName",
+                "value": "Regenrate (mm/h)"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 60
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "dailyrain" },
+            "matcher": {
+              "id": "byName",
+              "options": "dailyrain"
+            },
             "properties": [
-              { "id": "displayName", "value": "Tagesniederschlag (mm)" },
-              { "id": "custom.drawStyle", "value": "line" },
-              { "id": "custom.axisPlacement", "value": "right" }
+              {
+                "id": "displayName",
+                "value": "Tagesniederschlag (mm)"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
             ]
           }
         ]
       },
       "options": {
-        "tooltip": { "mode": "multi", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom" }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       },
       "targets": [
         {
           "refId": "RainRate",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"rainrate\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> yield(name: \"rainrate\")"
         },
         {
           "refId": "DailyRain",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"dailyrain\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"dailyrain\")"
         }
       ]
@@ -201,9 +404,17 @@
       "type": "operato-windrose-panel",
       "title": "Wind Rose (Herkunft)",
       "description": "Häufigkeit des Windes nach Herkunftsrichtung und -geschwindigkeit. Der Kompass zeigt, woher der Wind kommt, nicht wohin er geht.",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
       "id": 4,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "options": {
         "windSpeedUnit": "kmh",
         "windroseLabels": "compass",
@@ -212,10 +423,45 @@
       "targets": [
         {
           "refId": "WindRose",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "direction = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"winddir\")\n\nspeed = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather\")\n  |> filter(fn: (r) => r[\"_field\"] == \"windspeed\")\n\nunion(tables: [direction, speed])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> rename(columns: {winddir: \"wind_direction\", windspeed: \"wind_speed\"})\n  |> yield(name: \"wind_data\")"
         }
       ]
+    }
+  ],
+  "links": [
+    {
+      "title": "Überblick",
+      "type": "link",
+      "url": "/d/overview",
+      "keepTime": true
+    },
+    {
+      "title": "Energie",
+      "type": "link",
+      "url": "/d/energy",
+      "keepTime": true
+    },
+    {
+      "title": "Heizung",
+      "type": "link",
+      "url": "/d/heating",
+      "keepTime": true
+    },
+    {
+      "title": "Lüftung",
+      "type": "link",
+      "url": "/d/ventilation",
+      "keepTime": true
+    },
+    {
+      "title": "System",
+      "type": "link",
+      "url": "/d/system-status",
+      "keepTime": true
     }
   ]
 }

@@ -1,23 +1,53 @@
 {
   "title": "Lüftung (Vallox)",
   "uid": "ventilation",
-  "tags": ["ventilation", "vallox"],
+  "tags": [
+    "ventilation",
+    "vallox"
+  ],
   "timezone": "browser",
   "schemaVersion": 38,
   "refresh": "15s",
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "15s", "30s", "1m", "5m", "10m", "30m", "1h", "2h", "1d"]
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "15s",
+      "30s",
+      "1m",
+      "5m",
+      "10m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
   },
-  "time": { "from": "now/d", "to": "now" },
+  "time": {
+    "from": "now/d",
+    "to": "now"
+  },
   "panels": [
     {
       "type": "stat",
       "title": "Aktueller Status",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "horizontal",
         "textMode": "auto",
         "colorMode": "background",
@@ -28,86 +58,200 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "fan_speed" },
+            "matcher": {
+              "id": "byName",
+              "options": "fan_speed"
+            },
             "properties": [
-              { "id": "displayName", "value": "Lüfterstufe" },
-              { "id": "unit", "value": "percent" },
-              { "id": "thresholds", "value": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "blue", "value": null },
-                  { "color": "green", "value": 1 },
-                  { "color": "orange", "value": 80 }
-                ]
-              }}
+              {
+                "id": "displayName",
+                "value": "Lüfterstufe"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    }
+                  ]
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "humidity" },
+            "matcher": {
+              "id": "byName",
+              "options": "humidity"
+            },
             "properties": [
-              { "id": "displayName", "value": "Luftfeuchtigkeit" },
-              { "id": "unit", "value": "percent" },
-              { "id": "thresholds", "value": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "blue", "value": null },
-                  { "color": "green", "value": 30 },
-                  { "color": "orange", "value": 70 }
-                ]
-              }}
+              {
+                "id": "displayName",
+                "value": "Luftfeuchtigkeit"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    },
+                    {
+                      "color": "orange",
+                      "value": 70
+                    }
+                  ]
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "co2_level" },
+            "matcher": {
+              "id": "byName",
+              "options": "co2_level"
+            },
             "properties": [
-              { "id": "displayName", "value": "CO₂" },
-              { "id": "unit", "value": "ppm" },
-              { "id": "thresholds", "value": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 800 },
-                  { "color": "orange", "value": 1000 },
-                  { "color": "red", "value": 1400 }
-                ]
-              }}
+              {
+                "id": "displayName",
+                "value": "CO₂"
+              },
+              {
+                "id": "unit",
+                "value": "ppm"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 800
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1000
+                    },
+                    {
+                      "color": "red",
+                      "value": 1400
+                    }
+                  ]
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "remaining_filter_days" },
+            "matcher": {
+              "id": "byName",
+              "options": "remaining_filter_days"
+            },
             "properties": [
-              { "id": "displayName", "value": "Filter (Tage)" },
-              { "id": "unit", "value": "d" },
-              { "id": "thresholds", "value": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "red", "value": null },
-                  { "color": "orange", "value": 30 },
-                  { "color": "green", "value": 90 }
-                ]
-              }}
+              {
+                "id": "displayName",
+                "value": "Filter (Tage)"
+              },
+              {
+                "id": "unit",
+                "value": "d"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 30
+                    },
+                    {
+                      "color": "green",
+                      "value": 90
+                    }
+                  ]
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Value" },
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
             "properties": [
-              { "id": "displayName", "value": "Außenluft − Innenluft" },
-              { "id": "unit", "value": "celsius" },
-              { "id": "thresholds", "value": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "blue",   "value": null },
-                  { "color": "green",  "value": -0.1 },
-                  { "color": "orange", "value": 1 },
-                  { "color": "red",    "value": 3 }
-                ]
-              }}
+              {
+                "id": "displayName",
+                "value": "Außenluft − Innenluft"
+              },
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": -0.1
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 3
+                    }
+                  ]
+                }
+              }
             ]
           }
         ]
@@ -115,27 +259,42 @@
       "targets": [
         {
           "refId": "FanSpeed",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"fan_speed\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> map(fn: (r) => ({r with _field: \"fan_speed\"}))\n  |> yield(name: \"last\")"
         },
         {
           "refId": "Humidity",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"humidity\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> map(fn: (r) => ({r with _field: \"humidity\"}))\n  |> yield(name: \"last\")"
         },
         {
           "refId": "CO2",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"co2_level\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> map(fn: (r) => ({r with _field: \"co2_level\"}))\n  |> yield(name: \"last\")"
         },
         {
           "refId": "Filter",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"remaining_filter_days\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> map(fn: (r) => ({r with _field: \"remaining_filter_days\"}))\n  |> yield(name: \"last\")"
         },
         {
           "refId": "HeatingIndoor",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "outdoor = from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_outdoor_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"outdoor\"})\n\nindoor = from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_extract_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"indoor\"})\n\njoin(tables: {outdoor: outdoor, indoor: indoor}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r.outdoor - r.indoor}))\n  |> last()\n  |> yield(name: \"last\")"
         }
       ]
@@ -143,36 +302,104 @@
     {
       "type": "timeseries",
       "title": "Lüfterstufen",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
       "id": 2,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "custom": { "lineWidth": 2 },
+          "custom": {
+            "lineWidth": 2
+          },
           "min": 0,
           "max": 100
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "fan_speed" },         "properties": [{ "id": "displayName", "value": "Lüfterstufe (%)" }] },
-          { "matcher": { "id": "byName", "options": "extract_fan_speed" }, "properties": [{ "id": "displayName", "value": "Abluft (RPM)" }, { "id": "unit", "value": "rotrpm" }, { "id": "custom.axisPlacement", "value": "right" }] },
-          { "matcher": { "id": "byName", "options": "supply_fan_speed" },  "properties": [{ "id": "displayName", "value": "Zuluft (RPM)" }, { "id": "unit", "value": "rotrpm" }, { "id": "custom.axisPlacement", "value": "right" }] }
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fan_speed"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lüfterstufe (%)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "extract_fan_speed"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Abluft (RPM)"
+              },
+              {
+                "id": "unit",
+                "value": "rotrpm"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "supply_fan_speed"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Zuluft (RPM)"
+              },
+              {
+                "id": "unit",
+                "value": "rotrpm"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
         ]
       },
       "targets": [
         {
           "refId": "FanSpeed",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"fan_speed\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"fan_speed\"}))\n  |> yield(name: \"mean\")"
         },
         {
           "refId": "ExtractFan",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"extract_fan_speed\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"extract_fan_speed\"}))\n  |> yield(name: \"mean\")"
         },
         {
           "refId": "SupplyFan",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"supply_fan_speed\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"supply_fan_speed\"}))\n  |> yield(name: \"mean\")"
         }
       ]
@@ -180,11 +407,23 @@
     {
       "type": "stat",
       "title": "Betriebsmodus",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
       "id": 3,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "horizontal",
         "textMode": "auto",
         "colorMode": "background",
@@ -193,26 +432,58 @@
       "fieldConfig": {
         "defaults": {
           "mappings": [
-            { "type": "value", "options": {
-              "0": { "text": "Normal",     "color": "green"  },
-              "1": { "text": "Testbetrieb","color": "blue"   },
-              "2": { "text": "Manuell",    "color": "yellow" },
-              "3": { "text": "Abtauen",    "color": "blue"   },
-              "4": { "text": "Selbsttest", "color": "purple" },
-              "5": { "text": "Aus",        "color": "red"    },
-              "6": { "text": "EMC-Test",   "color": "orange" }
-            }}
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Normal",
+                  "color": "green"
+                },
+                "1": {
+                  "text": "Testbetrieb",
+                  "color": "blue"
+                },
+                "2": {
+                  "text": "Manuell",
+                  "color": "yellow"
+                },
+                "3": {
+                  "text": "Abtauen",
+                  "color": "blue"
+                },
+                "4": {
+                  "text": "Selbsttest",
+                  "color": "purple"
+                },
+                "5": {
+                  "text": "Aus",
+                  "color": "red"
+                },
+                "6": {
+                  "text": "EMC-Test",
+                  "color": "orange"
+                }
+              }
+            }
           ],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
         }
       },
       "targets": [
         {
           "refId": "Mode",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"operating_mode\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> last()\n  |> yield(name: \"last\")"
         }
       ]
@@ -220,46 +491,126 @@
     {
       "type": "timeseries",
       "title": "Temperaturen",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
       "id": 4,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "celsius",
-          "custom": { "lineWidth": 2 }
+          "custom": {
+            "lineWidth": 2
+          }
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "temperature_supply_air" },      "properties": [{ "id": "displayName", "value": "Zuluft" }] },
-          { "matcher": { "id": "byName", "options": "temperature_exhaust_air" },     "properties": [{ "id": "displayName", "value": "Abluft" }] },
-          { "matcher": { "id": "byName", "options": "temperature_extract_air" },     "properties": [{ "id": "displayName", "value": "Fortluft" }] },
-          { "matcher": { "id": "byName", "options": "temperature_outdoor_air" },     "properties": [{ "id": "displayName", "value": "Außenluft" }] },
-          { "matcher": { "id": "byName", "options": "temperature_supply_cell_air" }, "properties": [{ "id": "displayName", "value": "Wärmetauscher" }] }
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_supply_air"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Zuluft"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_exhaust_air"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Abluft"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_extract_air"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fortluft"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_outdoor_air"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außenluft"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_supply_cell_air"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Wärmetauscher"
+              }
+            ]
+          }
         ]
       },
       "targets": [
         {
           "refId": "TempSupply",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_supply_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"temperature_supply_air\"}))\n  |> yield(name: \"mean\")"
         },
         {
           "refId": "TempExhaust",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_exhaust_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"temperature_exhaust_air\"}))\n  |> yield(name: \"mean\")"
         },
         {
           "refId": "TempExtract",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_extract_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"temperature_extract_air\"}))\n  |> yield(name: \"mean\")"
         },
         {
           "refId": "TempOutdoor",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_outdoor_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"temperature_outdoor_air\"}))\n  |> yield(name: \"mean\")"
         },
         {
           "refId": "TempCell",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_supply_cell_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"temperature_supply_cell_air\"}))\n  |> yield(name: \"mean\")"
         }
       ]
@@ -268,33 +619,63 @@
       "type": "timeseries",
       "title": "Δ Zuluft − Innenluft (Wärmeeintrag)",
       "description": "Positiver Wert: Zuluft ist wärmer als Innenluft → Lüftung heizt das Haus. Negativer Wert: Lüftung kühlt oder ist neutral.",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 22 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
       "id": 6,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "celsius",
           "custom": {
             "lineWidth": 2,
             "fillOpacity": 15,
-            "thresholdsStyle": { "mode": "line" }
+            "thresholdsStyle": {
+              "mode": "line"
+            }
           },
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": -0.1 },
-              { "color": "orange", "value": 1 },
-              { "color": "red", "value": 3 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": -0.1
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
             ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "_value" },
+            "matcher": {
+              "id": "byName",
+              "options": "_value"
+            },
             "properties": [
-              { "id": "displayName", "value": "Δ Zuluft − Innenluft" }
+              {
+                "id": "displayName",
+                "value": "Δ Zuluft − Innenluft"
+              }
             ]
           }
         ]
@@ -302,7 +683,10 @@
       "targets": [
         {
           "refId": "Delta",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "supply = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_supply_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"supply\"})\n\nextract = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"temperature_extract_air\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"extract\"})\n\njoin(tables: {supply: supply, extract: extract}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _field: \"delta\", _value: r.supply - r.extract}))\n  |> yield(name: \"mean\")"
         }
       ]
@@ -310,31 +694,77 @@
     {
       "type": "timeseries",
       "title": "Luftqualität",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 30 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
       "id": 5,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "custom": { "lineWidth": 2 }
+          "custom": {
+            "lineWidth": 2
+          }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "humidity" },
+            "matcher": {
+              "id": "byName",
+              "options": "humidity"
+            },
             "properties": [
-              { "id": "displayName", "value": "Luftfeuchtigkeit (%)" },
-              { "id": "unit", "value": "percent" },
-              { "id": "custom.axisPlacement", "value": "left" },
-              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }
+              {
+                "id": "displayName",
+                "value": "Luftfeuchtigkeit (%)"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "co2_level" },
+            "matcher": {
+              "id": "byName",
+              "options": "co2_level"
+            },
             "properties": [
-              { "id": "displayName", "value": "CO₂ (ppm)" },
-              { "id": "unit", "value": "ppm" },
-              { "id": "custom.axisPlacement", "value": "right" },
-              { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }
+              {
+                "id": "displayName",
+                "value": "CO₂ (ppm)"
+              },
+              {
+                "id": "unit",
+                "value": "ppm"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
             ]
           }
         ]
@@ -342,15 +772,53 @@
       "targets": [
         {
           "refId": "Humidity",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"humidity\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"humidity\"}))\n  |> yield(name: \"mean\")"
         },
         {
           "refId": "CO2",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"ventilation\")\n  |> filter(fn: (r) => r[\"metric\"] == \"co2_level\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: \"co2_level\"}))\n  |> yield(name: \"mean\")"
         }
       ]
+    }
+  ],
+  "links": [
+    {
+      "title": "Überblick",
+      "type": "link",
+      "url": "/d/overview",
+      "keepTime": true
+    },
+    {
+      "title": "Energie",
+      "type": "link",
+      "url": "/d/energy",
+      "keepTime": true
+    },
+    {
+      "title": "Heizung",
+      "type": "link",
+      "url": "/d/heating",
+      "keepTime": true
+    },
+    {
+      "title": "Wetter",
+      "type": "link",
+      "url": "/d/weather",
+      "keepTime": true
+    },
+    {
+      "title": "System",
+      "type": "link",
+      "url": "/d/system-status",
+      "keepTime": true
     }
   ]
 }
