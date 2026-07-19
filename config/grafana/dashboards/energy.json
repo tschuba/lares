@@ -1084,5 +1084,42 @@
         }
       ]
     }
+  ],
+  "links": [
+    {
+      "title": "Überblick",
+      "type": "link",
+      "url": "/d/overview",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Heizung",
+      "type": "link",
+      "url": "/d/heating",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Lüftung",
+      "type": "link",
+      "url": "/d/ventilation",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Wetter",
+      "type": "link",
+      "url": "/d/weather",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "System",
+      "type": "link",
+      "url": "/d/system-status",
+      "keepTime": true,
+      "targetBlank": false
+    }
   ]
 }

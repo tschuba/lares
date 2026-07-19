@@ -1,21 +1,47 @@
 {
   "title": "System Status",
   "uid": "system-status",
-  "tags": ["system", "telegraf"],
+  "tags": [
+    "system",
+    "telegraf"
+  ],
   "timezone": "browser",
   "schemaVersion": 38,
   "refresh": "15s",
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "15s", "30s", "1m", "5m", "10m", "30m", "1h", "2h", "1d"]
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "15s",
+      "30s",
+      "1m",
+      "5m",
+      "10m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
   },
-  "time": { "from": "now/d", "to": "now" },
+  "time": {
+    "from": "now/d",
+    "to": "now"
+  },
   "panels": [
     {
       "type": "timeseries",
       "title": "CPU-Auslastung",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -27,7 +53,10 @@
       "targets": [
         {
           "refId": "CPU",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"cpu\")\n  |> filter(fn: (r) => r[\"_field\"] == \"usage_system\" or r[\"_field\"] == \"usage_user\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: (if r.host == \"nas\" then \"NAS\" else \"Pi\") + \" – \" + (if r._field == \"usage_system\" then \"System\" else \"Benutzer\")}))\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"mean\")"
         }
       ]
@@ -35,9 +64,17 @@
     {
       "type": "timeseries",
       "title": "Arbeitsspeicher",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
       "id": 2,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -49,7 +86,10 @@
       "targets": [
         {
           "refId": "Mem",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mem\")\n  |> filter(fn: (r) => r[\"_field\"] == \"used_percent\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: if r.host == \"nas\" then \"NAS\" else \"Pi\"}))\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"mean\")"
         }
       ]
@@ -57,9 +97,17 @@
     {
       "type": "gauge",
       "title": "Festplatten",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
       "id": 3,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -69,18 +117,36 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 70 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           }
         }
       },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
       "targets": [
         {
           "refId": "DiskGauge",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"disk\")\n  |> filter(fn: (r) => r[\"_field\"] == \"used_percent\")\n  |> filter(fn: (r) => r[\"fstype\"] != \"efivarfs\" and r[\"fstype\"] != \"overlay\")\n  |> filter(fn: (r) => not (r[\"path\"] =~ /^\\/etc\\//)) \n  |> last()\n  |> map(fn: (r) => ({r with _field: (if r.host == \"nas\" then \"NAS\" else \"Pi\") + \" \" + r.path}))\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"last\")"
         }
       ]
@@ -88,9 +154,17 @@
     {
       "type": "timeseries",
       "title": "Festplattenauslastung (Verlauf)",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
       "id": 4,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -102,7 +176,10 @@
       "targets": [
         {
           "refId": "DiskTs",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"disk\")\n  |> filter(fn: (r) => r[\"_field\"] == \"used_percent\")\n  |> filter(fn: (r) => r[\"fstype\"] != \"efivarfs\" and r[\"fstype\"] != \"overlay\")\n  |> filter(fn: (r) => not (r[\"path\"] =~ /^\\/etc\\//)) \n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: (if r.host == \"nas\" then \"NAS\" else \"Pi\") + \" \" + r.path}))\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"mean\")"
         }
       ]
@@ -110,9 +187,17 @@
     {
       "type": "timeseries",
       "title": "Docker CPU – NAS",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
       "id": 5,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -123,7 +208,10 @@
       "targets": [
         {
           "refId": "DockerCpuNas",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"docker_container_cpu\")\n  |> filter(fn: (r) => r[\"host\"] == \"nas\")\n  |> filter(fn: (r) => r[\"_field\"] == \"usage_percent\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: r.container_name}))\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"mean\")"
         }
       ]
@@ -131,9 +219,17 @@
     {
       "type": "timeseries",
       "title": "Docker Arbeitsspeicher – NAS",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
       "id": 6,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -145,7 +241,10 @@
       "targets": [
         {
           "refId": "DockerMemNas",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"docker_container_mem\")\n  |> filter(fn: (r) => r[\"host\"] == \"nas\")\n  |> filter(fn: (r) => r[\"_field\"] == \"usage_percent\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: r.container_name}))\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"mean\")"
         }
       ]
@@ -153,9 +252,17 @@
     {
       "type": "timeseries",
       "title": "Docker CPU – Pi",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
       "id": 7,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -166,7 +273,10 @@
       "targets": [
         {
           "refId": "DockerCpuPi",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"docker_container_cpu\")\n  |> filter(fn: (r) => r[\"host\"] == \"pi\")\n  |> filter(fn: (r) => r[\"_field\"] == \"usage_percent\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: r.container_name}))\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"mean\")"
         }
       ]
@@ -174,9 +284,17 @@
     {
       "type": "timeseries",
       "title": "Docker Arbeitsspeicher – Pi",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
       "id": 8,
-      "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -188,10 +306,50 @@
       "targets": [
         {
           "refId": "DockerMemPi",
-          "datasource": { "type": "influxdb", "uid": "influxdb-nas" },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"docker_container_mem\")\n  |> filter(fn: (r) => r[\"host\"] == \"pi\")\n  |> filter(fn: (r) => r[\"_field\"] == \"usage_percent\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _field: r.container_name}))\n  |> group(columns: [\"_field\"])\n  |> yield(name: \"mean\")"
         }
       ]
+    }
+  ],
+  "links": [
+    {
+      "title": "Überblick",
+      "type": "link",
+      "url": "/d/overview",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Energie",
+      "type": "link",
+      "url": "/d/energy",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Heizung",
+      "type": "link",
+      "url": "/d/heating",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Lüftung",
+      "type": "link",
+      "url": "/d/ventilation",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Wetter",
+      "type": "link",
+      "url": "/d/weather",
+      "keepTime": true,
+      "targetBlank": false
     }
   ]
 }
