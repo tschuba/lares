@@ -16,6 +16,6 @@
 
 ## 4. Verifikation
 
-- [ ] 4.1 Dashboard in Grafana laden und prüfen: Luftfeuchtigkeit zeigt Bar Gauge mit Zonennamen
-- [ ] 4.2 Prüfen: Filter zeigt ganzzahlige Tage, nicht Wochen
-- [ ] 4.3 Prüfen: Kachel-Layout (kein horizontaler Vollbreite-Modus)
+- [x] 4.1 Dashboard in Grafana laden und prüfen: Luftfeuchtigkeit zeigt Bar Gauge mit Zonennamen
+- [x] 4.2 Prüfen: Filter zeigt ganzzahlige Tage, nicht Wochen
+- [x] 4.3 Prüfen: Kachel-Layout (kein horizontaler Vollbreite-Modus)
