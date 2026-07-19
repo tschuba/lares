@@ -109,8 +109,7 @@ async def handle_command(myskoda: MySkoda, vin: str, payload: str) -> None:
 
 
 async def publish_status(mqtt: aiomqtt.Client, state: str, **fields) -> None:
-    payload = {"state": state, "last_updated": datetime.now(timezone.utc).isoformat(), **fields}
-    await mqtt.publish(TOPIC_STATUS, json.dumps(payload), retain=True)
+    await mqtt.publish(TOPIC_STATUS, json.dumps({"state": state, "last_updated": datetime.now(timezone.utc).isoformat(), **fields}), retain=True)
 
 
 async def polling_loop(myskoda: MySkoda, mqtt: aiomqtt.Client) -> None:
