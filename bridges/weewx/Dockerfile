@@ -5,7 +5,7 @@ USER root
 
 # Install gettext for envsubst and paho-mqtt for MQTTSubscribe
 RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/* && \
-    /opt/venv/bin/pip install paho-mqtt
+    env -u PIP_TARGET /opt/venv/bin/pip install paho-mqtt
 
 # Install weewx-mqtt-subscribe extension
 RUN git clone https://github.com/weewx-mqtt/subscribe.git /tmp/subscribe && \
