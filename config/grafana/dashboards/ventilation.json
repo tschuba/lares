@@ -794,36 +794,31 @@
       "title": "Überblick",
       "type": "link",
       "url": "/d/overview",
-      "keepTime": true,
-      "targetBlank": false
+      "keepTime": true
     },
     {
       "title": "Energie",
       "type": "link",
       "url": "/d/energy",
-      "keepTime": true,
-      "targetBlank": false
+      "keepTime": true
     },
     {
       "title": "Heizung",
       "type": "link",
       "url": "/d/heating",
-      "keepTime": true,
-      "targetBlank": false
+      "keepTime": true
     },
     {
       "title": "Wetter",
       "type": "link",
       "url": "/d/weather",
-      "keepTime": true,
-      "targetBlank": false
+      "keepTime": true
     },
     {
       "title": "System",
       "type": "link",
       "url": "/d/system-status",
-      "keepTime": true,
-      "targetBlank": false
+      "keepTime": true
     }
   ]
 }
