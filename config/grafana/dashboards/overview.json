@@ -423,63 +423,7 @@
               }
             ]
           },
-          "mappings": [
-            {
-              "type": "range",
-              "options": {
-                "from": 0,
-                "to": 29.99,
-                "result": {
-                  "text": "Zu trocken",
-                  "index": 0
-                }
-              }
-            },
-            {
-              "type": "range",
-              "options": {
-                "from": 30,
-                "to": 39.99,
-                "result": {
-                  "text": "Trocken",
-                  "index": 1
-                }
-              }
-            },
-            {
-              "type": "range",
-              "options": {
-                "from": 40,
-                "to": 60,
-                "result": {
-                  "text": "Komfort",
-                  "index": 2
-                }
-              }
-            },
-            {
-              "type": "range",
-              "options": {
-                "from": 60.01,
-                "to": 70,
-                "result": {
-                  "text": "Feucht",
-                  "index": 3
-                }
-              }
-            },
-            {
-              "type": "range",
-              "options": {
-                "from": 70.01,
-                "to": 100,
-                "result": {
-                  "text": "Zu feucht",
-                  "index": 4
-                }
-              }
-            }
-          ]
+          "mappings": []
         },
         "overrides": [
           {
