@@ -92,5 +92,36 @@ class TestDataParsing(unittest.TestCase):
         self.assertIsInstance(result['operating_mode'], (int, float))
 
 
+class TestAlarmCount(unittest.TestCase):
+    def test_get_alarm_count_zero(self):
+        api = ValloxAPI('192.168.1.100')
+        api.client = MagicMock()
+        api.client.get_alarms = AsyncMock(return_value=[])
+
+        result = asyncio.run(api.get_alarm_count())
+
+        self.assertEqual(result, 0)
+
+    def test_get_alarm_count_n_alarms(self):
+        api = ValloxAPI('192.168.1.100')
+        api.client = MagicMock()
+        alarm = MagicMock()
+        api.client.get_alarms = AsyncMock(return_value=[alarm, alarm, alarm])
+
+        result = asyncio.run(api.get_alarm_count())
+
+        self.assertEqual(result, 3)
+        api.client.get_alarms.assert_called_once_with(skip_solved=True)
+
+    def test_get_alarm_count_api_failure_returns_none(self):
+        api = ValloxAPI('192.168.1.100')
+        api.client = MagicMock()
+        api.client.get_alarms = AsyncMock(side_effect=Exception("Connection error"))
+
+        result = asyncio.run(api.get_alarm_count())
+
+        self.assertIsNone(result)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -136,6 +136,15 @@ class ValloxAPI:
             logger.error(f"Vallox WebSocket API request failed: {str(e)}")
             return None
 
+    async def get_alarm_count(self):
+        """Return number of active (unsolved) alarms, or None on error"""
+        try:
+            active_alarms = await self.client.get_alarms(skip_solved=True)
+            return len(active_alarms)
+        except Exception as e:
+            logger.error(f"Failed to fetch Vallox alarms: {str(e)}")
+            return None
+
     async def set_profile(self, profile: Profile) -> bool:
         """Set the operating profile on the Vallox unit"""
         try:
@@ -274,6 +283,10 @@ async def main():
                                 await vallox_api.set_profile(Profile.HOME)
 
                             data['heat_override'] = 1 if heat_protection.override_active else 0
+
+                        alarm_count = await vallox_api.get_alarm_count()
+                        if alarm_count is not None:
+                            data['active_alarm_count'] = alarm_count
 
                         publish_to_mqtt(mqtt, mqtt_topic_prefix, data)
                     else:

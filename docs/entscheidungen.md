@@ -68,8 +68,12 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
   - Meross: Custom Image basierend auf [meross2homie](https://github.com/Depau/meross2homie)
     mit eigenem entrypoint.sh (auto-Discovery beim Start) und discover.py
     (einmaliger Cloud-Login zur UUID/Key-Ermittlung)
+- Erweiterungen:
+  - `vallox2mqtt`: Publiziert zusätzlich `active_alarm_count` (Integer, ≥ 0) via `get_alarms(skip_solved=True)` der Vallox-API; bei API-Fehler wird das Feld weggelassen (kein Default-Override)
+  - `luxtronik2mqtt`: Publiziert zusätzlich `temperature_hot_water_setpoint` (°C float, aus Holdings `hot_water_setpoint`) und `backup_heater_active` (0/1, aus SHI-Input `heatpump_zwe1_status`, ZWE1-Status, FW ≥ 3.90.1)
 - Begründung:
-  - Vallox: Kein etabliertes Standard-Image für Vallox->MQTT in dieser Zielarchitektur; einheitliche Datenführung über MQTT, volle Kontrolle über Topics und Polling
+  - Vallox: Kein etabliertes Standard-Image für Vallox->MQTT in dieser Zielarchitektur; einheitliche Datenführung über MQTT, volle Kontrolle über Topics und Polling; `active_alarm_count` ermöglicht Grafana-Alerting ohne String-Felder
+  - Luxtronik: `temperature_hot_water_setpoint` ermöglicht dynamischen Warm­wasser-Alert (Ist minus Soll), der automatisch mit Controllereinstellungen mitzieht; `backup_heater_active` direkt aus SHI-Interface, kein Operating-Mode-Integer-Mapping nötig
   - WeeWX: MQTT-Subscribe-Erweiterung nicht über PyPI verfügbar, muss aus GitHub installiert werden; envsubst-Templating vereinfacht Konfiguration; Custom Image reduziert Container-Startzeit durch vorgeinstallierte Abhängigkeiten
   - Meross: meross2homie bietet Homie-konforme MQTT-Topics; custom entrypoint ermöglicht automatische UUID/Key-Discovery beim ersten Start ohne manuelle Konfiguration
 

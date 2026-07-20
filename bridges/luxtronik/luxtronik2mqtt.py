@@ -72,6 +72,10 @@ def main():
                 entry = lux.inputs.get(name)
                 return entry.value if entry else None
 
+            def holding(name):
+                entry = lux.holdings.get(name)
+                return entry.value if entry else None
+
 
             data = {
                 # Temperaturen
@@ -93,6 +97,10 @@ def main():
                 # Fehlerdiagnose
                 "error_code":  calc_int("ID_WEB_ERROR_Nr0"),
                 "error_count": calc_int("ID_WEB_AnzahlFehlerInSpeicher"),
+                # Warmwasser-Sollwert (Holdings, CelsiusUInt16, .value liefert °C als float)
+                "temperature_hot_water_setpoint": holding("hot_water_setpoint"),
+                # Heizstab ZWE1 aktiv (SHI-Input, Bool, FW >= 3.90.1)
+                "backup_heater_active": 1 if inp("heatpump_zwe1_status") else 0,
                 # Elektrischer Verbrauch (SHI, Modbus TCP Port 502, FW >= 3.90.1)
                 # Bibliothek liefert bereits umgerechnete Werte (kW bzw. kWh), kein /10 nötig
                 "electric_power_actual": inp("electric_power_actual"),

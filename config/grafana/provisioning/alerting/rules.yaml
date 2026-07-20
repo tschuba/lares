@@ -245,6 +245,619 @@ groups:
         labels:
           severity: critical
 
+      # Lüftungsanlage Alarm — active_alarm_count > 0 für 2 Minuten
+      - uid: lares-vallox-alarm
+        title: Lüftungsanlage Alarm
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "ventilation" and r["metric"] == "active_alarm_count")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: Vallox Lüftungsanlage meldet einen oder mehrere aktive Alarme
+        labels:
+          severity: critical
+
+      # Filterwechsel Lüftungsanlage — remaining_filter_days < 30 für 12 Stunden
+      - uid: lares-filter-change
+        title: Filterwechsel Lüftungsanlage
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "ventilation" and r["metric"] == "remaining_filter_days")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [30], type: lt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 12h
+        annotations:
+          summary: "Lüftungsfilter muss bald gewechselt werden (weniger als 30 Tage verbleibend)"
+        labels:
+          severity: warning
+
+      # Warmwasser-Ausfall — Ist-Temp > 5°C unter Luxtronik-Sollwert für 30 Minuten
+      # Math: setpoint - actual - 5 > 0 ↔ actual < setpoint - 5
+      - uid: lares-hot-water-failure
+        title: Warmwasser-Ausfall
+        condition: E
+        data:
+          - refId: A
+            relativeTimeRange: {from: 1800, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -30m)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "temperature_hot_water")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 1800, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -30m)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "temperature_hot_water_setpoint")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: math
+              refId: D
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "$B - $A - 5"
+          - refId: E
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: D
+              refId: E
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [D]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 30m
+        annotations:
+          summary: "Warmwassertemperatur mehr als 5°C unter Luxtronik-Sollwert — Wärmepumpe oder Boiler prüfen"
+        labels:
+          severity: critical
+
+      # Heizstab-Einsatz bei milder Außentemperatur
+      # backup_heater_active > 0 UND temperature_outside > 5°C für 15 Minuten
+      - uid: lares-backup-heater
+        title: Heizstab-Einsatz bei milder Außentemperatur
+        condition: F
+        data:
+          - refId: A
+            relativeTimeRange: {from: 900, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -15m)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "backup_heater_active")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 900, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -15m)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "temperature_outside")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: math
+              refId: D
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "$A - 0.5"
+          - refId: E
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: math
+              refId: E
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "$B - 5"
+          - refId: F
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: D
+              refId: F
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [D]}
+                  reducer: {params: [], type: last}
+                  type: query
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [E]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 15m
+        annotations:
+          summary: "Heizstab (ZWE1) aktiv obwohl Außentemperatur über 5°C — Wärmepumpe prüfen"
+        labels:
+          severity: warning
+
+      # Legionellen / Warmwasser-Überheizung — temperature_hot_water > 60°C für 10 Minuten
+      - uid: lares-legionella-run
+        title: Warmwasser Überheizung / Legionellenprogramm
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "temperature_hot_water")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [60], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "Warmwassertemperatur über 60°C — Legionellenprogramm aktiv oder Überheizung"
+        labels:
+          severity: warning
+
+      # PV-Batterie Übertemperatur — battery_temperature > 50°C für 5 Minuten
+      - uid: lares-sungrow-battery-temp
+        title: PV-Batterie Übertemperatur
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "sungrow" and r._field == "battery_temperature")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [50], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "PV-Batterie Temperatur über 50°C — sofort prüfen"
+        labels:
+          severity: critical
+
+      # PV-Batterie Degradation — battery_state_of_healthy < 70% für 1 Stunde
+      - uid: lares-sungrow-battery-health
+        title: PV-Batterie Degradation
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "sungrow" and r._field == "battery_state_of_healthy")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [70], type: lt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 1h
+        annotations:
+          summary: "PV-Batterie Gesundheitszustand unter 70% — Batterietausch erwägen"
+        labels:
+          severity: warning
+
+      # Waschmaschine fertig — Leistung war hoch (>200W in letzten 90–10 min), jetzt < 15W für 10 min
+      # device: 2307068416409851080248e1e9ceb390
+      - uid: lares-waschmaschine-fertig
+        title: Waschmaschine fertig
+        condition: F
+        data:
+          - refId: A
+            relativeTimeRange: {from: 300, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -5m)
+                  |> filter(fn: (r) => r._measurement == "meross" and r["device"] == "2307068416409851080248e1e9ceb390" and r["node"] == "electricity" and r["property"] == "power")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 5400, to: 600}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -90m, stop: -10m)
+                  |> filter(fn: (r) => r._measurement == "meross" and r["device"] == "2307068416409851080248e1e9ceb390" and r["node"] == "electricity" and r["property"] == "power")
+                  |> max()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: math
+              refId: D
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "15 - $A"
+          - refId: E
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: math
+              refId: E
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "$B - 200"
+          - refId: F
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: D
+              refId: F
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [D]}
+                  reducer: {params: [], type: last}
+                  type: query
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [E]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "Waschmaschine ist fertig"
+        labels:
+          severity: info
+
+      # Trockner fertig — Leistung war hoch (>200W in letzten 90–10 min), jetzt < 15W für 10 min
+      # device: 2307067395364351080248e1e9ceaeab
+      - uid: lares-trockner-fertig
+        title: Trockner fertig
+        condition: F
+        data:
+          - refId: A
+            relativeTimeRange: {from: 300, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -5m)
+                  |> filter(fn: (r) => r._measurement == "meross" and r["device"] == "2307067395364351080248e1e9ceaeab" and r["node"] == "electricity" and r["property"] == "power")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 5400, to: 600}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -90m, stop: -10m)
+                  |> filter(fn: (r) => r._measurement == "meross" and r["device"] == "2307067395364351080248e1e9ceaeab" and r["node"] == "electricity" and r["property"] == "power")
+                  |> max()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: math
+              refId: D
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "15 - $A"
+          - refId: E
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: math
+              refId: E
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "$B - 200"
+          - refId: F
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: D
+              refId: F
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [D]}
+                  reducer: {params: [], type: last}
+                  type: query
+                - evaluator: {params: [0], type: gt}
+                  operator: {type: and}
+                  query: {params: [E]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "Trockner ist fertig"
+        labels:
+          severity: info
+
+      # Bridge-Heartbeat: Wärmepumpe — noDataState: Alerting bei ausbleibenden Daten
+      - uid: lares-heartbeat-heating
+        title: Bridge-Heartbeat Wärmepumpe
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "temperature_outside")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [999999], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: Alerting
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Luxtronik-Bridge sendet keine Daten mehr — Bridge-Container prüfen"
+        labels:
+          severity: critical
+
+      # Bridge-Heartbeat: Lüftung — noDataState: Alerting bei ausbleibenden Daten
+      - uid: lares-heartbeat-ventilation
+        title: Bridge-Heartbeat Lüftung
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "ventilation" and r["metric"] == "co2_level")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [999999], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: Alerting
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Vallox-Bridge sendet keine Daten mehr — Bridge-Container prüfen"
+        labels:
+          severity: critical
+
+      # Bridge-Heartbeat: Sungrow — noDataState: Alerting bei ausbleibenden Daten
+      - uid: lares-heartbeat-sungrow
+        title: Bridge-Heartbeat Sungrow
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 300, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -5m)
+                  |> filter(fn: (r) => r._measurement == "sungrow" and r._field == "total_active_power")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [999999], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: Alerting
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Sungrow-Bridge (SunGather) sendet keine Daten mehr — Bridge-Container prüfen"
+        labels:
+          severity: critical
+
+      # Bridge-Heartbeat: EV — noDataState: Alerting bei ausbleibenden Daten
+      - uid: lares-heartbeat-ev
+        title: Bridge-Heartbeat EV
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 1800, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -30m)
+                  |> filter(fn: (r) => r._measurement == "ev" and r._field == "battery_soc_pct")
+                  |> last()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [999999], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: Alerting
+        execErrState: Error
+        for: 15m
+        annotations:
+          summary: "Skoda-Bridge sendet keine Daten mehr — Bridge-Container oder mySkoda-Cloud prüfen"
+        labels:
+          severity: warning
+
       # FRITZ!Smart Energy 250 — Batteriestand niedrig
       - uid: lares-fritz-battery-low
         title: Fritz Energy 250 – Batterie niedrig
