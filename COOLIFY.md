@@ -58,6 +58,8 @@ In Grafana datasource configuration:
 
 ## Environment Variables
 
+### NAS (`config/.env`)
+
 These variables should be configured in `config/.env` on the NAS:
 
 ```bash
@@ -84,10 +86,6 @@ FRITZ_HOST=192.168.178.1
 FRITZ_USER=your_fritzbox_user
 FRITZ_PASSWORD=your_fritzbox_password
 
-# Pushover (Grafana Alerting)
-PUSHOVER_API_KEY=your_pushover_app_api_key
-PUSHOVER_USER_KEY=your_pushover_user_key
-
 # Weather Service Credentials
 AWEKAS_USERNAME=
 AWEKAS_PASSWORD=
@@ -99,6 +97,16 @@ CWOP_STATION_ID=
 CWOP_PASSWORD=
 OPENWEATHER_STATION_ID=
 OPENWEATHER_API_KEY=
+```
+
+### Pi — Grafana service (Coolify UI)
+
+These variables must be set as environment variables in the **Grafana service in Coolify** (not in the NAS `.env`). Grafana substitutes them into `config/grafana/provisioning/alerting/contactpoints.yaml` at startup — if either is missing, Grafana will fail to start.
+
+```bash
+# Pushover (Grafana Alerting)
+PUSHOVER_API_KEY=your_pushover_app_api_key
+PUSHOVER_USER_KEY=your_pushover_user_key
 ```
 
 ## Service Profiles (NAS)
@@ -142,6 +150,14 @@ If you're migrating from the old Pi-centric deployment:
 - Verify Mosquitto is running on NAS: `ssh nas 'docker ps | grep mosquitto'`
 - Test MQTT connection from Pi: `telnet 192.168.178.163 1883`
 - Check firewall rules on NAS
+
+### Grafana fails to start: "user key not found" (Pushover)
+
+Symptom: `failure parsing contact points: pushover: failed to validate integration "pushover": user key not found`
+
+Cause: `PUSHOVER_USER_KEY` (or `PUSHOVER_API_KEY`) is not set in the Grafana container. Grafana substitutes `${PUSHOVER_USER_KEY}` in `contactpoints.yaml` at startup; an empty value fails Pushover validation.
+
+Fix: In Coolify → Grafana service → Environment Variables, add `PUSHOVER_API_KEY` and `PUSHOVER_USER_KEY` with real values, then redeploy.
 
 ### Grafana cannot connect to InfluxDB
 
