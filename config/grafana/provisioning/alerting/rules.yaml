@@ -27,8 +27,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -65,8 +64,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -106,8 +104,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -183,8 +180,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: D
+              type: classic_conditions
               refId: F
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -227,8 +223,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -265,8 +260,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -303,8 +297,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -361,8 +354,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: D
+              type: classic_conditions
               refId: E
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -427,8 +419,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: D
+              type: classic_conditions
               refId: F
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -470,8 +461,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -508,8 +498,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -546,8 +535,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -612,8 +600,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: D
+              type: classic_conditions
               refId: F
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -683,8 +670,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: D
+              type: classic_conditions
               refId: F
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -726,8 +712,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -764,8 +749,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -802,8 +786,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -840,8 +823,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -878,8 +860,7 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: threshold
-              expression: A
+              type: classic_conditions
               refId: B
               datasource: {type: __expr__, uid: __expr__}
               conditions:
