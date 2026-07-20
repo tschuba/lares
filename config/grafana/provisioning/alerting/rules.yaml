@@ -125,7 +125,7 @@ groups:
       #   supply_air > extract_air + 1°C  UND  outdoor_air > 20°C  für 30 min
       - uid: lares-ventilation-heating
         title: Lüftung heizt Innenraum
-        condition: F
+        condition: G
         data:
           - refId: A
             relativeTimeRange: {from: 900, to: 0}
@@ -180,18 +180,22 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: classic_conditions
+              type: math
               refId: F
+              datasource: {type: __expr__, uid: __expr__}
+              expression: "($D + $E - sqrt(($D - $E) * ($D - $E))) / 2"
+          - refId: G
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: F
+              refId: G
               datasource: {type: __expr__, uid: __expr__}
               conditions:
                 - evaluator: {params: [0], type: gt}
                   operator: {type: and}
-                  query: {params: [D]}
-                  reducer: {params: [], type: last}
-                  type: query
-                - evaluator: {params: [0], type: gt}
-                  operator: {type: and}
-                  query: {params: [E]}
+                  query: {params: [F]}
                   reducer: {params: [], type: last}
                   type: query
         noDataState: NoData
@@ -354,7 +358,8 @@ groups:
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
             model:
-              type: classic_conditions
+              type: threshold
+              expression: D
               refId: E
               datasource: {type: __expr__, uid: __expr__}
               conditions:
@@ -399,22 +404,6 @@ groups:
                   |> mean()
               intervalMs: 1000
               maxDataPoints: 43200
-          - refId: D
-            relativeTimeRange: {from: 0, to: 0}
-            datasourceUid: __expr__
-            model:
-              type: math
-              refId: D
-              datasource: {type: __expr__, uid: __expr__}
-              expression: "$A - 0.5"
-          - refId: E
-            relativeTimeRange: {from: 0, to: 0}
-            datasourceUid: __expr__
-            model:
-              type: math
-              refId: E
-              datasource: {type: __expr__, uid: __expr__}
-              expression: "$B - 5"
           - refId: F
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
@@ -423,14 +412,14 @@ groups:
               refId: F
               datasource: {type: __expr__, uid: __expr__}
               conditions:
-                - evaluator: {params: [0], type: gt}
+                - evaluator: {params: [0.5], type: gt}
                   operator: {type: and}
-                  query: {params: [D]}
+                  query: {params: [A]}
                   reducer: {params: [], type: last}
                   type: query
-                - evaluator: {params: [0], type: gt}
+                - evaluator: {params: [5], type: gt}
                   operator: {type: and}
-                  query: {params: [E]}
+                  query: {params: [B]}
                   reducer: {params: [], type: last}
                   type: query
         noDataState: NoData
@@ -580,22 +569,6 @@ groups:
                   |> max()
               intervalMs: 1000
               maxDataPoints: 43200
-          - refId: D
-            relativeTimeRange: {from: 0, to: 0}
-            datasourceUid: __expr__
-            model:
-              type: math
-              refId: D
-              datasource: {type: __expr__, uid: __expr__}
-              expression: "15 - $A"
-          - refId: E
-            relativeTimeRange: {from: 0, to: 0}
-            datasourceUid: __expr__
-            model:
-              type: math
-              refId: E
-              datasource: {type: __expr__, uid: __expr__}
-              expression: "$B - 200"
           - refId: F
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
@@ -604,14 +577,14 @@ groups:
               refId: F
               datasource: {type: __expr__, uid: __expr__}
               conditions:
-                - evaluator: {params: [0], type: gt}
+                - evaluator: {params: [15], type: lt}
                   operator: {type: and}
-                  query: {params: [D]}
+                  query: {params: [A]}
                   reducer: {params: [], type: last}
                   type: query
-                - evaluator: {params: [0], type: gt}
+                - evaluator: {params: [200], type: gt}
                   operator: {type: and}
-                  query: {params: [E]}
+                  query: {params: [B]}
                   reducer: {params: [], type: last}
                   type: query
         noDataState: OK
@@ -650,22 +623,6 @@ groups:
                   |> max()
               intervalMs: 1000
               maxDataPoints: 43200
-          - refId: D
-            relativeTimeRange: {from: 0, to: 0}
-            datasourceUid: __expr__
-            model:
-              type: math
-              refId: D
-              datasource: {type: __expr__, uid: __expr__}
-              expression: "15 - $A"
-          - refId: E
-            relativeTimeRange: {from: 0, to: 0}
-            datasourceUid: __expr__
-            model:
-              type: math
-              refId: E
-              datasource: {type: __expr__, uid: __expr__}
-              expression: "$B - 200"
           - refId: F
             relativeTimeRange: {from: 0, to: 0}
             datasourceUid: __expr__
@@ -674,14 +631,14 @@ groups:
               refId: F
               datasource: {type: __expr__, uid: __expr__}
               conditions:
-                - evaluator: {params: [0], type: gt}
+                - evaluator: {params: [15], type: lt}
                   operator: {type: and}
-                  query: {params: [D]}
+                  query: {params: [A]}
                   reducer: {params: [], type: last}
                   type: query
-                - evaluator: {params: [0], type: gt}
+                - evaluator: {params: [200], type: gt}
                   operator: {type: and}
-                  query: {params: [E]}
+                  query: {params: [B]}
                   reducer: {params: [], type: last}
                   type: query
         noDataState: OK
