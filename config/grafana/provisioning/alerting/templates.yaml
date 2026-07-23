@@ -4,19 +4,13 @@ templates:
   - orgId: 1
     name: pushover_title
     template: |
-      {{ define "pushover_title" -}}
-      {{ if gt (len .Alerts.Firing) 0 -}}
-      {{ (index .Alerts.Firing 0).Labels.alertname }}
-      {{- else -}}
-      ✓ {{ (index .Alerts.Resolved 0).Labels.alertname }}
-      {{- end }}
-      {{- end }}
+      {{ define "pushover_title" }}{{ if .Alerts.Firing }}{{ (index .Alerts.Firing 0).Labels.alertname }}{{ else }}✓ {{ (index .Alerts.Resolved 0).Labels.alertname }}{{ end }}{{ end }}
 
   - orgId: 1
     name: pushover_message
     template: |
       {{ define "pushover_message" -}}
-      {{ if gt (len .Alerts.Firing) 0 -}}
+      {{ if .Alerts.Firing -}}
       {{ range .Alerts.Firing }}{{ .Annotations.summary }}{{ end }}
       {{- else -}}
       {{ range .Alerts.Resolved }}{{ .Labels.alertname }} ist nicht mehr aktiv.{{ end }}
