@@ -11,6 +11,8 @@ contactPoints:
           userKey: ${PUSHOVER_USER_KEY}
           priority: 0
           sound: default
+          title: '{{ template "pushover_title" . }}'
+          message: '{{ template "pushover_message" . }}'
         disableResolveMessage: false
 
   - orgId: 1

@@ -117,7 +117,7 @@ groups:
         execErrState: Alerting
         for: 2m
         annotations:
-          summary: Sungrow SH8.0RT meldet keinen normalen Betriebsstatus (nicht "Run")
+          summary: Sungrow SH8.0RT nicht in Betrieb — Wechselrichter prüfen
         labels:
           severity: critical
 
@@ -196,7 +196,7 @@ groups:
         execErrState: Error
         for: 1m
         annotations:
-          summary: Novelan Wärmepumpe meldet einen Fehlercode (ID_WEB_ERROR_Nr0 > 0)
+          summary: Novelan Wärmepumpe meldet Fehler — Display am Gerät prüfen
         labels:
           severity: critical
 
@@ -547,7 +547,7 @@ groups:
         execErrState: Error
         for: 10m
         annotations:
-          summary: "Waschmaschine ist fertig"
+          summary: "Waschgang abgeschlossen — Wäsche entnehmen"
         labels:
           severity: info
 
@@ -601,7 +601,7 @@ groups:
         execErrState: Error
         for: 10m
         annotations:
-          summary: "Trockner ist fertig"
+          summary: "Trockengang abgeschlossen — Wäsche entnehmen"
         labels:
           severity: info
 
