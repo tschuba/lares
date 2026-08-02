@@ -669,14 +669,14 @@
         "y": 50
       },
       "datasource": {
-        "type": "yesoreyeram-infinity-datasource",
-        "uid": "diun-status"
+        "type": "datasource",
+        "uid": "-- Mixed --"
       },
       "targets": [
         {
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "diun-status"
+            "uid": "diun-status-nas"
           },
           "refId": "A",
           "type": "json",
@@ -687,6 +687,54 @@
           },
           "root_selector": "",
           "columns": [
+            {
+              "selector": "host",
+              "text": "Source",
+              "type": "string"
+            },
+            {
+              "selector": "name",
+              "text": "Image",
+              "type": "string"
+            },
+            {
+              "selector": "status",
+              "text": "Status",
+              "type": "string"
+            },
+            {
+              "selector": "update_available",
+              "text": "Update available",
+              "type": "boolean"
+            },
+            {
+              "selector": "digest",
+              "text": "Running digest",
+              "type": "string"
+            }
+          ],
+          "filters": [],
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "diun-status-pi"
+          },
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "",
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": "",
+          "columns": [
+            {
+              "selector": "host",
+              "text": "Source",
+              "type": "string"
+            },
             {
               "selector": "name",
               "text": "Image",
@@ -797,7 +845,13 @@
             ]
           }
         ]
-      }
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ]
     }
   ],
   "links": [

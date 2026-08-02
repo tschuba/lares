@@ -13,6 +13,7 @@ logging.basicConfig(level=os.environ.get('LOG_LEVEL', 'INFO').upper(),
 log = logging.getLogger(__name__)
 
 DIUN_CONTAINER = os.environ.get('DIUN_CONTAINER', 'diun')
+DIUN_HOST      = os.environ.get('DIUN_HOST', socket.gethostname())
 DOCKER_SOCK    = '/var/run/docker.sock'
 PORT           = int(os.environ.get('PORT', '8080'))
 
@@ -68,6 +69,7 @@ def get_diun_images():
         status = parts[1].lower()
         digest = next((p for p in parts if p.startswith('sha256:')), '')
         images.append({
+            'host':             DIUN_HOST,
             'name':             name,
             'status':           status,
             'digest':           digest[7:19] if digest else '',  # 12-char short hash

@@ -1,9 +1,16 @@
 apiVersion: 1
 
 datasources:
-  - name: Diun Status
-    uid: diun-status
+  - name: Diun Status (NAS)
+    uid: diun-status-nas
     type: yesoreyeram-infinity-datasource
     access: proxy
     url: http://192.168.178.163:8082
+    isDefault: false
+
+  - name: Diun Status (Pi)
+    uid: diun-status-pi
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    url: http://192.168.178.69:8082
     isDefault: false
