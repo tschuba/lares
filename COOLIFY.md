@@ -108,8 +108,6 @@ These variables must be set as environment variables in the **Grafana service in
 PUSHOVER_API_KEY=your_pushover_app_api_key
 PUSHOVER_USER_KEY=your_pushover_user_key
 
-# Grafana plugins (comma-separated)
-GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
 ```
 
 ## Service Profiles (NAS)
