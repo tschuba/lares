@@ -272,6 +272,21 @@ services:
     depends_on:
       - mosquitto
 
+  # Diun image-update status HTTP endpoint (queries Diun via Docker socket on each request)
+  diun-status:
+    image: ghcr.io/tschuba/lares/diun-status:latest
+    container_name: diun-status
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8082:8080"   # reachable from Pi as http://192.168.178.163:8082
+    environment:
+      - DIUN_CONTAINER=${DIUN_CONTAINER:-diun}
+      - PORT=8080
+    networks:
+      - lares
+
   # InfluxDB 2.x (ADR-005)
   influxdb:
     image: influxdb:2
