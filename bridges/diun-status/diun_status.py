@@ -76,18 +76,65 @@ def get_diun_images():
     return images
 
 
+def _html(images) -> bytes:
+    from datetime import datetime, timezone
+    rows = []
+    for img in sorted(images, key=lambda i: (not i['update_available'], i['name'])):
+        badge = (
+            '<span style="color:#d73a49;font-weight:bold">⚠ update available</span>'
+            if img['update_available'] else
+            '<span style="color:#28a745">✓ up to date</span>'
+        )
+        rows.append(
+            f'<tr><td>{img["name"]}</td><td>{img["status"]}</td>'
+            f'<td>{badge}</td><td><code>{img["digest"]}</code></td></tr>'
+        )
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    return f'''<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diun – Image Status</title>
+<style>
+  body {{ font-family: system-ui, sans-serif; margin: 2rem; color: #333; }}
+  h1   {{ font-size: 1.4rem; margin-bottom: .25rem; }}
+  p.ts {{ color: #888; font-size: .85rem; margin-top: 0; }}
+  table {{ border-collapse: collapse; width: 100%; }}
+  th, td {{ text-align: left; padding: .5rem .75rem; border-bottom: 1px solid #e1e4e8; }}
+  th {{ background: #f6f8fa; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; }}
+  tr:hover {{ background: #f6f8fa; }}
+  code {{ font-size: .85rem; color: #555; }}
+</style>
+</head>
+<body>
+<h1>🐳 Docker Image Status (Diun)</h1>
+<p class="ts">Fetched {now}</p>
+<table>
+<thead><tr><th>Image</th><th>Status</th><th>Update</th><th>Running digest</th></tr></thead>
+<tbody>{''.join(rows)}</tbody>
+</table>
+</body></html>
+'''.encode()
+
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             images = get_diun_images()
-            body = json.dumps(images, indent=2).encode()
+            want_html = 'text/html' in self.headers.get('Accept', '')
+            if want_html:
+                body = _html(images)
+                content_type = 'text/html; charset=utf-8'
+            else:
+                body = json.dumps(images, indent=2).encode()
+                content_type = 'application/json'
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
         except Exception as e:
             log.exception('Failed to query diun')
             body = json.dumps({'error': str(e)}).encode()
+            content_type = 'application/json'
             self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Type', content_type)
         self.send_header('Content-Length', len(body))
         self.end_headers()
         self.wfile.write(body)
