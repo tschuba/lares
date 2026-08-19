@@ -5,8 +5,21 @@
 # INFLUX_HOST and INFLUX_PORT are hardcoded to the NAS.
 
 services:
+  diun-status:
+    image: ghcr.io/tschuba/lares/diun-status:1.0.1
+    container_name: diun-status
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8082:8080"
+    environment:
+      - DIUN_CONTAINER=${DIUN_CONTAINER:-diun}
+      - DIUN_HOST=pi
+      - PORT=8080
+
   telegraf-pi:
-    image: telegraf:latest
+    image: telegraf:1.39.1
     container_name: telegraf-pi
     restart: unless-stopped
     user: "0:0"

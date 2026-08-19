@@ -64,6 +64,15 @@
 3. Wire the service into `docker-compose.yml` under the right profile, and into `.github/workflows/build-bridges.yml`'s path filters/job list if it's a new bridge directory.
 4. Update `docs/inventar.md` and `docs/entscheidungen.md` for new devices/services or deviations from existing ADRs.
 
+### Releasing a bridge version (ADR-018)
+
+Bridge images in `docker-compose.yml` are pinned to explicit semver tags. A new tag is only pushed to GHCR when a GitHub Release is published. Steps:
+
+1. Merge your changes to `main`. The CI build publishes `latest` and a `<sha>` tag — use these for manual pre-release testing.
+2. Create a GitHub Release with tag `<image-name>-vX.Y.Z` (e.g. `vallox2mqtt-v1.2.6`). Use the published image name, not the bridge directory name (e.g. `sungrow2mqtt`, not `sungather`).
+3. The release trigger fires only the matching build job and pushes the `X.Y.Z` semver tag to GHCR.
+4. Update the image tag in `docker-compose.yml` and deploy: `docker compose pull && docker compose --profile <profile> up -d`.
+
 ## Before making infra/code changes
 
 - Read, in order:

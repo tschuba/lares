@@ -107,6 +107,10 @@ These variables must be set as environment variables in the **Grafana service in
 # Pushover (Grafana Alerting)
 PUSHOVER_API_KEY=your_pushover_app_api_key
 PUSHOVER_USER_KEY=your_pushover_user_key
+
+# Grafana plugins
+GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
+
 ```
 
 ## Service Profiles (NAS)
@@ -136,6 +140,20 @@ If you're migrating from the old Pi-centric deployment:
 3. Deploy services on NAS using `docker-compose.yml`
 4. Update Home Assistant MQTT configuration to point to NAS IP (192.168.178.163)
 5. Update Grafana InfluxDB datasource to point to NAS IP (192.168.178.163)
+
+## Updating Pinned Image Tags
+
+All images in `docker-compose.yml` and `docker-compose.pi.yml` use explicit version tags (e.g. `telegraf:1.39.1`, `ghcr.io/tschuba/lares/vallox2mqtt:1.2.5`). Docker Compose does **not** auto-pull updated images for pinned tags on `up -d`. After changing any image tag in a compose file, run an explicit pull first:
+
+```bash
+# NAS
+docker compose pull
+docker compose --profile <profile> up -d
+
+# Pi
+docker compose -f docker-compose.pi.yml pull
+docker compose -f docker-compose.pi.yml up -d
+```
 
 ## Troubleshooting
 
