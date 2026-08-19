@@ -141,6 +141,20 @@ If you're migrating from the old Pi-centric deployment:
 4. Update Home Assistant MQTT configuration to point to NAS IP (192.168.178.163)
 5. Update Grafana InfluxDB datasource to point to NAS IP (192.168.178.163)
 
+## Updating Pinned Image Tags
+
+All images in `docker-compose.yml` and `docker-compose.pi.yml` use explicit version tags (e.g. `telegraf:1.39.1`, `ghcr.io/tschuba/lares/vallox2mqtt:1.2.5`). Docker Compose does **not** auto-pull updated images for pinned tags on `up -d`. After changing any image tag in a compose file, run an explicit pull first:
+
+```bash
+# NAS
+docker compose pull
+docker compose --profile <profile> up -d
+
+# Pi
+docker compose -f docker-compose.pi.yml pull
+docker compose -f docker-compose.pi.yml up -d
+```
+
 ## Troubleshooting
 
 ### Services not starting on NAS

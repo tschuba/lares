@@ -19,6 +19,7 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - [ADR-012: Energieflüsse doppelt visualisieren (HA + Grafana Sankey)](#adr-012-energieflüsse-doppelt-visualisieren-ha--grafana-sankey)
 - [ADR-013: Sungrow-Integration als off-the-shelf Image](#adr-013-sungrow-integration-als-off-the-shelf-image)
 - [ADR-014: NAS-zentrierte Service-Verteilung](#adr-014-nas-zentrierte-service-verteilung)
+- [ADR-018: Exakte Image-Versionierung und Release-gesteuertes Bridge-Build](#adr-018-exakte-image-versionierung-und-release-gesteuertes-bridge-build)
 
 ## ADR-001: Projektname "Lares"
 
@@ -192,3 +193,20 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
   - Lokale AHA-API (kein Cloud-Zwang), FritzBox 7590 AX bereits im Netz
   - `pyfritzhome` ist aktiv gewartet und wird intern auch von der HA fritzbox-Integration genutzt
   - Spike hat Kompatibilität mit FritzOS 8.25 bestätigt
+
+## ADR-018: Exakte Image-Versionierung und Release-gesteuertes Bridge-Build
+
+- Status: Angenommen
+- Kontext: Alle `docker-compose.yml`- und `docker-compose.pi.yml`-Einträge referenzierten bisher entweder floating Tags (`telegraf:latest`, `influxdb:2`, `eclipse-mosquitto:2.0`) oder gar kein explizites Tag (`= latest`). Das bedeutete: ein `docker compose pull` konnte jederzeit unabsichtlich eine neue, nicht getestete Image-Version einziehen. Custom Bridge-Images wurden nach jedem Push auf `main` neu gebaut und als `latest` in die Registry geschrieben; Compose referenzierte `latest` implizit, sodass ein `pull` auf dem NAS eine laufende Produktionsänderung war.
+- Entscheidung:
+  - **Off-the-shelf Images** werden auf die zum Zeitpunkt der Pinning-Änderung aktuellen stabilen Tags festgeschrieben: `eclipse-mosquitto:2.0.22`, `telegraf:1.39.1`, `influxdb:2.9.1`, `tiagocoutinho/modbus-proxy:1.3.2`, `bachya/ecowitt2mqtt:2026.01.0`.
+  - **Custom Bridge Images** tragen explizite Semver-Tags (`ghcr.io/tschuba/lares/<name>:X.Y.Z`) in den Compose-Dateien.
+  - **Neue Semver-Tags** werden ausschließlich durch ein GitHub Release erzeugt (Trigger `release: types: [published]`). Der Release-Tag folgt dem Schema `<image-name>-vX.Y.Z` (z. B. `vallox2mqtt-v1.2.6`). Die bestehenden `main`-Push-Builds (publizieren `latest` und `<sha>`) bleiben erhalten für manuelle Tests vor einem Release.
+  - Kein Versions-Bumping-Tooling (release-please, semantic-release) — manuelles GitHub-Release ist ausreichend für ein 8-Bridge-Homelab.
+- Begründung:
+  - Reproduzierbarkeit und Stabilität: keine unabsichtlichen Updates mehr durch `docker compose up -d`.
+  - Änderungen an Bridge-Versionen in Produktion sind explizit und nachvollziehbar (GitHub-Release-History).
+  - Kein neues Root-Tooling erforderlich — passt zur minimalen Toolchain-Philosophie des Repos.
+- Einschränkungen:
+  - Neue Upstream-Patches werden nicht automatisch eingespielt; manuelle Version-Bumps sind erforderlich.
+  - Dockerfile-Base-Images (`FROM python:3.x-slim`, `felddy/weewx:latest`) sind noch nicht gepinnt — mögliches Follow-up.

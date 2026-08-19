@@ -15,7 +15,7 @@ services:
   # Core MQTT Broker
   # Port 1883: interne Services und Home Assistant
   mosquitto:
-    image: eclipse-mosquitto:2.0
+    image: eclipse-mosquitto:2.0.22
     container_name: mosquitto
     restart: unless-stopped
     networks:
@@ -32,7 +32,7 @@ services:
 
   # Modbus Proxy for Sungrow (ADR-004)
   modbus-proxy:
-    image: tiagocoutinho/modbus-proxy:latest
+    image: tiagocoutinho/modbus-proxy:1.3.2
     container_name: modbus-proxy
     restart: unless-stopped
     networks:
@@ -47,7 +47,7 @@ services:
 
   # Sungrow to MQTT Bridge (ADR-013) - SunGather for Modbus-only access
   sungrow2mqtt:
-    image: ghcr.io/tschuba/lares/sungrow2mqtt:latest
+    image: ghcr.io/tschuba/lares/sungrow2mqtt:2.1.0
     container_name: sungrow2mqtt
     restart: unless-stopped
     user: "0:0"
@@ -68,7 +68,7 @@ services:
 
   # Vallox to MQTT Bridge (ADR-006)
   vallox2mqtt:
-    image: ghcr.io/tschuba/lares/vallox2mqtt:latest
+    image: ghcr.io/tschuba/lares/vallox2mqtt:1.2.5
     container_name: vallox2mqtt
     restart: unless-stopped
     networks:
@@ -95,7 +95,7 @@ services:
 
   # Luxtronik to MQTT Bridge (Novelan heat pump)
   luxtronik2mqtt:
-    image: ghcr.io/tschuba/lares/luxtronik2mqtt:latest
+    image: ghcr.io/tschuba/lares/luxtronik2mqtt:1.1.3
     container_name: luxtronik2mqtt
     restart: unless-stopped
     environment:
@@ -116,7 +116,7 @@ services:
 
   # Ecowitt to MQTT Bridge
   ecowitt2mqtt:
-    image: bachya/ecowitt2mqtt:latest
+    image: bachya/ecowitt2mqtt:2026.01.0
     container_name: ecowitt2mqtt
     restart: unless-stopped
     environment:
@@ -140,7 +140,7 @@ services:
 
   # WeeWX for weather data upload (ADR-010)
   weewx:
-    image: ghcr.io/tschuba/lares/weewx:latest
+    image: ghcr.io/tschuba/lares/weewx:1.0.4
     container_name: weewx
     restart: unless-stopped
     user: "0:0"
@@ -171,7 +171,7 @@ services:
   # Leistung, Verbrauch) als Homie-Topics auf dem lokalen Mosquitto-Broker.
   # Steuerung der Geraete erfolgt ausschliesslich ueber meross_lan in Home Assistant.
   meross2mqtt:
-    image: ghcr.io/tschuba/lares/meross2mqtt:latest
+    image: ghcr.io/tschuba/lares/meross2mqtt:1.1.2
     container_name: meross2mqtt
     restart: unless-stopped
     networks:
@@ -194,7 +194,7 @@ services:
 
   # Skoda Enyaq bridge: mySkoda Cloud API → MQTT (ADR-016)
   skoda2mqtt:
-    image: ghcr.io/tschuba/lares/skoda2mqtt:latest
+    image: ghcr.io/tschuba/lares/skoda2mqtt:1.0.3
     container_name: skoda2mqtt
     restart: unless-stopped
     environment:
@@ -221,7 +221,7 @@ services:
 
   # FRITZ!Smart Energy 250 bridge: FritzBox AHA API → MQTT
   fritz2mqtt:
-    image: ghcr.io/tschuba/lares/fritz2mqtt:latest
+    image: ghcr.io/tschuba/lares/fritz2mqtt:1.0.2
     container_name: fritz2mqtt
     restart: unless-stopped
     environment:
@@ -245,7 +245,7 @@ services:
   # No profile: runs always alongside mosquitto and influxdb so system metrics
   # (CPU, memory, disk, Docker) are collected independently of the meross profile.
   telegraf:
-    image: telegraf:latest
+    image: telegraf:1.39.1
     container_name: telegraf
     restart: unless-stopped
     user: "0:0"
@@ -274,7 +274,7 @@ services:
 
   # Diun image-update status HTTP endpoint (queries Diun via Docker socket on each request)
   diun-status:
-    image: ghcr.io/tschuba/lares/diun-status:latest
+    image: ghcr.io/tschuba/lares/diun-status:1.0.1
     container_name: diun-status
     restart: unless-stopped
     volumes:
@@ -289,7 +289,7 @@ services:
 
   # InfluxDB 2.x (ADR-005)
   influxdb:
-    image: influxdb:2
+    image: influxdb:2.9.1
     container_name: influxdb
     restart: unless-stopped
     networks:
