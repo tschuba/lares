@@ -19,6 +19,7 @@ on:
       - 'bridges/weewx/**'
       - 'bridges/skoda/**'
       - 'bridges/fritz/**'
+      - 'bridges/diun-status/**'
       - '.github/workflows/build-bridges.yml'
   pull_request:
     branches:
@@ -31,13 +32,16 @@ on:
       - 'bridges/weewx/**'
       - 'bridges/skoda/**'
       - 'bridges/fritz/**'
+      - 'bridges/diun-status/**'
       - '.github/workflows/build-bridges.yml'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
   build-luxtronik:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/luxtronik/') || contains(github.event.*.paths[0], 'bridges/luxtronik/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/luxtronik/') || contains(github.event.*.paths[0], 'bridges/luxtronik/') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'luxtronik2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,6 +62,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/luxtronik2mqtt
           tags: |
+            type=match,pattern=luxtronik2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -74,7 +79,7 @@ jobs:
 
   build-vallox:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/vallox/') || contains(github.event.*.paths[0], 'bridges/vallox/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/vallox/') || contains(github.event.*.paths[0], 'bridges/vallox/') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'vallox2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -95,6 +100,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/vallox2mqtt
           tags: |
+            type=match,pattern=vallox2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -111,7 +117,7 @@ jobs:
 
   build-meross2mqtt:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/meross2mqtt/') || contains(github.event.*.paths[0], 'bridges/meross2mqtt/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/meross2mqtt/') || contains(github.event.*.paths[0], 'bridges/meross2mqtt/') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'meross2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -132,6 +138,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/meross2mqtt
           tags: |
+            type=match,pattern=meross2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -148,7 +155,7 @@ jobs:
 
   build-sungrow2mqtt:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/sungather/') || contains(github.event.*.paths[0], 'bridges/sungather/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/sungather/') || contains(github.event.*.paths[0], 'bridges/sungather/') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'sungrow2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -169,6 +176,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/sungrow2mqtt
           tags: |
+            type=match,pattern=sungrow2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -185,7 +193,7 @@ jobs:
 
   build-weewx:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/weewx/') || contains(github.event.*.paths[0], 'bridges/weewx/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/weewx/') || contains(github.event.*.paths[0], 'bridges/weewx/') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'weewx-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -206,6 +214,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/weewx
           tags: |
+            type=match,pattern=weewx-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -220,7 +229,7 @@ jobs:
 
   build-skoda:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/skoda/') || contains(github.event.*.paths[0], 'bridges/skoda/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/skoda/') || contains(github.event.*.paths[0], 'bridges/skoda/') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'skoda2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -241,6 +250,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/skoda2mqtt
           tags: |
+            type=match,pattern=skoda2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -257,7 +267,7 @@ jobs:
 
   build-fritz:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/fritz/') || contains(github.event.*.paths[0], 'bridges/fritz/')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/fritz/') || contains(github.event.*.paths[0], 'bridges/fritz/') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'fritz2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -278,6 +288,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/fritz2mqtt
           tags: |
+            type=match,pattern=fritz2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -286,6 +297,44 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./bridges/fritz
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-diun-status:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/diun-status/') || contains(github.event.*.paths[0], 'bridges/diun-status/') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'diun-status-v'))
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/diun-status
+          tags: |
+            type=match,pattern=diun-status-v(.*),group=1
+            type=ref,event=branch
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push diun-status image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./bridges/diun-status
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

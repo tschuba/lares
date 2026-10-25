@@ -11,5 +11,6 @@ policies:
       - receiver: pushover
         matchers:
           - receiver = pushover
-        group_wait: 0s
+        group_by: [alertname]
+        group_wait: 30s
         repeat_interval: 24h
