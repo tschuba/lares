@@ -19,7 +19,7 @@ services:
       - PORT=8080
 
   telegraf-pi:
-    image: telegraf:1.39.1
+    image: telegraf:1.40.2
     container_name: telegraf-pi
     restart: unless-stopped
     user: "0:0"

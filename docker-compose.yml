@@ -32,7 +32,7 @@ services:
 
   # Modbus Proxy for Sungrow (ADR-004)
   modbus-proxy:
-    image: tiagocoutinho/modbus-proxy:1.3.2
+    image: tiagocoutinho/modbus-proxy-py:0.8.0
     container_name: modbus-proxy
     restart: unless-stopped
     networks:
@@ -245,7 +245,7 @@ services:
   # No profile: runs always alongside mosquitto and influxdb so system metrics
   # (CPU, memory, disk, Docker) are collected independently of the meross profile.
   telegraf:
-    image: telegraf:1.39.1
+    image: telegraf:1.40.2
     container_name: telegraf
     restart: unless-stopped
     user: "0:0"
