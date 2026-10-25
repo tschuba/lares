@@ -606,6 +606,98 @@
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_energy_total\" or r[\"_field\"] == \"electric_energy_heating\" or r[\"_field\"] == \"electric_energy_dhw\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Temperaturen im Vergleich",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "id": 12,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Vorlauf IST"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_return"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rücklauf IST"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_outside"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außentemperatur"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_hot_water"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Warmwasser IST"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "Temps",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_flow\" or r[\"_field\"] == \"temperature_return\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+        }
+      ]
     }
   ],
   "links": [
