@@ -59,6 +59,14 @@
             "uid": "influxdb-nas"
           },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor\" or r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"runtime_hot_water\")\n  |> last()\n  |> map(fn: (r) => ({ r with _value: float(v: r._value) / 3600.0 }))"
+        },
+        {
+          "refId": "Starts",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor_starts\")\n  |> last()"
         }
       ],
       "fieldConfig": {
@@ -195,6 +203,22 @@
               {
                 "id": "unit",
                 "value": "suffix: h"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "runtime_compressor_starts"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Verdichter-Starts"
+              },
+              {
+                "id": "unit",
+                "value": "none"
               }
             ]
           }
@@ -596,69 +620,6 @@
       ]
     },
     {
-      "type": "stat",
-      "title": "Verdichter-Starts",
-      "gridPos": {
-        "h": 4,
-        "w": 24,
-        "x": 0,
-        "y": 20
-      },
-      "id": 8,
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "runtime_compressor_starts"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Verdichter-Starts"
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
-      },
-      "targets": [
-        {
-          "refId": "CompressorStarts",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor_starts\")\n  |> last()\n  |> yield(name: \"last\")"
-        }
-      ]
-    },
-    {
       "type": "timeseries",
       "title": "Elektrische Leistung (kW)",
       "description": "Aktueller Stromverbrauch der Wärmepumpe in Echtzeit (SHI/Modbus).",
@@ -666,7 +627,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 20
       },
       "id": 10,
       "datasource": {
@@ -718,7 +679,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 20
       },
       "id": 11,
       "datasource": {
