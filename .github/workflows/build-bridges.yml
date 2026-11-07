@@ -35,9 +35,44 @@ on:
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      luxtronik: ${{ steps.f.outputs.luxtronik }}
+      vallox: ${{ steps.f.outputs.vallox }}
+      meross2mqtt: ${{ steps.f.outputs.meross2mqtt }}
+      sungather: ${{ steps.f.outputs.sungather }}
+      weewx: ${{ steps.f.outputs.weewx }}
+      skoda: ${{ steps.f.outputs.skoda }}
+      fritz: ${{ steps.f.outputs.fritz }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: f
+        with:
+          filters: |
+            luxtronik:
+              - 'bridges/luxtronik/**'
+            vallox:
+              - 'bridges/vallox/**'
+            meross2mqtt:
+              - 'bridges/meross2mqtt/**'
+            sungather:
+              - 'bridges/sungather/**'
+            weewx:
+              - 'bridges/weewx/**'
+            skoda:
+              - 'bridges/skoda/**'
+            fritz:
+              - 'bridges/fritz/**'
+
   build-luxtronik:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/luxtronik/') || contains(github.event.*.paths[0], 'bridges/luxtronik/')
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.luxtronik == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -74,7 +109,8 @@ jobs:
 
   build-vallox:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/vallox/') || contains(github.event.*.paths[0], 'bridges/vallox/')
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.vallox == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -111,7 +147,8 @@ jobs:
 
   build-meross2mqtt:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/meross2mqtt/') || contains(github.event.*.paths[0], 'bridges/meross2mqtt/')
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.meross2mqtt == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -148,7 +185,8 @@ jobs:
 
   build-sungrow2mqtt:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/sungather/') || contains(github.event.*.paths[0], 'bridges/sungather/')
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.sungather == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -185,7 +223,8 @@ jobs:
 
   build-weewx:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/weewx/') || contains(github.event.*.paths[0], 'bridges/weewx/')
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.weewx == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -220,7 +259,8 @@ jobs:
 
   build-skoda:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/skoda/') || contains(github.event.*.paths[0], 'bridges/skoda/')
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.skoda == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -257,7 +297,8 @@ jobs:
 
   build-fritz:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bridges/fritz/') || contains(github.event.*.paths[0], 'bridges/fritz/')
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.fritz == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
