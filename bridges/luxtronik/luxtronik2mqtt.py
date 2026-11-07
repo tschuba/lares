@@ -83,6 +83,8 @@ def main():
                 "temperature_hot_water": calc("ID_WEB_Temperatur_TBW"),
                 "temperature_flow": calc("ID_WEB_Temperatur_TVL"),
                 "temperature_return": calc("ID_WEB_Temperatur_TRL"),
+                # Soll-Rücklauf Heizen aus der Heizkurve (SHI-Input; ID_WEB_Sollwert_TVL_* ist bei dieser Anlage 0)
+                "temperature_return_setpoint": inp("return_line_target"),
                 # Wärmemengen thermisch (kWh, alle 2 h vom Controller aktualisiert)
                 "heat_energy_heating": calc_kwh("ID_WEB_WMZ_Heizung"),
                 "heat_energy_hot_water": calc_kwh("ID_WEB_WMZ_Brauchwasser"),
@@ -99,8 +101,16 @@ def main():
                 "error_count": calc_int("ID_WEB_AnzahlFehlerInSpeicher"),
                 # Warmwasser-Sollwert (Holdings, CelsiusUInt16, .value liefert °C als float)
                 "temperature_hot_water_setpoint": holding("hot_water_setpoint"),
+                # Heizen-Sollwert (Holdings, °C float)
+                "temperature_heating_setpoint": holding("heating_setpoint"),
                 # Heizstab ZWE1 aktiv (SHI-Input, Bool, FW >= 3.90.1)
                 "backup_heater_active": 1 if inp("heatpump_zwe1_status") else 0,
+                # Erzeuger-Status je Stufe (SHI-Bitmaske heatpump_status), 0/1
+                "compressor_active": 1 if inp("heatpump_vd1_status") else 0,
+                "compressor2_active": 1 if inp("heatpump_vd2_status") else 0,
+                "backup_heater2_active": 1 if inp("heatpump_zwe2_status") else 0,
+                "backup_heater3_active": 1 if inp("heatpump_zwe3_status") else 0,
+                "heating_power_actual": inp("heating_power_actual"),
                 # Elektrischer Verbrauch (SHI, Modbus TCP Port 502, FW >= 3.90.1)
                 # Bibliothek liefert bereits umgerechnete Werte (kW bzw. kWh), kein /10 nötig
                 "electric_power_actual": inp("electric_power_actual"),
