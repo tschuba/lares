@@ -1,0 +1,20 @@
+# Lokale Grafana-Testinstanz für Dashboard-Änderungen (nur Dev, nicht deployen).
+# Start: docker compose -f docker-compose.grafana-dev.yml up  (INFLUX_ORG/BUCKET/TOKEN kommen automatisch aus .env)
+# UI: http://localhost:3300 (Port per GRAFANA_DEV_PORT änderbar) (admin/admin, anonym Admin). Daten: echte NAS-InfluxDB (LAN, read-only Token empfohlen).
+# Alerting-Provisioning wird bewusst nicht gemountet (keine Benachrichtigungen aus Tests).
+services:
+  grafana:
+    image: grafana/grafana:13.3.0-slim # Ziel-Version; deployed ist aktuell 13.0.2
+    ports:
+      - "${GRAFANA_DEV_PORT:-3300}:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_INSTALL_PLUGINS: yesoreyeram-infinity-datasource
+      INFLUX_ORG: ${INFLUX_ORG}
+      INFLUX_BUCKET: ${INFLUX_BUCKET}
+      INFLUX_TOKEN: ${INFLUX_TOKEN}
+    volumes:
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
