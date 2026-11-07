@@ -248,7 +248,9 @@ services:
     image: telegraf:latest
     container_name: telegraf
     restart: unless-stopped
-    user: "0:0"
+    # Als Dateibesitzer (uid 1000, gid 10) starten: Image-Entrypoint wechselt dann
+    # nicht auf User "telegraf", der die Config nach NAS-Upload (o=---) nicht lesen kann.
+    user: "1000:10"
     group_add:
       - "${DOCKER_GID}"
     networks:
