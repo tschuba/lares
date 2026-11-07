@@ -4,7 +4,7 @@
 # Alerting-Provisioning wird bewusst nicht gemountet (keine Benachrichtigungen aus Tests).
 services:
   grafana:
-    image: grafana/grafana:13.3.0-slim # Ziel-Version; deployed ist aktuell 13.0.2
+    image: grafana/grafana:13.3.0-slim # wie deployed (cockpit.schubs.net)
     ports:
       - "${GRAFANA_DEV_PORT:-3300}:3000"
     environment:
