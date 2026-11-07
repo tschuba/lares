@@ -246,8 +246,8 @@
       "type": "timeseries",
       "title": "Temperaturen im Vergleich",
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 10,
+        "w": 24,
         "x": 0,
         "y": 4
       },
@@ -273,6 +273,13 @@
               {
                 "id": "displayName",
                 "value": "Vorlauf"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
               }
             ]
           },
@@ -285,6 +292,13 @@
               {
                 "id": "displayName",
                 "value": "Rücklauf"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
               }
             ]
           },
@@ -297,6 +311,13 @@
               {
                 "id": "displayName",
                 "value": "Außentemperatur"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
               }
             ]
           },
@@ -309,6 +330,79 @@
               {
                 "id": "displayName",
                 "value": "Warmwasser"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_hot_water_setpoint"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Warmwasser Soll"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-blue"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_return_setpoint"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rücklauf Soll (Heizkurve)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-green"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
               }
             ]
           }
@@ -330,7 +424,7 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_flow\" or r[\"_field\"] == \"temperature_return\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_flow\" or r[\"_field\"] == \"temperature_return\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_hot_water\" or r[\"_field\"] == \"temperature_hot_water_setpoint\" or r[\"_field\"] == \"temperature_return_setpoint\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ]
     },
@@ -341,7 +435,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 4
+        "y": 38
       },
       "id": 4,
       "datasource": {
@@ -449,7 +543,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 22
       },
       "id": 5,
       "datasource": {
@@ -532,7 +626,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 22
       },
       "id": 6,
       "datasource": {
@@ -626,8 +720,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 20
+        "x": 12,
+        "y": 30
       },
       "id": 10,
       "datasource": {
@@ -678,8 +772,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 20
+        "x": 0,
+        "y": 30
       },
       "id": 11,
       "datasource": {
@@ -763,6 +857,230 @@
             "byField": "label",
             "mode": "outer"
           }
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "xychart",
+      "title": "Heizkurve (Rücklauf über Außentemperatur)",
+      "description": "Mittlere Rücklauftemperatur (Ist und Soll aus der Heizkurve) je 30 min über der Außentemperatur im Dashboard-Zeitbereich.",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 38
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {
+            "pointSize": {
+              "fixed": 5
+            },
+            "show": "points"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_return\" or r[\"_field\"] == \"temperature_return_setpoint\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> keep(columns: [\"temperature_outside\", \"temperature_return\", \"temperature_return_setpoint\"])\n  |> sort(columns: [\"temperature_outside\"])"
+        }
+      ],
+      "options": {
+        "mode": "series",
+        "series": [
+          {
+            "x": "temperature_outside",
+            "y": {
+              "matcher": {
+                "id": "byName",
+                "options": "temperature_return"
+              }
+            },
+            "name": "Rücklauf Ist"
+          },
+          {
+            "x": "temperature_outside",
+            "y": {
+              "matcher": {
+                "id": "byName",
+                "options": "temperature_return_setpoint"
+              }
+            },
+            "name": "Rücklauf Soll (Heizkurve)"
+          }
+        ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "state-timeline",
+      "title": "Was läuft gerade? (Verdichter / Heizstab)",
+      "description": "Status der Erzeuger laut SHI-Bitmaske. Heizstab = ZWE1-3, Verdichter = VD1/VD2. Nicht vorhandene Stufen bleiben dauerhaft aus.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 15,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "aus"
+                },
+                "1": {
+                  "text": "an"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "compressor_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Verdichter 1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "compressor2_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Verdichter 2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "backup_heater_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Heizstab 1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "backup_heater2_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Heizstab 2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "backup_heater3_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Heizstab 3"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "backup_heater.*"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "never",
+        "rowHeight": 0.8,
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "Status",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"compressor_active\" or r[\"_field\"] == \"compressor2_active\" or r[\"_field\"] == \"backup_heater_active\" or r[\"_field\"] == \"backup_heater2_active\" or r[\"_field\"] == \"backup_heater3_active\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)"
         }
       ]
     }
