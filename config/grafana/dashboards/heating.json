@@ -34,7 +34,7 @@
       "title": "Zählerstände",
       "description": "Letzter Wert je Zähler (innerhalb 30 Tage), unabhängig vom Zeitbereich.",
       "gridPos": {
-        "h": 4,
+        "h": 6,
         "w": 24,
         "x": 0,
         "y": 0
@@ -237,9 +237,11 @@
         "textMode": "value_and_name",
         "orientation": "auto",
         "text": {
-          "valueSize": 24,
+          "valueSize": 22,
           "titleSize": 12
-        }
+        },
+        "minVizWidth": 150,
+        "minVizHeight": 70
       }
     },
     {
@@ -249,7 +251,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 6
       },
       "id": 12,
       "datasource": {
@@ -435,7 +437,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 38
+        "y": 40
       },
       "id": 4,
       "datasource": {
@@ -543,7 +545,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 24
       },
       "id": 5,
       "datasource": {
@@ -626,7 +628,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 24
       },
       "id": 6,
       "datasource": {
@@ -714,66 +716,14 @@
       ]
     },
     {
-      "type": "timeseries",
-      "title": "Elektrische Leistung (kW)",
-      "description": "Aktueller Stromverbrauch der Wärmepumpe in Echtzeit (SHI/Modbus).",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 30
-      },
-      "id": 10,
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "kwatt",
-          "custom": {
-            "lineWidth": 2
-          },
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "orange"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "electric_power_actual"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Leistung"
-              }
-            ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "refId": "ElectricPower",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_power_actual\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
-        }
-      ]
-    },
-    {
       "type": "barchart",
       "title": "Elektrische Energie je Zeitraum (kWh)",
       "description": "Differenz je Zeitraum (Auswahl 'Zeitraum' oben), unabhängig vom Dashboard-Zeitbereich.",
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 30
+        "y": 32
       },
       "id": 11,
       "datasource": {
@@ -863,13 +813,13 @@
     {
       "id": 14,
       "type": "xychart",
-      "title": "Heizkurve (Rücklauf über Außentemperatur)",
-      "description": "Mittlere Rücklauftemperatur (Ist und Soll aus der Heizkurve) je 30 min über der Außentemperatur im Dashboard-Zeitbereich.",
+      "title": "Heizkurve (Rücklauf über Außentemperatur, 30 Tage)",
+      "description": "Heizkurve: mittlere Rücklauftemperatur (Ist und Soll) je 1-°C-Klasse der Außentemperatur, letzte 30 Tage, nur Heizbetrieb (Zähler runtime_heating steigt; Warmwasser/Stillstand ausgeschlossen). Soll-Werte werden erst seit 08.11.2026 aufgezeichnet.",
       "gridPos": {
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 38
+        "y": 40
       },
       "datasource": {
         "type": "influxdb",
@@ -885,7 +835,32 @@
             "show": "points"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_return"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rücklauf Ist"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_return_setpoint"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rücklauf Soll (Heizkurve)"
+              }
+            ]
+          }
+        ]
       },
       "targets": [
         {
@@ -894,33 +869,18 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_return\" or r[\"_field\"] == \"temperature_return_setpoint\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> keep(columns: [\"temperature_outside\", \"temperature_return\", \"temperature_return_setpoint\"])\n  |> sort(columns: [\"temperature_outside\"])"
+          "query": "import \"math\"\nfrom(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_return\")\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.runtime_heating and exists r.temperature_outside and exists r.temperature_return)\n  |> sort(columns: [\"_time\"])\n  |> difference(columns: [\"runtime_heating\"])\n  |> filter(fn: (r) => r.runtime_heating > 0)\n  |> map(fn: (r) => ({r with bin: math.round(x: r.temperature_outside)}))\n  |> group(columns: [\"bin\"])\n  |> mean(column: \"temperature_return\")\n  |> group()\n  |> rename(columns: {bin: \"temperature_outside\"})\n  |> keep(columns: [\"temperature_outside\", \"temperature_return\"])\n  |> sort(columns: [\"temperature_outside\"])"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "import \"math\"\nfrom(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_return_setpoint\")\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.runtime_heating and exists r.temperature_outside and exists r.temperature_return_setpoint)\n  |> sort(columns: [\"_time\"])\n  |> difference(columns: [\"runtime_heating\"])\n  |> filter(fn: (r) => r.runtime_heating > 0)\n  |> map(fn: (r) => ({r with bin: math.round(x: r.temperature_outside)}))\n  |> group(columns: [\"bin\"])\n  |> mean(column: \"temperature_return_setpoint\")\n  |> group()\n  |> rename(columns: {bin: \"temperature_outside\"})\n  |> keep(columns: [\"temperature_outside\", \"temperature_return_setpoint\"])\n  |> sort(columns: [\"temperature_outside\"])"
         }
       ],
       "options": {
-        "mode": "series",
-        "series": [
-          {
-            "x": "temperature_outside",
-            "y": {
-              "matcher": {
-                "id": "byName",
-                "options": "temperature_return"
-              }
-            },
-            "name": "Rücklauf Ist"
-          },
-          {
-            "x": "temperature_outside",
-            "y": {
-              "matcher": {
-                "id": "byName",
-                "options": "temperature_return_setpoint"
-              }
-            },
-            "name": "Rücklauf Soll (Heizkurve)"
-          }
-        ],
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
@@ -928,18 +888,19 @@
         },
         "tooltip": {
           "mode": "single"
-        }
+        },
+        "mapping": "auto"
       }
     },
     {
-      "type": "state-timeline",
-      "title": "Was läuft gerade? (Verdichter / Heizstab)",
-      "description": "Status der Erzeuger laut SHI-Bitmaske. Heizstab = ZWE1-3, Verdichter = VD1/VD2. Nicht vorhandene Stufen bleiben dauerhaft aus.",
+      "type": "timeseries",
+      "title": "Leistungsaufnahme & Erzeugerstatus",
+      "description": "Elektrische Leistung der Wärmepumpe (links, kW, SHI/Modbus) und Status der Erzeuger laut SHI-Bitmaske (rechts). Heizstab = ZWE1-3, Verdichter = VD1/VD2. Nicht vorhandene Stufen bleiben dauerhaft aus.",
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 16
       },
       "id": 15,
       "datasource": {
@@ -948,37 +909,50 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
+          "unit": "kwatt",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electric_power_actual"
+            },
+            "properties": [
               {
-                "color": "transparent",
-                "value": null
+                "id": "displayName",
+                "value": "Leistung"
               },
               {
-                "color": "green",
-                "value": 1
+                "id": "unit",
+                "value": "kwatt"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Leistung (kW)"
               }
             ]
           },
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "aus"
-                },
-                "1": {
-                  "text": "an"
-                }
-              }
-            }
-          ]
-        },
-        "overrides": [
           {
             "matcher": {
               "id": "byName",
@@ -988,6 +962,92 @@
               {
                 "id": "displayName",
                 "value": "Verdichter 1"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -1000,6 +1060,92 @@
               {
                 "id": "displayName",
                 "value": "Verdichter 2"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-green"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -1012,6 +1158,92 @@
               {
                 "id": "displayName",
                 "value": "Heizstab 1"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -1024,6 +1256,92 @@
               {
                 "id": "displayName",
                 "value": "Heizstab 2"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-red"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           },
@@ -1036,51 +1354,123 @@
               {
                 "id": "displayName",
                 "value": "Heizstab 3"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "backup_heater.*"
-            },
-            "properties": [
+              },
               {
-                "id": "thresholds",
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
                 "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "transparent",
-                      "value": null
-                    },
-                    {
-                      "color": "red",
-                      "value": 1
-                    }
-                  ]
+                  "mode": "fixed",
+                  "fixedColor": "light-red"
                 }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           }
         ]
       },
       "options": {
-        "mergeValues": true,
-        "showValue": "never",
-        "rowHeight": 0.8,
         "legend": {
-          "showLegend": false
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
         }
       },
       "targets": [
+        {
+          "refId": "ElectricPower",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_power_actual\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+        },
         {
           "refId": "Status",
           "datasource": {
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"compressor_active\" or r[\"_field\"] == \"compressor2_active\" or r[\"_field\"] == \"backup_heater_active\" or r[\"_field\"] == \"backup_heater2_active\" or r[\"_field\"] == \"backup_heater3_active\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)"
+          "query": "import \"internal/debug\"\n\nfrom(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"compressor_active\" or r[\"_field\"] == \"compressor2_active\" or r[\"_field\"] == \"backup_heater_active\" or r[\"_field\"] == \"backup_heater2_active\" or r[\"_field\"] == \"backup_heater3_active\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> map(fn: (r) => ({r with _value: if r._value >= 1.0 then (if r._field == \"compressor_active\" then 1.0 else if r._field == \"compressor2_active\" then 2.0 else if r._field == \"backup_heater_active\" then 3.0 else if r._field == \"backup_heater2_active\" then 4.0 else 5.0) else debug.null(type: \"float\")}))"
         }
       ]
     }
