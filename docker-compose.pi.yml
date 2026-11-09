@@ -6,7 +6,7 @@
 
 services:
   telegraf-pi:
-    image: telegraf:latest
+    image: telegraf:1.40.3
     container_name: telegraf-pi
     restart: unless-stopped
     user: "0:0"

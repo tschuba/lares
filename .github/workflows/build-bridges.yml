@@ -32,6 +32,8 @@ on:
       - 'bridges/skoda/**'
       - 'bridges/fritz/**'
       - '.github/workflows/build-bridges.yml'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -72,7 +74,7 @@ jobs:
   build-luxtronik:
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.luxtronik == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.luxtronik == 'true' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'luxtronik2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -93,6 +95,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/luxtronik2mqtt
           tags: |
+            type=match,pattern=luxtronik2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -110,7 +113,7 @@ jobs:
   build-vallox:
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.vallox == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.vallox == 'true' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'vallox2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -131,6 +134,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/vallox2mqtt
           tags: |
+            type=match,pattern=vallox2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -148,7 +152,7 @@ jobs:
   build-meross2mqtt:
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.meross2mqtt == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.meross2mqtt == 'true' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'meross2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -169,6 +173,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/meross2mqtt
           tags: |
+            type=match,pattern=meross2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -186,7 +191,7 @@ jobs:
   build-sungrow2mqtt:
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.sungather == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.sungather == 'true' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'sungrow2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -207,6 +212,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/sungrow2mqtt
           tags: |
+            type=match,pattern=sungrow2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -224,7 +230,7 @@ jobs:
   build-weewx:
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.weewx == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.weewx == 'true' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'weewx-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -245,6 +251,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/weewx
           tags: |
+            type=match,pattern=weewx-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -260,7 +267,7 @@ jobs:
   build-skoda:
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.skoda == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.skoda == 'true' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'skoda2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -281,6 +288,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/skoda2mqtt
           tags: |
+            type=match,pattern=skoda2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
@@ -298,7 +306,7 @@ jobs:
   build-fritz:
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.fritz == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.fritz == 'true' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'fritz2mqtt-v'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -319,6 +327,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/fritz2mqtt
           tags: |
+            type=match,pattern=fritz2mqtt-v(.*),group=1
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}

@@ -21,8 +21,8 @@ classifiers = [
     "Topic :: Software Development :: Object Brokering"
 ]
 dependencies = [
-    "aiomqtt==2.2.0",
-    "meross_iot==0.4.9.0",
+    "aiomqtt==2.5.1",
+    "meross_iot==0.4.10.4",
     "aiohttp>=3.8.3,<4.0.0",
     "isodate",
     "yamldataclassconfig",
