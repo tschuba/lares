@@ -245,7 +245,7 @@ services:
   # No profile: runs always alongside mosquitto and influxdb so system metrics
   # (CPU, memory, disk, Docker) are collected independently of the meross profile.
   telegraf:
-    image: telegraf:1.40.2
+    image: telegraf:1.40.3
     container_name: telegraf
     restart: unless-stopped
     # Als Dateibesitzer (uid 1000, gid 10) starten: Image-Entrypoint wechselt dann

@@ -1,4 +1,4 @@
-FROM felddy/weewx:latest
+FROM felddy/weewx:5.5.6
 
 # Switch to root to install packages
 USER root
