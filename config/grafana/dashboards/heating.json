@@ -29,15 +29,231 @@
   },
   "panels": [
     {
-      "type": "timeseries",
-      "title": "Vorlauf & Rücklauf",
+      "id": 13,
+      "type": "stat",
+      "title": "Zählerstände",
+      "description": "Letzter Wert je Zähler (innerhalb 30 Tage), unabhängig vom Zeitbereich.",
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 6,
+        "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 1,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "targets": [
+        {
+          "refId": "Energy",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"heat_energy_heating\" or r[\"_field\"] == \"heat_energy_hot_water\" or r[\"_field\"] == \"electric_energy_total\" or r[\"_field\"] == \"electric_energy_heating\" or r[\"_field\"] == \"electric_energy_dhw\")\n  |> last()"
+        },
+        {
+          "refId": "Runtime",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor\" or r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"runtime_hot_water\")\n  |> last()\n  |> map(fn: (r) => ({ r with _value: float(v: r._value) / 3600.0 }))"
+        },
+        {
+          "refId": "Starts",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor_starts\")\n  |> last()"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "heat_energy_heating"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Wärme Heizung"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "heat_energy_hot_water"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Wärme Warmwasser"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electric_energy_total"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Strom gesamt"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electric_energy_heating"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Strom Heizung"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electric_energy_dhw"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Strom Warmwasser"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "runtime_compressor"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Laufzeit Verdichter"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: h"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "runtime_heating"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Laufzeit Heizung"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: h"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "runtime_hot_water"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Laufzeit Warmwasser"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: h"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "runtime_compressor_starts"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Verdichter-Starts"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 22,
+          "titleSize": 12
+        },
+        "minVizWidth": 150,
+        "minVizHeight": 70
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Temperaturen im Vergleich",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 12,
       "datasource": {
         "type": "influxdb",
         "uid": "influxdb-nas"
@@ -59,6 +275,13 @@
               {
                 "id": "displayName",
                 "value": "Vorlauf"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
               }
             ]
           },
@@ -71,91 +294,16 @@
               {
                 "id": "displayName",
                 "value": "Rücklauf"
-              }
-            ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "refId": "FlowReturn",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_flow\" or r[\"_field\"] == \"temperature_return\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
-        }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Warmwasser",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 2,
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "celsius",
-          "custom": {
-            "lineWidth": 2
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "temperature_hot_water"
-            },
-            "properties": [
+              },
               {
-                "id": "displayName",
-                "value": "Temperatur"
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
               }
             ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "refId": "HotWater",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
-        }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Außentemperatur",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 3,
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "celsius",
-          "custom": {
-            "lineWidth": 2
-          }
-        },
-        "overrides": [
           {
             "matcher": {
               "id": "byName",
@@ -165,19 +313,120 @@
               {
                 "id": "displayName",
                 "value": "Außentemperatur"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_hot_water"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Warmwasser"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_hot_water_setpoint"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Warmwasser Soll"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-blue"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature_return_setpoint"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rücklauf Soll (Heizkurve)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-green"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
               }
             ]
           }
         ]
       },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
       "targets": [
         {
-          "refId": "Outside",
+          "refId": "Temps",
           "datasource": {
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_outside\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_flow\" or r[\"_field\"] == \"temperature_return\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_hot_water\" or r[\"_field\"] == \"temperature_hot_water_setpoint\" or r[\"_field\"] == \"temperature_return_setpoint\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
         }
       ]
     },
@@ -188,7 +437,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 40
       },
       "id": 4,
       "datasource": {
@@ -289,14 +538,14 @@
       ]
     },
     {
-      "type": "timeseries",
-      "title": "Wärmemengen (kWh)",
-      "description": "Kumulierte thermische Energie seit letztem Reset. Auflösung ~2 h (Hardware-Limit).",
+      "type": "barchart",
+      "title": "Wärmemengen je Zeitraum (kWh)",
+      "description": "Differenz je Zeitraum (Auswahl 'Zeitraum' oben), unabhängig vom Dashboard-Zeitbereich.",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 24
       },
       "id": 5,
       "datasource": {
@@ -307,14 +556,15 @@
         "defaults": {
           "unit": "kwatth",
           "custom": {
-            "lineWidth": 2
+            "fillOpacity": 80,
+            "lineWidth": 1
           }
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "heat_energy_heating"
+              "options": "_value heat_energy_heating"
             },
             "properties": [
               {
@@ -326,7 +576,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "heat_energy_hot_water"
+              "options": "_value heat_energy_hot_water"
             },
             "properties": [
               {
@@ -344,19 +594,41 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"heat_energy_heating\" or r[\"_field\"] == \"heat_energy_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")"
+          "query": "import \"strings\"\nimport \"date\"\n\np = strings.split(v: \"${period}\", t: \"|\")\n\nfrom(bucket: v.defaultBucket)\n  |> range(start: duration(v: \"-\" + p[1]))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"heat_energy_heating\" or r[\"_field\"] == \"heat_energy_hot_water\")\n  |> aggregateWindow(every: duration(v: p[0]), fn: last, createEmpty: false, offset: duration(v: p[2]))\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => {\n      t = date.sub(d: 1s, from: r._time)\n      months = [\"Jan\", \"Feb\", \"Mär\", \"Apr\", \"Mai\", \"Jun\", \"Jul\", \"Aug\", \"Sep\", \"Okt\", \"Nov\", \"Dez\"]\n      label = if p[0] == \"1w\" then \"KW \" + string(v: date.week(t: t))\n        else if p[0] == \"1mo\" then months[date.month(t: t) - 1] + \" \" + string(v: date.year(t: t) - 2000)\n        else if p[0] == \"3mo\" then \"Q\" + string(v: date.quarter(t: t)) + \" \" + string(v: date.year(t: t))\n        else string(v: date.year(t: t))\n      return {r with label: label}\n    })\n  |> keep(columns: [\"label\", \"_field\", \"_value\"])\n  |> yield(name: \"delta\")"
+        }
+      ],
+      "options": {
+        "xField": "label",
+        "xTickLabelRotation": 0,
+        "showValue": "never",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "label",
+            "mode": "outer"
+          }
         }
       ]
     },
     {
-      "type": "timeseries",
-      "title": "Betriebsstunden",
-      "description": "Kumulierte Laufzeiten in Stunden.",
+      "type": "barchart",
+      "title": "Betriebsstunden je Zeitraum",
+      "description": "Differenz je Zeitraum (Auswahl 'Zeitraum' oben), unabhängig vom Dashboard-Zeitbereich.",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 24
       },
       "id": 6,
       "datasource": {
@@ -367,14 +639,15 @@
         "defaults": {
           "unit": "h",
           "custom": {
-            "lineWidth": 2
+            "fillOpacity": 80,
+            "lineWidth": 1
           }
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "runtime_compressor"
+              "options": "_value runtime_compressor"
             },
             "properties": [
               {
@@ -386,7 +659,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "runtime_heating"
+              "options": "_value runtime_heating"
             },
             "properties": [
               {
@@ -398,7 +671,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "runtime_hot_water"
+              "options": "_value runtime_hot_water"
             },
             "properties": [
               {
@@ -416,134 +689,41 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor\" or r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"runtime_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: float(v: r._value) / 3600.0 }))\n  |> yield(name: \"last\")"
+          "query": "import \"strings\"\nimport \"date\"\n\np = strings.split(v: \"${period}\", t: \"|\")\n\nfrom(bucket: v.defaultBucket)\n  |> range(start: duration(v: \"-\" + p[1]))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor\" or r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"runtime_hot_water\")\n  |> aggregateWindow(every: duration(v: p[0]), fn: last, createEmpty: false, offset: duration(v: p[2]))\n  |> map(fn: (r) => ({ r with _value: float(v: r._value) / 3600.0 }))\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => {\n      t = date.sub(d: 1s, from: r._time)\n      months = [\"Jan\", \"Feb\", \"Mär\", \"Apr\", \"Mai\", \"Jun\", \"Jul\", \"Aug\", \"Sep\", \"Okt\", \"Nov\", \"Dez\"]\n      label = if p[0] == \"1w\" then \"KW \" + string(v: date.week(t: t))\n        else if p[0] == \"1mo\" then months[date.month(t: t) - 1] + \" \" + string(v: date.year(t: t) - 2000)\n        else if p[0] == \"3mo\" then \"Q\" + string(v: date.quarter(t: t)) + \" \" + string(v: date.year(t: t))\n        else string(v: date.year(t: t))\n      return {r with label: label}\n    })\n  |> keep(columns: [\"label\", \"_field\", \"_value\"])\n  |> yield(name: \"delta\")"
+        }
+      ],
+      "options": {
+        "xField": "label",
+        "xTickLabelRotation": 0,
+        "showValue": "never",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "label",
+            "mode": "outer"
+          }
         }
       ]
     },
     {
-      "type": "stat",
-      "title": "Verdichter-Starts",
+      "type": "barchart",
+      "title": "Elektrische Energie je Zeitraum (kWh)",
+      "description": "Differenz je Zeitraum (Auswahl 'Zeitraum' oben), unabhängig vom Dashboard-Zeitbereich.",
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 24,
         "x": 0,
-        "y": 24
-      },
-      "id": 8,
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "runtime_compressor_starts"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Verdichter-Starts"
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
-      },
-      "targets": [
-        {
-          "refId": "CompressorStarts",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: -10m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_compressor_starts\")\n  |> last()\n  |> yield(name: \"last\")"
-        }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Elektrische Leistung (kW)",
-      "description": "Aktueller Stromverbrauch der Wärmepumpe in Echtzeit (SHI/Modbus).",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 28
-      },
-      "id": 10,
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "kwatt",
-          "custom": {
-            "lineWidth": 2
-          },
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "orange"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "electric_power_actual"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Leistung"
-              }
-            ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "refId": "ElectricPower",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_power_actual\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
-        }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Elektrische Energie (kWh)",
-      "description": "Kumulierter elektrischer Energieverbrauch (SHI/Modbus, FW >= 3.90.1).",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 28
+        "y": 32
       },
       "id": 11,
       "datasource": {
@@ -554,14 +734,15 @@
         "defaults": {
           "unit": "kwatth",
           "custom": {
-            "lineWidth": 2
+            "fillOpacity": 80,
+            "lineWidth": 1
           }
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "electric_energy_total"
+              "options": "_value electric_energy_total"
             },
             "properties": [
               {
@@ -573,7 +754,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "electric_energy_heating"
+              "options": "_value electric_energy_heating"
             },
             "properties": [
               {
@@ -585,7 +766,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "electric_energy_dhw"
+              "options": "_value electric_energy_dhw"
             },
             "properties": [
               {
@@ -603,20 +784,43 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_energy_total\" or r[\"_field\"] == \"electric_energy_heating\" or r[\"_field\"] == \"electric_energy_dhw\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")"
+          "query": "import \"strings\"\nimport \"date\"\n\np = strings.split(v: \"${period}\", t: \"|\")\n\nfrom(bucket: v.defaultBucket)\n  |> range(start: duration(v: \"-\" + p[1]))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_energy_total\" or r[\"_field\"] == \"electric_energy_heating\" or r[\"_field\"] == \"electric_energy_dhw\")\n  |> aggregateWindow(every: duration(v: p[0]), fn: last, createEmpty: false, offset: duration(v: p[2]))\n  |> difference(nonNegative: true)\n  |> map(fn: (r) => {\n      t = date.sub(d: 1s, from: r._time)\n      months = [\"Jan\", \"Feb\", \"Mär\", \"Apr\", \"Mai\", \"Jun\", \"Jul\", \"Aug\", \"Sep\", \"Okt\", \"Nov\", \"Dez\"]\n      label = if p[0] == \"1w\" then \"KW \" + string(v: date.week(t: t))\n        else if p[0] == \"1mo\" then months[date.month(t: t) - 1] + \" \" + string(v: date.year(t: t) - 2000)\n        else if p[0] == \"3mo\" then \"Q\" + string(v: date.quarter(t: t)) + \" \" + string(v: date.year(t: t))\n        else string(v: date.year(t: t))\n      return {r with label: label}\n    })\n  |> keep(columns: [\"label\", \"_field\", \"_value\"])\n  |> yield(name: \"delta\")"
+        }
+      ],
+      "options": {
+        "xField": "label",
+        "xTickLabelRotation": 0,
+        "showValue": "never",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "label",
+            "mode": "outer"
+          }
         }
       ]
     },
     {
-      "type": "timeseries",
-      "title": "Temperaturen im Vergleich",
+      "id": 14,
+      "type": "xychart",
+      "title": "Heizkurve (Rücklauf über Außentemperatur, 30 Tage)",
+      "description": "Heizkurve: mittlere Rücklauftemperatur (Ist und Soll) je 1-°C-Klasse der Außentemperatur, letzte 30 Tage, nur Heizbetrieb (Zähler runtime_heating steigt; Warmwasser/Stillstand ausgeschlossen). Soll-Werte werden erst seit 08.11.2026 aufgezeichnet.",
       "gridPos": {
         "h": 10,
-        "w": 24,
+        "w": 12,
         "x": 0,
-        "y": 36
+        "y": 40
       },
-      "id": 12,
       "datasource": {
         "type": "influxdb",
         "uid": "influxdb-nas"
@@ -625,22 +829,13 @@
         "defaults": {
           "unit": "celsius",
           "custom": {
-            "lineWidth": 2
+            "pointSize": {
+              "fixed": 5
+            },
+            "show": "points"
           }
         },
         "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "temperature_flow"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Vorlauf IST"
-              }
-            ]
-          },
           {
             "matcher": {
               "id": "byName",
@@ -649,31 +844,602 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Rücklauf IST"
+                "value": "Rücklauf Ist"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "temperature_outside"
+              "options": "temperature_return_setpoint"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Außentemperatur"
+                "value": "Rücklauf Soll (Heizkurve)"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "import \"math\"\nfrom(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_return\")\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.runtime_heating and exists r.temperature_outside and exists r.temperature_return)\n  |> sort(columns: [\"_time\"])\n  |> difference(columns: [\"runtime_heating\"])\n  |> filter(fn: (r) => r.runtime_heating > 0)\n  |> map(fn: (r) => ({r with bin: math.round(x: r.temperature_outside)}))\n  |> group(columns: [\"bin\"])\n  |> mean(column: \"temperature_return\")\n  |> group()\n  |> rename(columns: {bin: \"temperature_outside\"})\n  |> keep(columns: [\"temperature_outside\", \"temperature_return\"])\n  |> sort(columns: [\"temperature_outside\"])"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "import \"math\"\nfrom(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"runtime_heating\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_return_setpoint\")\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.runtime_heating and exists r.temperature_outside and exists r.temperature_return_setpoint)\n  |> sort(columns: [\"_time\"])\n  |> difference(columns: [\"runtime_heating\"])\n  |> filter(fn: (r) => r.runtime_heating > 0)\n  |> map(fn: (r) => ({r with bin: math.round(x: r.temperature_outside)}))\n  |> group(columns: [\"bin\"])\n  |> mean(column: \"temperature_return_setpoint\")\n  |> group()\n  |> rename(columns: {bin: \"temperature_outside\"})\n  |> keep(columns: [\"temperature_outside\", \"temperature_return_setpoint\"])\n  |> sort(columns: [\"temperature_outside\"])"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "mapping": "auto"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Leistungsaufnahme & Erzeugerstatus",
+      "description": "Elektrische Leistung der Wärmepumpe (links, kW, SHI/Modbus) und Status der Erzeuger laut SHI-Bitmaske (rechts). Heizstab = ZWE1-3, Verdichter = VD1/VD2. Nicht vorhandene Stufen bleiben dauerhaft aus.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 15,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-nas"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electric_power_actual"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Leistung"
+              },
+              {
+                "id": "unit",
+                "value": "kwatt"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Leistung (kW)"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "temperature_hot_water"
+              "options": "compressor_active"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Warmwasser IST"
+                "value": "Verdichter 1"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "compressor2_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Verdichter 2"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-green"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "backup_heater_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Heizstab 1"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "backup_heater2_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Heizstab 2"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-red"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "backup_heater3_active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Heizstab 3"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 6
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-red"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": " "
+                      },
+                      "6": {
+                        "text": " "
+                      },
+                      "1": {
+                        "text": "Verdichter 1"
+                      },
+                      "2": {
+                        "text": "Verdichter 2"
+                      },
+                      "3": {
+                        "text": "Heizstab 1"
+                      },
+                      "4": {
+                        "text": "Heizstab 2"
+                      },
+                      "5": {
+                        "text": "Heizstab 3"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 6
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 12
+              },
+              {
+                "id": "custom.lineInterpolation",
+                "value": "stepAfter"
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "none"
               }
             ]
           }
@@ -681,6 +1447,7 @@
       },
       "options": {
         "legend": {
+          "showLegend": true,
           "displayMode": "list",
           "placement": "bottom"
         },
@@ -690,12 +1457,20 @@
       },
       "targets": [
         {
-          "refId": "Temps",
+          "refId": "ElectricPower",
           "datasource": {
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_flow\" or r[\"_field\"] == \"temperature_return\" or r[\"_field\"] == \"temperature_outside\" or r[\"_field\"] == \"temperature_hot_water\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"electric_power_actual\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")"
+        },
+        {
+          "refId": "Status",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "import \"internal/debug\"\n\nfrom(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"heating\")\n  |> filter(fn: (r) => r[\"_field\"] == \"compressor_active\" or r[\"_field\"] == \"compressor2_active\" or r[\"_field\"] == \"backup_heater_active\" or r[\"_field\"] == \"backup_heater2_active\" or r[\"_field\"] == \"backup_heater3_active\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> map(fn: (r) => ({r with _value: if r._value >= 1.0 then (if r._field == \"compressor_active\" then 1.0 else if r._field == \"compressor2_active\" then 2.0 else if r._field == \"backup_heater_active\" then 3.0 else if r._field == \"backup_heater2_active\" then 4.0 else 5.0) else debug.null(type: \"float\")}))"
         }
       ]
     }
@@ -731,5 +1506,22 @@
       "url": "/d/system-status",
       "keepTime": true
     }
-  ]
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "period",
+        "label": "Zeitraum",
+        "type": "custom",
+        "query": "Woche : 1w|14w|4d,Monat : 1mo|14mo|0s,Quartal : 3mo|15mo|0s,Jahr : 1y|5y|0s",
+        "current": {
+          "text": "Monat",
+          "value": "1mo|14mo|0s"
+        },
+        "options": [],
+        "includeAll": false,
+        "multi": false
+      }
+    ]
+  }
 }
