@@ -17,6 +17,17 @@ MQTT_USER = os.getenv("MQTT_USERNAME")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", 60))
 
+def hp_bit(lux, bit):
+    """Bit aus der Rohmaske heatpump_status (0=VD1, 1=VD2, 2=ZWE1, 3=ZWE2, 4=ZWE3).
+
+    Die Einzel-Inputs heatpump_vd1_status etc. sind unbrauchbar: luxtronik maskiert bei
+    bit_offset 0 nicht, VD1 wäre sonst bei jedem gesetzten Bit aktiv.
+    """
+    entry = lux.inputs.get("heatpump_status")
+    raw = entry.raw if entry else None
+    return 1 if isinstance(raw, int) and (raw >> bit) & 1 else 0
+
+
 def main():
     if not LUXTRONIK_IP:
         logger.error("NOVELAN_IP environment variable is required")
@@ -104,12 +115,12 @@ def main():
                 # Heizen-Sollwert (Holdings, °C float)
                 "temperature_heating_setpoint": holding("heating_setpoint"),
                 # Heizstab ZWE1 aktiv (SHI-Input, Bool, FW >= 3.90.1)
-                "backup_heater_active": 1 if inp("heatpump_zwe1_status") else 0,
+                "backup_heater_active": hp_bit(lux, 2),
                 # Erzeuger-Status je Stufe (SHI-Bitmaske heatpump_status), 0/1
-                "compressor_active": 1 if inp("heatpump_vd1_status") else 0,
-                "compressor2_active": 1 if inp("heatpump_vd2_status") else 0,
-                "backup_heater2_active": 1 if inp("heatpump_zwe2_status") else 0,
-                "backup_heater3_active": 1 if inp("heatpump_zwe3_status") else 0,
+                "compressor_active": hp_bit(lux, 0),
+                "compressor2_active": hp_bit(lux, 1),
+                "backup_heater2_active": hp_bit(lux, 3),
+                "backup_heater3_active": hp_bit(lux, 4),
                 "heating_power_actual": inp("heating_power_actual"),
                 # Elektrischer Verbrauch (SHI, Modbus TCP Port 502, FW >= 3.90.1)
                 # Bibliothek liefert bereits umgerechnete Werte (kW bzw. kWh), kein /10 nötig
