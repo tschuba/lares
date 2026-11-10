@@ -266,11 +266,11 @@
     {
       "id": 6,
       "type": "stat",
-      "title": "Wechselrichter-Zustand",
-      "description": "Letzter bekannter Zustand (7 Tage). Nach Datenausfall siehe Datenfrische.",
+      "title": "Wechselrichter",
+      "description": "Letzter bekannter Zustand (7 Tage). Läuft = erzeugt/speist, Standby = nachts/ohne Sonne, Gestoppt = abgeschaltet, STÖRUNG = jeder andere Zustand. Ob die Daten aktuell sind, zeigt die Kachel \"Datenfrische\".",
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 8,
         "x": 0,
         "y": 6
       },
@@ -299,7 +299,7 @@
               "type": "value",
               "options": {
                 "2": {
-                  "text": "Run",
+                  "text": "Läuft",
                   "color": "green",
                   "index": 0
                 },
@@ -309,7 +309,7 @@
                   "index": 1
                 },
                 "0": {
-                  "text": "Stop",
+                  "text": "Gestoppt",
                   "color": "gray",
                   "index": 2
                 },
@@ -353,8 +353,8 @@
       "description": "0 V = BMS-Kommunikation gestört",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 4,
+        "w": 8,
+        "x": 8,
         "y": 6
       },
       "datasource": {
@@ -414,8 +414,8 @@
       "description": "",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 8,
+        "w": 8,
+        "x": 16,
         "y": 6
       },
       "datasource": {
@@ -475,9 +475,9 @@
       "description": "0 bei kühlem Wetter = Verdichter steht",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 6
+        "w": 8,
+        "x": 0,
+        "y": 10
       },
       "datasource": {
         "type": "influxdb",
@@ -536,9 +536,9 @@
       "description": "Anteil der Zeit, in der der Heizstab an war",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 16,
-        "y": 6
+        "w": 8,
+        "x": 8,
+        "y": 10
       },
       "datasource": {
         "type": "influxdb",
@@ -601,9 +601,9 @@
       "description": "",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 6
+        "w": 8,
+        "x": 16,
+        "y": 10
       },
       "datasource": {
         "type": "influxdb",
@@ -664,7 +664,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 14
       },
       "panels": []
     },
@@ -676,7 +676,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 15
       },
       "options": {
         "viewMode": "list",
@@ -705,7 +705,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 26
       },
       "panels": []
     },
@@ -718,7 +718,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 27
       },
       "datasource": {
         "type": "influxdb",
@@ -802,13 +802,13 @@
     {
       "id": 16,
       "type": "state-timeline",
-      "title": "Wechselrichter-Zustand",
-      "description": "",
+      "title": "Wechselrichter – Betriebszustand",
+      "description": "Läuft = erzeugt/speist. Standby = nachts/ohne Sonne (normal). Gestoppt = abgeschaltet. Andere Zustände erscheinen unverändert als Störung.",
       "gridPos": {
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 34
       },
       "datasource": {
         "type": "influxdb",
@@ -834,15 +834,18 @@
               "options": {
                 "Run": {
                   "color": "green",
-                  "index": 0
+                  "index": 0,
+                  "text": "Läuft"
                 },
                 "Standby": {
                   "color": "yellow",
-                  "index": 1
+                  "index": 1,
+                  "text": "Standby"
                 },
                 "Stop": {
                   "color": "gray",
-                  "index": 2
+                  "index": 2,
+                  "text": "Gestoppt"
                 }
               }
             }
@@ -870,7 +873,7 @@
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r._field == \"system_state\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, \"system_state\": r._value}))"
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r._field == \"system_state\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, \"Wechselrichter\": r._value}))"
         }
       ]
     },
@@ -883,7 +886,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 39
       },
       "datasource": {
         "type": "influxdb",
@@ -1042,7 +1045,7 @@
         "h": 4,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 47
       },
       "datasource": {
         "type": "influxdb",
