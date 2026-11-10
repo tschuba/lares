@@ -339,7 +339,7 @@ Siehe ADR-019. Grafana wertet die Regeln aus (`config/grafana/provisioning/alert
 
 ### Schritt 1: Alerta auf dem Pi deployen
 
-Coolify → Docker-Compose-Projekt aus `docker-compose.alerta.yml` (Pi). Variable setzen:
+Alerta und Postgres liegen in `docker-compose.pi.yml` (Coolify-Projekt auf dem Pi, zusammen mit `telegraf-pi`). Variable im Coolify-Projekt setzen und neu deployen:
 
 ```bash
 ALERTA_DB_PASSWORD=<zufälliges Passwort>

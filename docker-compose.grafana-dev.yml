@@ -38,7 +38,7 @@ services:
       retries: 10
 
   alerta:
-    image: alerta/alerta-web:9.1.0 # wie docker-compose.alerta.yml
+    image: alerta/alerta-web:9.1.0 # wie docker-compose.pi.yml
     ports:
       - "${ALERTA_DEV_PORT:-8085}:8080"
     depends_on:
