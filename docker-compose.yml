@@ -68,7 +68,7 @@ services:
 
   # Vallox to MQTT Bridge (ADR-006)
   vallox2mqtt:
-    image: ghcr.io/tschuba/lares/vallox2mqtt:1.2.5
+    image: ghcr.io/tschuba/lares/vallox2mqtt:1.2.6
     container_name: vallox2mqtt
     restart: unless-stopped
     networks:
