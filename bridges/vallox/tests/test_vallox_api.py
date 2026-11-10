@@ -93,34 +93,29 @@ class TestDataParsing(unittest.TestCase):
 
 
 class TestAlarmCount(unittest.TestCase):
-    def test_get_alarm_count_zero(self):
-        api = ValloxAPI('192.168.1.100')
-        api.client = MagicMock()
-        api.client.get_alarms = AsyncMock(return_value=[])
+    """get_alarms() is sync on MetricData; use a real MetricData-like object, not an AsyncMock client."""
 
-        result = asyncio.run(api.get_alarm_count())
+    def test_zero(self):
+        metrics = MagicMock()
+        metrics.get_alarms.return_value = []
+        self.assertEqual(ValloxAPI.get_alarm_count(metrics), 0)
 
-        self.assertEqual(result, 0)
+    def test_n_alarms(self):
+        metrics = MagicMock()
+        metrics.get_alarms.return_value = [object()] * 3
+        self.assertEqual(ValloxAPI.get_alarm_count(metrics), 3)
+        metrics.get_alarms.assert_called_once_with(skip_solved=True)
 
-    def test_get_alarm_count_n_alarms(self):
-        api = ValloxAPI('192.168.1.100')
-        api.client = MagicMock()
-        alarm = MagicMock()
-        api.client.get_alarms = AsyncMock(return_value=[alarm, alarm, alarm])
+    def test_failure_returns_none(self):
+        metrics = MagicMock()
+        metrics.get_alarms.side_effect = Exception("boom")
+        self.assertIsNone(ValloxAPI.get_alarm_count(metrics))
 
-        result = asyncio.run(api.get_alarm_count())
+    def test_real_metricdata(self):
+        from vallox_websocket_api.vallox import MetricData
+        m = MetricData({"A_CYC_TOTAL_FAULT_COUNT": 0})
+        self.assertEqual(ValloxAPI.get_alarm_count(m), 0)
 
-        self.assertEqual(result, 3)
-        api.client.get_alarms.assert_called_once_with(skip_solved=True)
-
-    def test_get_alarm_count_api_failure_returns_none(self):
-        api = ValloxAPI('192.168.1.100')
-        api.client = MagicMock()
-        api.client.get_alarms = AsyncMock(side_effect=Exception("Connection error"))
-
-        result = asyncio.run(api.get_alarm_count())
-
-        self.assertIsNone(result)
 
 
 if __name__ == '__main__':
