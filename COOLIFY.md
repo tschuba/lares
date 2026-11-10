@@ -101,13 +101,17 @@ OPENWEATHER_API_KEY=
 
 ### Pi — Grafana service (Coolify UI)
 
-These variables must be set as environment variables in the **Grafana service in Coolify** (not in the NAS `.env`). Grafana substitutes them into `config/grafana/provisioning/alerting/contactpoints.yaml` at startup — if either is missing, Grafana will fail to start.
+These variables must be set as environment variables in the **Grafana service in Coolify** (not in the NAS `.env`). Grafana substitutes them into `config/grafana/provisioning/alerting/contactpoints.yaml` at startup — if any is missing, Grafana will fail to start.
 
 ```bash
 # Pushover (Grafana Alerting)
 PUSHOVER_API_KEY=your_pushover_app_api_key
 PUSHOVER_USER_KEY=your_pushover_user_key
+# Alerta inbox (docker-compose.alerta.yml on the Pi, ADR-019)
+ALERTA_WEBHOOK_URL=http://192.168.178.69:8085/api/webhooks/prometheus
 ```
+
+Deploy `docker-compose.alerta.yml` as a separate Coolify Docker Compose project on the Pi and set `ALERTA_DB_PASSWORD` there.
 
 ## Service Profiles (NAS)
 

@@ -43,6 +43,7 @@ groups:
           summary: CO₂-Wert überschreitet 1000 ppm (IDA-3-Grenze, Lüftung prüfen)
         labels:
           severity: warning
+          instance: lares-co2-warning
 
       # CO₂ Kritisch — DIN EN 13779 IDA 4 (>1400 ppm, sustained 2 min)
       - uid: lares-co2-critical
@@ -80,6 +81,7 @@ groups:
           summary: CO₂-Wert überschreitet 1400 ppm (IDA-4-Grenze, sofort lüften)
         labels:
           severity: critical
+          instance: lares-co2-critical
 
       # Sungrow Systemfehler — system_state != "Run"
       # Requires json_string_fields = ["system_state"] in Telegraf sungrow consumer.
@@ -120,6 +122,7 @@ groups:
           summary: Sungrow SH8.0RT nicht in Betrieb — Wechselrichter prüfen
         labels:
           severity: critical
+          instance: lares-sungrow-fault
 
       # Lüftung heizt Innenraum — gleiche Bedingung wie automatische Steuerung:
       #   supply_air > extract_air + 1°C  UND  outdoor_air > 20°C  für 30 min
@@ -161,22 +164,24 @@ groups:
           summary: "Zuluft seit 30 min wärmer als Innenluft (Δ > 1°C) bei Außenluft > 20°C — Lüftung ausschalten erwägen"
         labels:
           severity: warning
+          instance: lares-ventilation-heating
 
-      # Wärmepumpe Fehler — error_code > 0
-      # Requires error_code field in luxtronik2mqtt.py (ID_WEB_ERROR_Nr0, 0 = no error).
+      # Wärmepumpe Fehler — neuer Eintrag im Fehlerspeicher (error_count hat sich in 24 h geändert).
+      # error_code ist bei Luxtronik ein Text (ID_WEB_ERROR_Nr0), kommt daher nie in InfluxDB an.
+      # Grenze: ein bereits gespeicherter, noch aktiver Fehler wird nicht erneut gemeldet.
       - uid: lares-heatpump-fault
         title: Wärmepumpe Fehler
         condition: B
         data:
           - refId: A
-            relativeTimeRange: {from: 600, to: 0}
+            relativeTimeRange: {from: 86400, to: 0}
             datasourceUid: influxdb-nas
             model:
               query: |
                 from(bucket: v.defaultBucket)
-                  |> range(start: -10m)
-                  |> filter(fn: (r) => r._measurement == "heating" and r["_field"] == "error_code")
-                  |> last()
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "heating" and r["_field"] == "error_count")
+                  |> spread()
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
@@ -192,13 +197,14 @@ groups:
                   query: {params: [A]}
                   reducer: {params: [], type: last}
                   type: query
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 1m
         annotations:
-          summary: Novelan Wärmepumpe meldet Fehler — Display am Gerät prüfen
+          summary: Novelan Wärmepumpe hat einen neuen Fehler gespeichert — Display am Gerät prüfen
         labels:
           severity: critical
+          instance: lares-heatpump-fault
 
       # Lüftungsanlage Alarm — active_alarm_count > 0 für 2 Minuten
       - uid: lares-vallox-alarm
@@ -236,6 +242,7 @@ groups:
           summary: Vallox Lüftungsanlage meldet einen oder mehrere aktive Alarme
         labels:
           severity: critical
+          instance: lares-vallox-alarm
 
       # Filterwechsel Lüftungsanlage — remaining_filter_days < 30 für 12 Stunden
       - uid: lares-filter-change
@@ -273,6 +280,7 @@ groups:
           summary: "Lüftungsfilter muss bald gewechselt werden (weniger als 30 Tage verbleibend)"
         labels:
           severity: warning
+          instance: lares-filter-change
 
       # Warmwasser-Ausfall — Ist-Temp > 5°C unter Luxtronik-Sollwert für 30 Minuten
       # Math: setpoint - actual - 5 > 0 ↔ actual < setpoint - 5
@@ -331,6 +339,7 @@ groups:
           summary: "Warmwassertemperatur mehr als 5°C unter Luxtronik-Sollwert — Wärmepumpe oder Boiler prüfen"
         labels:
           severity: critical
+          instance: lares-hot-water-failure
 
       # Heizstab-Einsatz bei milder Außentemperatur
       # backup_heater_active > 0 UND temperature_outside > 5°C für 15 Minuten
@@ -385,6 +394,7 @@ groups:
           summary: "Heizstab (ZWE1) aktiv obwohl Außentemperatur über 5°C — Wärmepumpe prüfen"
         labels:
           severity: warning
+          instance: lares-backup-heater
 
       # Legionellen / Warmwasser-Überheizung — temperature_hot_water > 60°C für 10 Minuten
       - uid: lares-legionella-run
@@ -422,6 +432,7 @@ groups:
           summary: "Warmwassertemperatur über 60°C — Legionellenprogramm aktiv oder Überheizung"
         labels:
           severity: warning
+          instance: lares-legionella-run
 
       # PV-Batterie Übertemperatur — battery_temperature > 50°C für 5 Minuten
       - uid: lares-sungrow-battery-temp
@@ -459,6 +470,7 @@ groups:
           summary: "PV-Batterie Temperatur über 50°C — sofort prüfen"
         labels:
           severity: critical
+          instance: lares-sungrow-battery-temp
 
       # PV-Batterie Degradation — battery_state_of_healthy < 70% für 1 Stunde
       - uid: lares-sungrow-battery-health
@@ -496,6 +508,7 @@ groups:
           summary: "PV-Batterie Gesundheitszustand unter 70% — Batterietausch erwägen"
         labels:
           severity: warning
+          instance: lares-sungrow-battery-health
 
       # Waschmaschine fertig — Leistung war hoch (>200W in letzten 90–10 min), jetzt < 15W für 10 min
       # device: 2307068416409851080248e1e9ceb390
@@ -549,7 +562,8 @@ groups:
         annotations:
           summary: "Waschgang abgeschlossen — Wäsche entnehmen"
         labels:
-          severity: info
+          severity: informational
+          instance: lares-waschmaschine-fertig
 
       # Trockner fertig — Leistung war hoch (>200W in letzten 90–10 min), jetzt < 15W für 10 min
       # device: 2307067395364351080248e1e9ceaeab
@@ -603,7 +617,8 @@ groups:
         annotations:
           summary: "Trockengang abgeschlossen — Wäsche entnehmen"
         labels:
-          severity: info
+          severity: informational
+          instance: lares-trockner-fertig
 
       # Bridge-Heartbeat: Wärmepumpe — noDataState: Alerting bei ausbleibenden Daten
       - uid: lares-heartbeat-heating
@@ -641,6 +656,7 @@ groups:
           summary: "Luxtronik-Bridge sendet keine Daten mehr — Bridge-Container prüfen"
         labels:
           severity: critical
+          instance: lares-heartbeat-heating
 
       # Bridge-Heartbeat: Lüftung — noDataState: Alerting bei ausbleibenden Daten
       - uid: lares-heartbeat-ventilation
@@ -678,6 +694,7 @@ groups:
           summary: "Vallox-Bridge sendet keine Daten mehr — Bridge-Container prüfen"
         labels:
           severity: critical
+          instance: lares-heartbeat-ventilation
 
       # Bridge-Heartbeat: Sungrow — noDataState: Alerting bei ausbleibenden Daten
       - uid: lares-heartbeat-sungrow
@@ -715,6 +732,7 @@ groups:
           summary: "Sungrow-Bridge (SunGather) sendet keine Daten mehr — Bridge-Container prüfen"
         labels:
           severity: critical
+          instance: lares-heartbeat-sungrow
 
       # Bridge-Heartbeat: EV — noDataState: Alerting bei ausbleibenden Daten
       - uid: lares-heartbeat-ev
@@ -752,6 +770,7 @@ groups:
           summary: "Skoda-Bridge sendet keine Daten mehr — Bridge-Container oder mySkoda-Cloud prüfen"
         labels:
           severity: warning
+          instance: lares-heartbeat-ev
 
       # FRITZ!Smart Energy 250 — Batteriestand niedrig
       - uid: lares-fritz-battery-low
@@ -789,4 +808,138 @@ groups:
           summary: "FRITZ!Smart Energy 250 Batteriestand unter 20% – Batterien wechseln"
         labels:
           severity: warning
+          instance: lares-fritz-battery-low
           receiver: pushover
+
+      # BMS-Kommunikation gestört — Batteriespannung seit 10 min durchgehend ~0 V.
+      # Sungrow liefert keinen Fehlercode; ein gesundes BMS meldet immer Spannung (auch nachts/Standby).
+      # Ausbleibende Daten deckt der Sungrow-Heartbeat ab (daher noDataState: OK).
+      - uid: lares-sungrow-bms-comm
+        title: PV-Batterie BMS-Kommunikation gestört
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "sungrow" and r._field == "battery_voltage")
+                  |> max()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [10], type: lt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Batteriespannung seit 10 min 0 V — BMS-Kommunikation gestört, Batterie wird nicht genutzt"
+        labels:
+          severity: critical
+          instance: lares-sungrow-bms-comm
+
+      # Verdichter steht — kein Verdichterstart seit 24 h bei kühlem Wetter (Ø Außentemp. < 12 °C).
+      # Erkennt "Wärmepumpe meldet keinen Fehler, heizt aber nicht" (Heizstab springt ein).
+      - uid: lares-heatpump-compressor-idle
+        title: Wärmepumpe Verdichter steht trotz Heizbedarf
+        condition: F
+        data:
+          - refId: A
+            relativeTimeRange: {from: 86400, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "runtime_compressor_starts")
+                  |> spread()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 86400, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -24h)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "temperature_outside")
+                  |> mean()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: F
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [1], type: lt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+                - evaluator: {params: [12], type: lt}
+                  operator: {type: and}
+                  query: {params: [B]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: OK
+        execErrState: Error
+        for: 1h
+        annotations:
+          summary: "Kein Verdichterstart seit 24 h bei Außentemperatur < 12 °C — Wärmepumpe heizt nicht, Heizstab prüfen"
+        labels:
+          severity: warning
+          instance: lares-heatpump-compressor-idle
+
+      # Zusatzheizung (ZWE) dauerhaft an — 12 h am Stück ohne Unterbrechung.
+      - uid: lares-backup-heater-continuous
+        title: Heizstab (ZWE) dauerhaft aktiv
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange: {from: 43200, to: 0}
+            datasourceUid: influxdb-nas
+            model:
+              query: |
+                from(bucket: v.defaultBucket)
+                  |> range(start: -12h)
+                  |> filter(fn: (r) => r._measurement == "heating" and r._field == "backup_heater_active")
+                  |> min()
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: B
+              datasource: {type: __expr__, uid: __expr__}
+              conditions:
+                - evaluator: {params: [0.5], type: gt}
+                  operator: {type: and}
+                  query: {params: [A]}
+                  reducer: {params: [], type: last}
+                  type: query
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Heizstab (ZWE) läuft seit 12 h durchgehend — Wärmepumpe kompensiert nicht mehr"
+        labels:
+          severity: warning
+          instance: lares-backup-heater-continuous

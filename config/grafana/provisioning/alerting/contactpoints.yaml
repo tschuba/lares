@@ -15,17 +15,31 @@ contactPoints:
           message: '{{ template "pushover_message" . }}'
         disableResolveMessage: false
 
+  # Kritische Alarme: Priorität 2 = Push wird alle 60 s wiederholt (max. 1 h),
+  # bis in der Pushover-App bestätigt; durchbricht "Nicht stören".
   - orgId: 1
-    name: ntfy
+    name: pushover-critical
     receivers:
-      - uid: ntfy-receiver
+      - uid: pushover-critical-receiver
+        type: pushover
+        settings:
+          apiToken: ${PUSHOVER_API_KEY}
+          userKey: ${PUSHOVER_USER_KEY}
+          priority: 2
+          retry: 60
+          expire: 3600
+          sound: siren
+          title: '{{ template "pushover_title" . }}'
+          message: '{{ template "pushover_message" . }}'
+        disableResolveMessage: false
+
+  # Posteingang (Alerta, Pi, nur LAN): alle Alarme, auch Auflösung -> Alerta schließt den Alarm.
+  - orgId: 1
+    name: alerta
+    receivers:
+      - uid: alerta-receiver
         type: webhook
         settings:
-          url: ${NTFY_URL}
+          url: ${ALERTA_WEBHOOK_URL}
           httpMethod: POST
-          authorization_scheme: Bearer
-          authorization_credentials: ${NTFY_TOKEN}
-          httpHeaders:
-            Content-Type: application/json
-          message: '{{ template "ntfy_body" . }}'
         disableResolveMessage: false

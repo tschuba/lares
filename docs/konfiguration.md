@@ -7,7 +7,7 @@ Dieses Dokument beschreibt geräteseitige Konfigurationsschritte, die nicht übe
 - [Ecowitt GW1201 Wetter-Gateway](#ecowitt-gw1201-wetter-gateway)
 - [WeeWX Wetterdienste](#weewx-wetterdienste)
 - [Grafana](#grafana)
-- [Alerting (ntfy + Grafana)](#alerting-ntfy--grafana)
+- [Alerting (Pushover + Alerta + Grafana)](#alerting-pushover--alerta--grafana)
 
 ## Ecowitt GW1201 Wetter-Gateway
 
@@ -333,108 +333,63 @@ Nach Änderungen: `docker compose restart meross2mqtt`
 - **Cloud-Abhängigkeit**: Fällt die Meross Cloud aus, kommen keine Metriken. Steuerung über `meross_lan` (HTTP direkt) bleibt davon unberührt.
 - **MSS315**: Vom Upstream-Autor nur MSS310 getestet; MSS315 sollte funktionieren (gleiche Library).
 
-## Alerting (ntfy + Grafana)
+## Alerting (Pushover + Alerta + Grafana)
 
-Push-Benachrichtigungen für Fehler der Wärmepumpe, des Wechselrichters und CO₂-Grenzwerte. Grafana wertet die Regeln aus und sendet Benachrichtigungen an eine selbst gehostete ntfy-Instanz.
+Siehe ADR-019. Grafana wertet die Regeln aus (`config/grafana/provisioning/alerting/`), sendet Push über Pushover aufs iPhone und jeden Alarm zusätzlich an Alerta (Posteingang zum Quittieren, nur Heimnetz).
 
-Implementiert in `config/grafana/provisioning/alerting/` (4 Dateien) und `bridges/luxtronik/luxtronik2mqtt.py`.
+### Schritt 1: Alerta auf dem Pi deployen
 
-### Schritt 1: ntfy auf Coolify deployen
-
-1. Coolify öffnen → **New Service** → **Docker Image**
-2. Image: `binwiederhier/ntfy`, Command: `serve`
-3. Volume: `/etc/ntfy` (für Konfigurationsdatei)
-4. Minimale Konfigurationsdatei `/etc/ntfy/server.yml` im Container:
-
-```yaml
-base-url: https://ntfy.example.com
-auth-default-access: deny-all
-```
-
-5. Domain konfigurieren (z.B. `ntfy.schubs.net`)
-6. Service starten
-
-**Zugangstoken erstellen:**
+Coolify → Docker-Compose-Projekt aus `docker-compose.alerta.yml` (Pi). Variable setzen:
 
 ```bash
-# Im ntfy-Container ausführen
-ntfy token add --label lares-grafana admin
-# Token notieren
+ALERTA_DB_PASSWORD=<zufälliges Passwort>
 ```
 
-**ntfy-App auf dem Smartphone** installieren, Server auf `https://ntfy.example.com` setzen und Topic `lares` abonnieren.
+Oberfläche: `http://192.168.178.69:8085` (nur LAN, kein Login).
 
-### Schritt 2: Umgebungsvariablen setzen
-
-In `config/.env` auf dem NAS ergänzen (für zukünftige Verwendung dokumentiert):
+### Schritt 2: Umgebungsvariablen im Grafana-Service (Coolify)
 
 ```bash
-NTFY_URL=https://ntfy.example.com   # kein trailing slash
-NTFY_TOKEN=tk_xxxxxxxxxxxxx          # Token aus Schritt 1
+PUSHOVER_API_KEY=...
+PUSHOVER_USER_KEY=...
+ALERTA_WEBHOOK_URL=http://192.168.178.69:8085/api/webhooks/prometheus
 ```
 
-In **Coolify → Grafana-Service → Environment Variables** ergänzen:
+Fehlt eine Variable, startet Grafana nicht. `NTFY_URL`/`NTFY_TOKEN` werden nicht mehr benötigt.
 
-```
-NTFY_URL=https://ntfy.example.com
-NTFY_TOKEN=tk_xxxxxxxxxxxxx
-```
+### Schritt 3: Ordner "Lares" in Grafana anlegen
 
-Grafana substituiert `${NTFY_URL}` und `${NTFY_TOKEN}` in den Provisioning-Dateien beim Start.
+Grafana → **Alerting → Alert rules → New folder** → `Lares` (wird nicht automatisch aus der Provisioning-YAML erstellt).
 
-### Schritt 3: Ordner in Grafana anlegen
+### Schritt 4: Grafana neu starten und testen
 
-Die provisionierten Alert-Regeln landen im Ordner **"Lares"**, der manuell angelegt werden muss (Grafana erstellt Alert-Ordner nicht automatisch aus der Provisioning-YAML):
+1. Grafana-Service in Coolify neu starten.
+2. **Alerting → Contact points** → `pushover-critical` → **Test**: Push muss aufs iPhone kommen (Priorität 2, bis zur Bestätigung wiederholt).
+3. `alerta` → **Test**: Eintrag muss in der Alerta-Oberfläche erscheinen; mit **Ack** quittieren.
 
-1. Grafana öffnen → **Alerting** → **Alert rules**
-2. **New folder** → Name: `Lares`
-3. Speichern
+### Routing
 
-### Schritt 4: Grafana neu starten
-
-```bash
-# Coolify: Grafana-Service neu starten (damit Provisioning-Dateien geladen werden)
-```
-
-Nach dem Neustart erscheinen unter **Alerting → Alert rules → Lares**:
-
-| Regel | Schwellwert | Wartezeit |
+| Schweregrad | Alerta | Pushover |
 |---|---|---|
-| CO₂ Warnung IDA 3 | >1000 ppm | 5 min |
-| CO₂ Kritisch IDA 4 | >1400 ppm | 2 min |
-| Wechselrichter Fehler | system_state ≠ "Run" | 2 min |
-| Wärmepumpe Fehler | error_code > 0 | 1 min |
+| `critical` | ja | Priorität 2 (wiederholt bis bestätigt) |
+| `warning`, `informational` | ja | Priorität 0 |
 
-### Schritt 5: ntfy-Kontaktpunkt testen
+### Regeln (Auszug)
 
-1. Grafana → **Alerting** → **Contact points** → ntfy → **Test**
-2. Benachrichtigung sollte innerhalb weniger Sekunden auf dem Smartphone erscheinen
+| Regel | Auslöser | Stufe |
+|---|---|---|
+| Bridge-Heartbeat Sungrow / Wärmepumpe / Lüftung | 2 min keine Daten (Abfragefenster 5 min) | critical |
+| Wechselrichter Fehler | `system_state` ≠ Run | critical |
+| PV-Batterie BMS-Kommunikation gestört | `battery_voltage` < 10 V über 10 min | critical |
+| Wärmepumpe Fehler | `error_count` in 24 h gestiegen | critical |
+| Lüftungsanlage Alarm | `active_alarm_count` > 0 (ab vallox2mqtt 1.2.6) | critical |
+| Wärmepumpe Verdichter steht trotz Heizbedarf | keine Verdichterstarts 24 h, Ø Außentemp. < 12 °C | warning |
+| Heizstab (ZWE) dauerhaft aktiv | 12 h ohne Unterbrechung | warning |
 
-### Schritt 6: NAS-Dienste neu starten
+### Dashboard
 
-Telegraf und luxtronik2mqtt müssen neu gestartet werden, damit die Änderungen wirksam werden:
+`status.json` ("Lares – Status & Störungen"): Datenfrische, aktueller Zustand, Alarmliste und Verlaufs-Timelines (Standard 7 Tage).
 
-```bash
-# Auf dem NAS
-docker compose restart telegraf luxtronik2mqtt
-```
+### Hinweis
 
-**Telegraf**: schreibt ab sofort `system_state` als String-Feld in InfluxDB (bisher ignoriert).
-
-**luxtronik2mqtt**: publiziert ab sofort `error_code` und `error_count` im Heizungs-Payload.
-
-### Verifikation
-
-```bash
-# system_state in InfluxDB prüfen (erfordert ~5 s nach Telegraf-Neustart)
-curl -s -XPOST "http://192.168.178.163:8086/api/v2/query?org=${INFLUX_ORG}" \
-  -H "Authorization: Token ${INFLUX_TOKEN}" \
-  -H "Content-Type: application/vnd.flux" \
-  -d 'from(bucket: "smart_home") |> range(start: -5m) |> filter(fn: (r) => r._measurement == "sungrow" and r._field == "system_state") |> last()'
-
-# error_code in InfluxDB prüfen (erfordert ~60 s nach luxtronik2mqtt-Neustart)
-curl -s -XPOST "http://192.168.178.163:8086/api/v2/query?org=${INFLUX_ORG}" \
-  -H "Authorization: Token ${INFLUX_TOKEN}" \
-  -H "Content-Type: application/vnd.flux" \
-  -d 'from(bucket: "smart_home") |> range(start: -5m) |> filter(fn: (r) => r._measurement == "heating" and r._field == "error_code") |> last()'
-```
+Telegraf muss `system_state` als String-Feld schreiben (`json_string_fields`), und `luxtronik2mqtt` publiziert `error_count`; `error_code` ist bei Luxtronik ein Text und wird nicht ausgewertet.
