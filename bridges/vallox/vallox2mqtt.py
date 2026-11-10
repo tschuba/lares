@@ -136,11 +136,14 @@ class ValloxAPI:
             logger.error(f"Vallox WebSocket API request failed: {str(e)}")
             return None
 
-    async def get_alarm_count(self):
-        """Return number of active (unsolved) alarms, or None on error"""
+    @staticmethod
+    def get_alarm_count(metrics):
+        """Return number of active (unsolved) alarms, or None on error.
+
+        get_alarms() is a synchronous method of MetricData (not of the Vallox client).
+        """
         try:
-            active_alarms = await self.client.get_alarms(skip_solved=True)
-            return len(active_alarms)
+            return len(metrics.get_alarms(skip_solved=True))
         except Exception as e:
             logger.error(f"Failed to fetch Vallox alarms: {str(e)}")
             return None
@@ -284,7 +287,7 @@ async def main():
 
                             data['heat_override'] = 1 if heat_protection.override_active else 0
 
-                        alarm_count = await vallox_api.get_alarm_count()
+                        alarm_count = vallox_api.get_alarm_count(metrics)
                         if alarm_count is not None:
                             data['active_alarm_count'] = alarm_count
 
