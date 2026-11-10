@@ -220,7 +220,7 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
   - **Auswertung** bleibt Grafana-Alerting (Pi) auf InfluxDB-Daten; Regeln als Provisioning in `config/grafana/provisioning/alerting/`. Drei Klassen: Gerät meldet Fehler (Wechselrichter-Zustand, Vallox-Alarme, Wärmepumpen-Fehlerspeicher), Gerät schweigt (Heartbeats, 5 min), Gerät verhält sich falsch (BMS-Spannung 0 V, Verdichter ohne Start seit 24 h bei < 12 °C, Heizstab 12 h durchgehend).
   - **Push** ausschließlich über Pushover. ntfy entfällt. Kritische Alarme (`severity = critical`) mit Priorität 2 (Wiederholung alle 60 s bis zur Bestätigung in der App, durchbricht "Nicht stören"), übrige mit Priorität 0.
   - **Posteingang** mit Quittieren und Verlauf: Alerta 9.1 mit Postgres 16 auf dem Pi (`docker-compose.alerta.yml`), nur im Heimnetz (Port 8085, keine Subdomain). Grafana sendet jeden Alarm per Webhook an `/api/webhooks/prometheus` (Alertmanager-Schema). Alarme laufen nicht ab und werden 90 Tage aufbewahrt.
-  - **Statusansicht** im Grafana-Dashboard `status.json`: Datenfrische je Gerät, aktueller Zustand, Alarmliste, Verlaufs-Timelines.
+  - **Statusansicht** im Grafana-Dashboard `status.json`: Letztes Lebenszeichen je Gerät, aktueller Zustand, Alarmliste, Verlaufs-Timelines.
 - Begründung:
   - Pushover ist bereits im Einsatz, iOS-tauglich und von Grafana nativ unterstützt; keine eingehende Verbindung nötig.
   - Grafana hat keinen Gelesen-Status und Home Assistant wird nicht genutzt; Alerta ist ein Standard-Image mit Quittieren (`ack`), Deduplizierung und Auflösung ohne eigenen Code.

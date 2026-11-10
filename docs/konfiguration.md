@@ -379,7 +379,7 @@ Grafana → **Alerting → Alert rules → New folder** → `Lares` (wird nicht 
 | Regel | Auslöser | Stufe |
 |---|---|---|
 | Bridge-Heartbeat Sungrow / Wärmepumpe / Lüftung | 2 min keine Daten (Abfragefenster 5 min) | critical |
-| Wechselrichter Fehler | `system_state` ≠ Run | critical |
+| Wechselrichter Fehler | `system_state` weder Run noch Standby noch Stop | critical |
 | PV-Batterie BMS-Kommunikation gestört | `battery_voltage` < 10 V über 10 min | critical |
 | Wärmepumpe Fehler | `error_count` in 24 h gestiegen | critical |
 | Lüftungsanlage Alarm | `active_alarm_count` > 0 (ab vallox2mqtt 1.2.6) | critical |
@@ -388,7 +388,7 @@ Grafana → **Alerting → Alert rules → New folder** → `Lares` (wird nicht 
 
 ### Dashboard
 
-`status.json` ("Lares – Status & Störungen"): Datenfrische, aktueller Zustand, Alarmliste und Verlaufs-Timelines (Standard 7 Tage).
+`status.json` ("Lares – Status & Störungen"): Letztes Lebenszeichen, aktueller Zustand, Alarmliste und Verlaufs-Timelines (Standard 7 Tage).
 
 ### Hinweis
 

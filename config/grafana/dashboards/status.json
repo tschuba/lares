@@ -45,7 +45,7 @@
     {
       "id": 1,
       "type": "row",
-      "title": "Datenfrische – wann kam der letzte Wert? (rot = Bridge/Gerät liefert nichts mehr)",
+      "title": "Letztes Lebenszeichen – wann kam der letzte Wert? (rot = Gerät/Bridge meldet sich nicht mehr)",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -59,7 +59,7 @@
       "id": 2,
       "type": "stat",
       "title": "Sungrow Wechselrichter",
-      "description": "Sekunden seit letztem Datenpunkt (Heartbeat-Alarm ab 5 min)",
+      "description": "Zeit seit dem letzten Datenpunkt (Heartbeat-Alarm ab 5 min)",
       "gridPos": {
         "h": 4,
         "w": 8,
@@ -267,7 +267,7 @@
       "id": 6,
       "type": "stat",
       "title": "Wechselrichter",
-      "description": "Letzter bekannter Zustand (7 Tage). Läuft = erzeugt/speist, Standby = nachts/ohne Sonne, Gestoppt = abgeschaltet, STÖRUNG = jeder andere Zustand. Ob die Daten aktuell sind, zeigt die Kachel \"Datenfrische\".",
+      "description": "Letzter bekannter Zustand (7 Tage). Läuft = erzeugt/speist, Standby = nachts/ohne Sonne, Gestoppt = abgeschaltet, STÖRUNG = jeder andere Zustand. Ob die Daten aktuell sind, zeigt die Kachel \"Letztes Lebenszeichen\".",
       "gridPos": {
         "h": 4,
         "w": 8,
@@ -712,7 +712,7 @@
     {
       "id": 15,
       "type": "state-timeline",
-      "title": "Datenverfügbarkeit (5-min-Raster)",
+      "title": "Erreichbarkeit (5-min-Raster)",
       "description": "Online = in diesem 5-min-Fenster kam mindestens ein Wert an. AUSFALL = kein Wert (Gerät, Bridge oder Verbindung gestört).",
       "gridPos": {
         "h": 7,
@@ -800,93 +800,15 @@
       ]
     },
     {
-      "id": 16,
+      "id": 17,
       "type": "state-timeline",
-      "title": "Wechselrichter – Betriebszustand",
-      "description": "Läuft = erzeugt/speist. Standby = nachts/ohne Sonne (normal). Gestoppt = abgeschaltet. Andere Zustände erscheinen unverändert als Störung.",
+      "title": "Betriebszustände",
+      "description": "Wechselrichter: Läuft = erzeugt/speist, Standby = nachts/ohne Sonne (normal), Gestoppt = abgeschaltet; andere Zustände erscheinen unverändert als Störung. BMS: rot = Batteriespannung 0 V. Verdichter: grün = läuft (compressor_active wird erst seit 08.11. aufgezeichnet). Heizstab: orange = Zusatzheizung an. Lüftung: grün = kein Alarm, rot = Alarm, grau = keine Daten (Alarmfeld ab Bridge vallox2mqtt 1.2.6).",
       "gridPos": {
-        "h": 5,
+        "h": 16,
         "w": 24,
         "x": 0,
         "y": 34
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "gray",
-                "value": null
-              }
-            ]
-          },
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "Run": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "Läuft"
-                },
-                "Standby": {
-                  "color": "yellow",
-                  "index": 1,
-                  "text": "Standby"
-                },
-                "Stop": {
-                  "color": "gray",
-                  "index": 2,
-                  "text": "Gestoppt"
-                }
-              }
-            }
-          ],
-          "custom": {
-            "fillOpacity": 80,
-            "lineWidth": 0
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "mergeValues": true,
-        "showValue": "auto",
-        "alignValue": "center",
-        "rowHeight": 0.8,
-        "legend": {
-          "showLegend": false
-        }
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "influxdb-nas"
-          },
-          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r._field == \"system_state\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, \"Wechselrichter\": r._value}))"
-        }
-      ]
-    },
-    {
-      "id": 17,
-      "type": "state-timeline",
-      "title": "Batterie & Wärmepumpe – Betriebszustände",
-      "description": "BMS: rot = Batteriespannung 0 V. Verdichter: grün = läuft (compressor_active wird erst seit 08.11. aufgezeichnet). Heizstab: orange = Zusatzheizung an.",
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 39
       },
       "datasource": {
         "type": "influxdb",
@@ -914,6 +836,39 @@
           }
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wechselrichter"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Run": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Läuft"
+                      },
+                      "Standby": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Standby"
+                      },
+                      "Stop": {
+                        "color": "gray",
+                        "index": 2,
+                        "text": "Gestoppt"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byName",
@@ -997,6 +952,39 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lüftung"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "kein Alarm",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "ALARM",
+                        "color": "red",
+                        "index": 1
+                      },
+                      "-1": {
+                        "text": "keine Daten",
+                        "color": "gray",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -1010,6 +998,14 @@
         }
       },
       "targets": [
+        {
+          "refId": "W",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-nas"
+          },
+          "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sungrow\" and r._field == \"system_state\")\n  |> aggregateWindow(every: 5m, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, \"Wechselrichter\": r._value}))"
+        },
         {
           "refId": "A",
           "datasource": {
@@ -1033,85 +1029,14 @@
             "uid": "influxdb-nas"
           },
           "query": "from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"heating\" and r._field == \"backup_heater_active\")\n  |> aggregateWindow(every: 5m, fn: max, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, \"Heizstab ZWE\": if r._value > 0.5 then 2.0 else 0.0}))"
-        }
-      ]
-    },
-    {
-      "id": 18,
-      "type": "state-timeline",
-      "title": "Lüftung – Alarme",
-      "description": "Daten ab Bridge vallox2mqtt 1.2.6",
-      "gridPos": {
-        "h": 4,
-        "w": 24,
-        "x": 0,
-        "y": 47
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "influxdb-nas"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "gray"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "gray",
-                "value": null
-              }
-            ]
-          },
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "kein Alarm",
-                  "color": "green",
-                  "index": 0
-                },
-                "1": {
-                  "text": "ALARM",
-                  "color": "red",
-                  "index": 1
-                },
-                "-1": {
-                  "text": "keine Daten",
-                  "color": "gray",
-                  "index": 2
-                }
-              }
-            }
-          ],
-          "custom": {
-            "fillOpacity": 80,
-            "lineWidth": 0
-          }
         },
-        "overrides": []
-      },
-      "options": {
-        "mergeValues": true,
-        "showValue": "auto",
-        "alignValue": "center",
-        "rowHeight": 0.8,
-        "legend": {
-          "showLegend": false
-        }
-      },
-      "targets": [
         {
-          "refId": "A",
+          "refId": "L",
           "datasource": {
             "type": "influxdb",
             "uid": "influxdb-nas"
           },
-          "query": "import \"array\"\n\n// Platzhalter am Zeitraumanfang (-1 = keine Daten), damit das Panel auch ohne Alarm-Feld\n// (Bridge < 1.2.6) einen Zeitverlauf hat statt \"Data does not have a time field\".\nplaceholder = array.from(rows: [{_time: v.timeRangeStart, _value: -1.0}])\n\nreal = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"ventilation\" and r.metric == \"active_alarm_count\")\n  |> aggregateWindow(every: 5m, fn: max, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value > 0.0 then 1.0 else 0.0}))\n  |> keep(columns: [\"_time\", \"_value\"])\n\nunion(tables: [placeholder, real])\n  |> group()\n  |> sort(columns: [\"_time\"])\n  |> rename(columns: {_value: \"aktive Alarme\"})"
+          "query": "import \"array\"\n\n// Platzhalter am Zeitraumanfang (-1 = keine Daten), damit das Panel auch ohne Alarm-Feld\n// (Bridge < 1.2.6) einen Zeitverlauf hat statt \"Data does not have a time field\".\nplaceholder = array.from(rows: [{_time: v.timeRangeStart, _value: -1.0}])\n\nreal = from(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"ventilation\" and r.metric == \"active_alarm_count\")\n  |> aggregateWindow(every: 5m, fn: max, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value > 0.0 then 1.0 else 0.0}))\n  |> keep(columns: [\"_time\", \"_value\"])\n\nunion(tables: [placeholder, real])\n  |> group()\n  |> sort(columns: [\"_time\"])\n  |> rename(columns: {_value: \"Lüftung\"})"
         }
       ]
     }

@@ -83,9 +83,10 @@ groups:
           severity: critical
           instance: lares-co2-critical
 
-      # Sungrow Systemfehler — system_state != "Run"
+      # Sungrow Systemfehler — system_state ist weder "Run" noch "Standby" noch "Stop"
+      # (Standby = nachts/ohne Sonne, Stop = abgeschaltet; beides normal, kein Alarm).
       # Requires json_string_fields = ["system_state"] in Telegraf sungrow consumer.
-      # Flux maps string to numeric: "Run" → 0.0, any other state → 1.0
+      # Flux maps string to numeric: Run/Standby/Stop -> 0.0, any other state -> 1.0
       - uid: lares-sungrow-fault
         title: Wechselrichter Fehler
         condition: B
@@ -99,7 +100,7 @@ groups:
                   |> range(start: -10m)
                   |> filter(fn: (r) => r._measurement == "sungrow" and r["_field"] == "system_state")
                   |> last()
-                  |> map(fn: (r) => ({_time: r._time, _value: if r._value == "Run" then 0.0 else 1.0}))
+                  |> map(fn: (r) => ({_time: r._time, _value: if r._value == "Run" or r._value == "Standby" or r._value == "Stop" then 0.0 else 1.0}))
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
@@ -119,7 +120,7 @@ groups:
         execErrState: Alerting
         for: 2m
         annotations:
-          summary: Sungrow SH8.0RT nicht in Betrieb — Wechselrichter prüfen
+          summary: Sungrow SH8.0RT meldet einen Störungszustand (nicht Run/Standby/Stop) — Wechselrichter prüfen
         labels:
           severity: critical
           instance: lares-sungrow-fault
