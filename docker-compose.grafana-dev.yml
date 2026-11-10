@@ -1,7 +1,9 @@
 # Lokale Grafana-Testinstanz für Dashboard-Änderungen (nur Dev, nicht deployen).
 # Start: docker compose -f docker-compose.grafana-dev.yml up  (INFLUX_ORG/BUCKET/TOKEN kommen automatisch aus .env)
 # UI: http://localhost:3300 (Port per GRAFANA_DEV_PORT änderbar) (admin/admin, anonym Admin). Daten: echte NAS-InfluxDB (LAN, read-only Token empfohlen).
-# Alerting-Provisioning wird bewusst nicht gemountet (keine Benachrichtigungen aus Tests).
+# Alerting-Provisioning (config/grafana/provisioning/alerting) ist gemountet und läuft gegen die echte NAS-InfluxDB.
+# Pushover-Keys sind bewusst Dummy-Werte (Pushover lehnt sie ab -> kein echter Push aus Tests); Alarme landen nur im lokalen Alerta.
+# Alerta-UI: http://localhost:8085 (Port per ALERTA_DEV_PORT änderbar).
 services:
   grafana:
     image: grafana/grafana:13.3.0-slim # wie deployed (cockpit.schubs.net)
@@ -13,7 +15,37 @@ services:
       INFLUX_ORG: ${INFLUX_ORG}
       INFLUX_BUCKET: ${INFLUX_BUCKET}
       INFLUX_TOKEN: ${INFLUX_TOKEN}
+      PUSHOVER_API_KEY: dummy-dev-token
+      PUSHOVER_USER_KEY: dummy-dev-user
+      ALERTA_WEBHOOK_URL: http://alerta:8080/api/webhooks/prometheus
+    depends_on:
+      - alerta
     volumes:
       - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./config/grafana/provisioning/alerting:/etc/grafana/provisioning/alerting:ro
+
+  alerta-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: alerta
+      POSTGRES_USER: alerta
+      POSTGRES_PASSWORD: dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alerta"]
+      interval: 5s
+      retries: 10
+
+  alerta:
+    image: alerta/alerta-web:9.1.0 # wie docker-compose.pi.yml
+    ports:
+      - "${ALERTA_DEV_PORT:-8085}:8080"
+    depends_on:
+      alerta-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://alerta:dev@alerta-db:5432/alerta
+      ALERTA_SVR_CONF_FILE: /app/config/alertad.conf
+    volumes:
+      - ./config/alerta/alertad.conf:/app/config/alertad.conf:ro

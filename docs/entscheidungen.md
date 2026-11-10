@@ -20,6 +20,7 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - [ADR-013: Sungrow-Integration als off-the-shelf Image](#adr-013-sungrow-integration-als-off-the-shelf-image)
 - [ADR-014: NAS-zentrierte Service-Verteilung](#adr-014-nas-zentrierte-service-verteilung)
 - [ADR-018: Exakte Image-Versionierung und Release-gesteuertes Bridge-Build](#adr-018-exakte-image-versionierung-und-release-gesteuertes-bridge-build)
+- [ADR-019: Störungsüberwachung mit Pushover und Alerta-Posteingang](#adr-019-störungsüberwachung-mit-pushover-und-alerta-posteingang)
 
 ## ADR-001: Projektname "Lares"
 
@@ -210,3 +211,25 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Einschränkungen:
   - Neue Upstream-Patches werden nicht automatisch eingespielt; manuelle Version-Bumps sind erforderlich.
   - Dockerfile-Base-Images (`FROM python:3.x-slim`, `felddy/weewx:latest`) sind noch nicht gepinnt — mögliches Follow-up.
+
+## ADR-019: Störungsüberwachung mit Pushover und Alerta-Posteingang
+
+- Status: Angenommen
+- Kontext: Ausfälle blieben unbemerkt. Beispiele: Die Wärmepumpe stand über drei Wochen (Verdichterzähler eingefroren, keine Fehlermeldung), ein Sungrow-Ausfall und ein BMS-Kommunikationsfehler fielen nicht auf. Ursachen: (1) kritische Alarme gingen an ntfy, das nicht auf das iPhone zugestellt wurde; (2) die Regeln für Vallox-Alarme und Wärmepumpen-Fehler waren blind, weil `active_alarm_count` (Bridge-Bug: synchrone Bibliotheksmethode wurde mit `await` am falschen Objekt aufgerufen) und `error_code` (Luxtronik liefert Text statt Zahl) nie in InfluxDB ankamen; (3) es gab keinen Ort, an dem offene Störungen gesammelt und quittiert werden. Ausfall von NAS oder Pi selbst ist bewusst kein Meldeszenario.
+- Entscheidung:
+  - **Auswertung** bleibt Grafana-Alerting (Pi) auf InfluxDB-Daten; Regeln als Provisioning in `config/grafana/provisioning/alerting/`. Drei Klassen: Gerät meldet Fehler (Wechselrichter-Zustand, Vallox-Alarme, Wärmepumpen-Fehlerspeicher), Gerät schweigt (Heartbeats, 5 min), Gerät verhält sich falsch (BMS-Spannung 0 V, Verdichter ohne Start seit 24 h bei < 12 °C, Heizstab 12 h durchgehend).
+  - **Push** ausschließlich über Pushover. ntfy entfällt. Kritische Alarme (`severity = critical`) mit Priorität 2 (Wiederholung alle 60 s bis zur Bestätigung in der App, durchbricht "Nicht stören"), übrige mit Priorität 0.
+  - **Posteingang** mit Quittieren und Verlauf: Alerta 9.1 mit Postgres 16 auf dem Pi (in `docker-compose.pi.yml`), nur im Heimnetz (Port 8085, keine Subdomain). Grafana sendet jeden Alarm per Webhook an `/api/webhooks/prometheus` (Alertmanager-Schema). Alarme laufen nicht ab und werden 90 Tage aufbewahrt.
+  - **Statusansicht** im Grafana-Dashboard `status.json`: Letztes Lebenszeichen je Gerät, aktueller Zustand, Alarmliste, Verlaufs-Timelines.
+- Begründung:
+  - Pushover ist bereits im Einsatz, iOS-tauglich und von Grafana nativ unterstützt; keine eingehende Verbindung nötig.
+  - Grafana hat keinen Gelesen-Status und Home Assistant wird nicht genutzt; Alerta ist ein Standard-Image mit Quittieren (`ack`), Deduplizierung und Auflösung ohne eigenen Code.
+  - Kein neuer öffentlicher Dienst, damit konform zu ADR-007.
+- Einschränkungen:
+  - Pushover ist eine Cloud-Ausnahme (nur Alarmtext verlässt das Haus), analog ADR-009.
+  - Alerta ist ein Ein-Personen-Projekt (Release 9.1.0 im März 2026, davor 18 Monate ohne Release); der Austausch ist günstig, da nur der Webhook-Empfänger betroffen ist. Das ARM64-Image existiert erst seit März 2026.
+  - Quittieren ist nur im Heimnetz möglich; unterwegs kommt nur der Push.
+  - Alerta kennt "offen/bestätigt/geschlossen", kein "ungelesen".
+  - Der Wärmepumpen-Fehleralarm erkennt nur neue Einträge im Fehlerspeicher (`error_count`); ein bereits gespeicherter, noch aktiver Fehler wird nicht erneut gemeldet.
+  - Grafana-Alarme feuern auch, wenn Alerta ausfällt; der Push bleibt davon unberührt.
+  - Abweichung von ADR-014: Alerta ist ein Integrationsdienst (nur LAN), läuft aber auf dem Pi und nicht auf dem NAS. Grund: Fällt das NAS aus, sollen die Heartbeat-Alarme weiter im Posteingang landen; Grafana wertet die Regeln ebenfalls auf dem Pi aus. Postgres schreibt dafür auf den Pi.

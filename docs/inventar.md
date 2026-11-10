@@ -56,6 +56,7 @@ Zuordnung der Meross-Steckdosen:
 | Grafana | `grafana/grafana` | Extern via `cockpit.schubs.net` | 3000 intern | bestehend |
 | Traefik | Coolify-integriert | Reverse Proxy | 80/443 | - |
 | Authentik | Coolify-integriert | SSO | App-intern | - |
+| Alerta + Postgres | `alerta/alerta-web:9.1.0`, `postgres:16-alpine` | Nur LAN (kein Authentik, ADR-019) | 8085/tcp | ja (Volume `alerta-db`) |
 
 ## 4) Service-Inventar (NAS - 192.168.178.163)
 
@@ -175,6 +176,7 @@ Primäre Energiequellen und -senken:
 | Alexa/Echo | API-basiert, internetgebunden |
 | Wetterfreigabe-Dienste | externe Veröffentlichung erfordert ausgehende Internetverbindung |
 | Meross (einmalig) | UUID/Key-Ermittlung beim ersten Start via Cloud-API; danach vollstaendig lokal |
+| Pushover (dauerhaft) | Push-Benachrichtigungen aufs iPhone; nur Alarmtext verlässt das Haus (ADR-019) |
 | mySkoda (dauerhaft) | kein lokales Fahrzeug-API; Ladestatus und Steuerung ausschließlich über mySkoda Cloud (ADR-016) |
 
 Alle anderen Kernpfade sind lokal-first ausgelegt.

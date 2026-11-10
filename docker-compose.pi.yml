@@ -1,8 +1,11 @@
 # Lares System Monitoring on Raspberry Pi (192.168.178.69)
 # Deploy as a Coolify Docker Compose project on the Pi.
 # Set environment variables in the Coolify project UI:
-#   INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
+#   INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET, DOCKER_GID, ALERTA_DB_PASSWORD
 # INFLUX_HOST and INFLUX_PORT are hardcoded to the NAS.
+#
+# Alerta = Alarm-Posteingang (Quittieren, Verlauf) für Grafana-Alerting, nur LAN (ADR-019).
+# Grafana-Kontaktpunkt "alerta" zeigt auf http://192.168.178.69:8085/api/webhooks/prometheus
 
 services:
   telegraf-pi:
@@ -24,3 +27,36 @@ services:
       - INFLUX_BUCKET=${INFLUX_BUCKET}
       - INFLUX_HOST=192.168.178.163
       - INFLUX_PORT=8086
+
+  alerta-db:
+    image: postgres:16-alpine
+    container_name: alerta-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: alerta
+      POSTGRES_USER: alerta
+      POSTGRES_PASSWORD: ${ALERTA_DB_PASSWORD:?ALERTA_DB_PASSWORD fehlt}
+    volumes:
+      - alerta-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alerta"]
+      interval: 10s
+      retries: 5
+
+  alerta:
+    image: alerta/alerta-web:9.1.0
+    container_name: alerta
+    restart: unless-stopped
+    depends_on:
+      alerta-db:
+        condition: service_healthy
+    ports:
+      - "8085:8080"
+    environment:
+      DATABASE_URL: postgres://alerta:${ALERTA_DB_PASSWORD}@alerta-db:5432/alerta
+      ALERTA_SVR_CONF_FILE: /app/config/alertad.conf
+    volumes:
+      - ./config/alerta/alertad.conf:/app/config/alertad.conf:ro
+
+volumes:
+  alerta-db:
