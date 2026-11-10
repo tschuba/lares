@@ -1093,6 +1093,12 @@
       "keepTime": true
     },
     {
+      "title": "Status",
+      "type": "link",
+      "url": "/d/status",
+      "keepTime": true
+    },
+    {
       "title": "Heizung",
       "type": "link",
       "url": "/d/heating",

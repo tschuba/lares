@@ -942,6 +942,12 @@
       "keepTime": true
     },
     {
+      "title": "Status",
+      "type": "link",
+      "url": "/d/status",
+      "keepTime": true
+    },
+    {
       "title": "Energie",
       "type": "link",
       "url": "/d/energy",
