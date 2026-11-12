@@ -233,3 +233,13 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
   - Der Wärmepumpen-Fehleralarm erkennt nur neue Einträge im Fehlerspeicher (`error_count`); ein bereits gespeicherter, noch aktiver Fehler wird nicht erneut gemeldet.
   - Grafana-Alarme feuern auch, wenn Alerta ausfällt; der Push bleibt davon unberührt.
   - Abweichung von ADR-014: Alerta ist ein Integrationsdienst (nur LAN), läuft aber auf dem Pi und nicht auf dem NAS. Grund: Fällt das NAS aus, sollen die Heartbeat-Alarme weiter im Posteingang landen; Grafana wertet die Regeln ebenfalls auf dem Pi aus. Postgres schreibt dafür auf den Pi.
+
+## ADR-020: Grafana-Ressourcen als eigenes Config-Image
+
+- Status: Vorgeschlagen
+- Kontext: Dashboards und Provisioning (`config/grafana/`) sollen auf dem Pi ohne Git-Checkout und mit pinnbarer Version deployt werden.
+- Entscheidung: Zwei Images in einem Compose-Projekt (`docker-compose.grafana.yml`): `ghcr.io/tschuba/lares/grafana-config` (busybox, enthält `dashboards/` und `provisioning/`) kopiert beim Start per Init-Container in zwei Named Volumes; das unveränderte Upstream-Image `grafana/grafana` mountet sie read-only. Zustand (`grafana-data`) bleibt getrennt. Build und Release wie ADR-018 (Release-Tag `grafana-config-vX.Y.Z`).
+- Begründung: Grafana-Updates und Config-Releases sind unabhängig; Rollback per Tag; Dev-Compose nutzt dieselben Zielpfade per Bind-Mount.
+- Einschränkungen:
+  - Jede Dashboard-Änderung braucht Build/Release; Alerting-Provisioning wirkt erst nach Grafana-Neustart.
+  - Nicht gegen Coolify getestet (`service_completed_successfully`).
