@@ -1,7 +1,7 @@
 # Lokale Grafana-Testinstanz für Dashboard-Änderungen (nur Dev, nicht deployen).
-# Start: docker compose -f docker-compose.grafana-dev.yml up  (INFLUX_ORG/BUCKET/TOKEN kommen automatisch aus .env)
+# Start: docker compose -f docker-compose.grafana-dev.yml up --build  (INFLUX_ORG/BUCKET/TOKEN kommen automatisch aus .env)
 # UI: http://localhost:3300 (Port per GRAFANA_DEV_PORT änderbar) (admin/admin, anonym Admin). Daten: echte NAS-InfluxDB (LAN, read-only Token empfohlen).
-# Alerting-Provisioning (config/grafana/provisioning/alerting) ist gemountet und läuft gegen die echte NAS-InfluxDB.
+# Alerting-Provisioning (config/grafana/provisioning/alerting) kommt über das lokal gebaute Config-Image und läuft gegen die echte NAS-InfluxDB.
 # Pushover-Keys sind bewusst Dummy-Werte (Pushover lehnt sie ab -> kein echter Push aus Tests); Alarme landen nur im lokalen Alerta.
 # Alerta-UI: http://localhost:8085 (Port per ALERTA_DEV_PORT änderbar).
 services:
@@ -19,12 +19,21 @@ services:
       PUSHOVER_USER_KEY: dummy-dev-user
       ALERTA_WEBHOOK_URL: http://alerta:8080/api/webhooks/prometheus
     depends_on:
-      - alerta
+      alerta:
+        condition: service_started
+      grafana-config:
+        condition: service_completed_successfully
     volumes:
-      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      - ./config/grafana/provisioning/alerting:/etc/grafana/provisioning/alerting:ro
+      - grafana-dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-provisioning:/etc/grafana/provisioning:ro
+
+  # Config-Image wie in Prod (ADR-020); nach Änderungen an config/grafana: up --build
+  grafana-config:
+    build: ./config/grafana
+    restart: "no"
+    volumes:
+      - grafana-dashboards:/target/dashboards
+      - grafana-provisioning:/target/provisioning
 
   alerta-db:
     image: postgres:16-alpine
@@ -49,3 +58,7 @@ services:
       ALERTA_SVR_CONF_FILE: /app/config/alertad.conf
     volumes:
       - ./config/alerta/alertad.conf:/app/config/alertad.conf:ro
+
+volumes:
+  grafana-dashboards:
+  grafana-provisioning:

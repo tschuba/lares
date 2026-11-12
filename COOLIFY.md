@@ -56,6 +56,10 @@ In Grafana datasource configuration:
 - Bucket: `smart_home`
 - Token: Use the InfluxDB admin token from NAS
 
+#### Grafana-Config als Image (ADR-020)
+
+`docker-compose.grafana.yml` startet `grafana-config` (Init-Container, kopiert Dashboards und Provisioning in Volumes) und danach Grafana. Update: Tag in der Compose-Datei anheben, `docker compose -f docker-compose.grafana.yml pull && docker compose -f docker-compose.grafana.yml up -d --force-recreate grafana-config grafana`. Release-Tag: `grafana-config-vX.Y.Z`.
+
 ## Environment Variables
 
 ### NAS (`config/.env`)

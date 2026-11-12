@@ -1,0 +1,30 @@
+# Grafana auf dem Pi (Coolify) mit Config als eigenem Image (ADR-020).
+# Config-Update: Tag von grafana-config anheben, dann
+#   docker compose -f docker-compose.grafana.yml up -d --force-recreate grafana-config grafana
+# (Alerting-Provisioning wird nur beim Grafana-Start gelesen.)
+# Env (Coolify): PUSHOVER_API_KEY, PUSHOVER_USER_KEY, INFLUX_* wie bisher (siehe COOLIFY.md).
+# Hinweis: Dein bestehendes Grafana-Service (Env, Traefik-Labels, grafana-data-Volume) hier übernehmen.
+
+services:
+  grafana-config:
+    image: ghcr.io/tschuba/lares/grafana-config:latest # produktiv auf X.Y.Z pinnen (ADR-018)
+    restart: "no"
+    volumes:
+      - grafana-dashboards:/target/dashboards
+      - grafana-provisioning:/target/provisioning
+
+  grafana:
+    image: grafana/grafana:13.3.0-slim
+    restart: unless-stopped
+    depends_on:
+      grafana-config:
+        condition: service_completed_successfully
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - grafana-dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-provisioning:/etc/grafana/provisioning:ro
+
+volumes:
+  grafana-data:
+  grafana-dashboards:
+  grafana-provisioning:
