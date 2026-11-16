@@ -4,4 +4,4 @@ FROM busybox:1.37
 COPY dashboards /src/dashboards
 COPY provisioning /src/provisioning
 # Ziel-Volumes leeren (gelöschte Dashboards entfernen), dann Inhalt kopieren
-CMD ["sh", "-c", "for d in dashboards provisioning; do rm -rf /target/$d/* && cp -r /src/$d/. /target/$d/; done"]
+CMD ["sh", "-c", "set -e; for d in dashboards provisioning; do echo \"sync $d\"; rm -rf /target/$d/*; cp -rv /src/$d/. /target/$d/; done; echo done"]
