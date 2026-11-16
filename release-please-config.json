@@ -4,7 +4,6 @@
     "config/grafana": {
       "release-type": "simple",
       "component": "grafana-config",
-      "release-as": "1.0.0",
       "extra-files": [
         { "type": "generic", "path": "/docker-compose.grafana.yml" }
       ]
