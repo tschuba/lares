@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/tschuba/lares/compare/grafana-config-v1.0.0...grafana-config-v1.0.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **grafana-config:** publish multi-arch image (amd64, arm64) ([#41](https://github.com/tschuba/lares/issues/41)) ([5c31823](https://github.com/tschuba/lares/commit/5c31823c7e50b05819d097af25f58a231d04ef74))
+
 ## 1.0.0 (2026-11-16)
 
 
