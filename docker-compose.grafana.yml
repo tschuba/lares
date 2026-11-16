@@ -7,7 +7,7 @@
 
 services:
   grafana-config:
-    image: ghcr.io/tschuba/lares/grafana-config:1.0.0 # x-release-please-version (ADR-021)
+    image: ghcr.io/tschuba/lares/grafana-config:1.0.1 # x-release-please-version (ADR-021)
     restart: "no"
     volumes:
       - grafana-dashboards:/target/dashboards
