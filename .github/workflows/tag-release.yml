@@ -1,0 +1,45 @@
+name: Tag Release
+
+# (grafana-config ausgenommen: ADR-021, release-please.) Auf main: ändert sich ein gepinnter Image-Tag ghcr.io/tschuba/lares/<name>:X.Y.Z in einer Compose-Datei,
+# wird Tag <name>-vX.Y.Z gesetzt und ein Draft-Release angelegt (ältere Drafts desselben Images werden gelöscht).
+# Das manuelle Veröffentlichen des Drafts löst build-bridges.yml aus (ADR-018).
+# Ablauf: Tag in Compose anheben, mergen, Draft publizieren.
+
+on:
+  push:
+    branches: [main]
+    paths: ['docker-compose*.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag and draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          pins() { grep -ohE 'ghcr\.io/tschuba/lares/[a-z0-9-]+:[0-9]+\.[0-9]+\.[0-9]+' | sed 's|ghcr.io/tschuba/lares/||' | grep -v '^grafana-config:' | sort -u || true; }
+          new=$(cat docker-compose*.yml | pins)
+          old=$(for f in $(git ls-tree --name-only "$BEFORE" | grep -E '^docker-compose.*\.yml$' || true); do git show "$BEFORE:$f"; done | pins)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for pin in $(comm -13 <(echo "$old") <(echo "$new")); do
+            name=${pin%%:*}; tag="$name-v${pin#*:}"
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then echo "Tag $tag exists."; continue; fi
+            git tag -a "$tag" -m "Release $tag"
+            git push origin "$tag"
+            # Unveröffentlichte Drafts früherer Versionen desselben Images aufräumen
+            gh release list --json tagName,isDraft --jq ".[] | select(.isDraft and (.tagName | startswith(\"$name-v\"))) | .tagName" |
+              while read -r d; do gh release delete "$d" --yes --cleanup-tag; done
+            prev=$(gh release list --exclude-drafts --limit 100 --json tagName --jq "[.[] | select(.tagName | startswith(\"$name-v\"))][0].tagName // empty")
+            gh release create "$tag" --draft --verify-tag --generate-notes ${prev:+--notes-start-tag "$prev"}
+          done
