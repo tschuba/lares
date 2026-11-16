@@ -16,6 +16,13 @@ policies:
         group_by: [alertname]
         group_wait: 10s
         repeat_interval: 24h
+      # BMS-Ausfall ist ein Dauerzustand, kein flüchtiges Ereignis -> Erinnerung nur 1x täglich statt alle 4 h.
+      - receiver: pushover-critical
+        matchers:
+          - instance = lares-sungrow-bms-comm
+        group_by: [alertname]
+        group_wait: 30s
+        repeat_interval: 24h
       - receiver: pushover-critical
         matchers:
           - severity = critical
