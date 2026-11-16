@@ -75,7 +75,6 @@ jobs:
               - 'bridges/fritz/**'
             grafana-config:
               - 'config/grafana/**'
-      - 'config/grafana/**'
 
   build-luxtronik:
     runs-on: ubuntu-latest
