@@ -69,9 +69,9 @@
 Bridge images in `docker-compose.yml` are pinned to explicit semver tags. A new tag is only pushed to GHCR when a GitHub Release is published. Steps:
 
 1. Merge your changes to `main`. The CI build publishes `latest` and a `<sha>` tag — use these for manual pre-release testing.
-2. Create a GitHub Release with tag `<image-name>-vX.Y.Z` (e.g. `vallox2mqtt-v1.2.6`). Use the published image name, not the bridge directory name (e.g. `sungrow2mqtt`, not `sungather`).
-3. The release trigger fires only the matching build job and pushes the `X.Y.Z` semver tag to GHCR.
-4. Update the image tag in `docker-compose.yml` and deploy: `docker compose pull && docker compose --profile <profile> up -d`.
+2. Raise the pinned image tag (`ghcr.io/tschuba/lares/<image-name>:X.Y.Z`) in `docker-compose*.yml` and merge. `.github/workflows/tag-release.yml` then creates the tag `<image-name>-vX.Y.Z` and a draft GitHub Release automatically. Use the published image name, not the bridge directory name (e.g. `sungrow2mqtt`, not `sungather`).
+3. Publish the draft release. This fires only the matching build job and pushes the `X.Y.Z` semver tag to GHCR.
+4. Deploy: `docker compose pull && docker compose --profile <profile> up -d`.
 
 ## Before making infra/code changes
 
@@ -90,3 +90,9 @@ Bridge images in `docker-compose.yml` are pinned to explicit semver tags. A new 
 - `docs/konfiguration.md` — device-side setup (Ecowitt, WeeWX)
 - `docs/umsetzungsplan.md` — phased implementation roadmap
 - `COOLIFY.md` — deployment guide (profiles, env vars, troubleshooting)
+
+## Commits
+
+- Conventional Commits sind Pflicht (`<typ>[(scope)][!]: <beschreibung>`), Grundlage für automatische SemVer-Releases.
+- Lokal: `git config core.hooksPath .githooks` einmalig pro Clone (Hook `.githooks/commit-msg`).
+- GitHub: Check `PR Title` (`.github/workflows/pr-title.yml`); PRs nur per Squash-Merge, damit der PR-Titel die Commit-Nachricht ist.

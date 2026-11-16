@@ -58,7 +58,7 @@ In Grafana datasource configuration:
 
 #### Grafana-Config als Image (ADR-020)
 
-`docker-compose.grafana.yml` startet `grafana-config` (Init-Container, kopiert Dashboards und Provisioning in Volumes) und danach Grafana. Update: Tag in der Compose-Datei anheben, `docker compose -f docker-compose.grafana.yml pull && docker compose -f docker-compose.grafana.yml up -d --force-recreate grafana-config grafana`. Release-Tag: `grafana-config-vX.Y.Z`.
+`docker-compose.grafana.yml` startet `grafana-config` (Init-Container, kopiert Dashboards und Provisioning in Volumes) und danach Grafana. Update: Tag in der Compose-Datei anheben, `docker compose -f docker-compose.grafana.yml pull && docker compose -f docker-compose.grafana.yml up -d --force-recreate grafana-config grafana`. Release-Tag `grafana-config-vX.Y.Z` entsteht automatisch als Draft (`tag-release.yml`), danach auf GitHub veröffentlichen.
 
 ## Environment Variables
 

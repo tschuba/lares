@@ -21,6 +21,7 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - [ADR-014: NAS-zentrierte Service-Verteilung](#adr-014-nas-zentrierte-service-verteilung)
 - [ADR-018: Exakte Image-Versionierung und Release-gesteuertes Bridge-Build](#adr-018-exakte-image-versionierung-und-release-gesteuertes-bridge-build)
 - [ADR-019: Störungsüberwachung mit Pushover und Alerta-Posteingang](#adr-019-störungsüberwachung-mit-pushover-und-alerta-posteingang)
+- [ADR-021: Automatische SemVer-Releases mit release-please (Pilot grafana-config)](#adr-021-automatische-semver-releases-mit-release-please-pilot-grafana-config)
 
 ## ADR-001: Projektname "Lares"
 
@@ -197,7 +198,7 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 
 ## ADR-018: Exakte Image-Versionierung und Release-gesteuertes Bridge-Build
 
-- Status: Angenommen
+- Status: Angenommen (für `grafana-config` teilweise abgelöst durch ADR-021)
 - Kontext: Alle `docker-compose.yml`- und `docker-compose.pi.yml`-Einträge referenzierten bisher entweder floating Tags (`telegraf:latest`, `influxdb:2`, `eclipse-mosquitto:2.0`) oder gar kein explizites Tag (`= latest`). Das bedeutete: ein `docker compose pull` konnte jederzeit unabsichtlich eine neue, nicht getestete Image-Version einziehen. Custom Bridge-Images wurden nach jedem Push auf `main` neu gebaut und als `latest` in die Registry geschrieben; Compose referenzierte `latest` implizit, sodass ein `pull` auf dem NAS eine laufende Produktionsänderung war.
 - Entscheidung:
   - **Off-the-shelf Images** werden auf die zum Zeitpunkt der Pinning-Änderung aktuellen stabilen Tags festgeschrieben: `eclipse-mosquitto:2.0.22`, `telegraf:1.40.2`, `influxdb:2.9.1`, `tiagocoutinho/modbus-proxy-py:0.8.0`, `bachya/ecowitt2mqtt:2026.01.0`.
@@ -243,3 +244,30 @@ Dieses Dokument hält die zentralen Entscheidungen für Lares mit kurzer Begrün
 - Einschränkungen:
   - Jede Dashboard-Änderung braucht Build/Release; Alerting-Provisioning wirkt erst nach Grafana-Neustart.
   - Nicht gegen Coolify getestet (`service_completed_successfully`).
+
+## ADR-021: Automatische SemVer-Releases mit release-please (Pilot grafana-config)
+
+- Status: Angenommen (ändert ADR-018 teilweise)
+- Kontext: ADR-018 verzichtet auf Versions-Tooling; Versionen werden von Hand im Compose-File angehoben und das Release manuell angelegt. Das ist fehleranfällig und liefert keine SemVer-Logik.
+- Entscheidung:
+  - `grafana-config` wird als Pilot mit [release-please](https://github.com/googleapis/release-please) versioniert (Pfad `config/grafana`, Tag `grafana-config-vX.Y.Z`). Die übrigen Images bleiben bei ADR-018 (`tag-release.yml` legt Tag und Draft an).
+  - Conventional Commits sind Pflicht (lokaler `commit-msg`-Hook, Check `PR Title`, Squash-Merge): `fix` → Patch, `feat` → Minor, `!`/`BREAKING CHANGE` → Major.
+  - release-please hält einen Release-PR offen, der Changelog und den Pin in `docker-compose.grafana.yml` anhebt. Das Mergen veröffentlicht das Release; `build-bridges.yml` baut daraufhin das Image `X.Y.Z`.
+  - Der Release wird mit einem PAT (`RELEASE_TOKEN`) erstellt, weil Releases mit `GITHUB_TOKEN` keine Folge-Workflows auslösen.
+- Begründung: SemVer ergibt sich aus den Commits, Freigabe ist das Mergen des Release-PRs, Pin und Tag können nicht mehr auseinanderlaufen.
+- Einschränkungen:
+  - Ohne Conventional Commits entsteht kein Release.
+  - Pilot: Bei Erfolg die weiteren Images in `release-please-config.json` ergänzen und `tag-release.yml` ablösen.
+  - Der Startwert `release-as: 1.0.0` in `release-please-config.json` ist nach dem ersten Release zu entfernen.
+
+### Einrichtung `RELEASE_TOKEN` (ADR-021)
+
+1. GitHub → Profilbild → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+2. **Token name:** `lares-release-please`; **Expiration:** max. 1 Jahr (Ablaufdatum im Kalender notieren); **Resource owner:** `tschuba`.
+3. **Repository access:** *Only select repositories* → `tschuba/lares`.
+4. **Repository permissions:** `Contents: Read and write`, `Pull requests: Read and write`; `Metadata: Read-only` wird automatisch gesetzt. Alles andere bleibt auf *No access*.
+5. **Generate token** und den Wert sofort kopieren (wird nur einmal angezeigt).
+6. Im Repo **Settings** → **Secrets and variables** → **Actions** → **New repository secret**: Name `RELEASE_TOKEN`, Wert einfügen.
+7. Test: Workflow *Release Please* in der Actions-Ansicht prüfen; nach einem `feat:`/`fix:`-Merge auf `main` erscheint der Release-PR.
+
+Bei Ablauf oder Verdacht auf Kompromittierung: neues Token erzeugen und das Secret ersetzen. Ohne gültiges Token schlägt der Workflow fehl oder löst den Image-Build nicht aus.
