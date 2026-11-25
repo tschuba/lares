@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/tschuba/lares/compare/grafana-config-v1.0.1...grafana-config-v1.0.2) (2026-11-25)
+
+
+### Bug Fixes
+
+* **grafana-config:** log copy steps and fail fast on errors ([#43](https://github.com/tschuba/lares/issues/43)) ([bb9ec8c](https://github.com/tschuba/lares/commit/bb9ec8c5a617a3b60ec04d96a4c32e3543cb7d31))
+* **grafana-config:** reduce repeated Pushover notifications for known alerts ([#45](https://github.com/tschuba/lares/issues/45)) ([8340356](https://github.com/tschuba/lares/commit/83403566e63cae015946917c89836bba9d4b2ba2))
+
 ## [1.0.1](https://github.com/tschuba/lares/compare/grafana-config-v1.0.0...grafana-config-v1.0.1) (2026-11-16)
 
 
