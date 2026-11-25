@@ -7,8 +7,8 @@ policies:
     receiver: pushover
     group_by: [alertname]
     group_wait: 30s
-    group_interval: 5m
-    repeat_interval: 24h
+    group_interval: 30m
+    repeat_interval: 7d
     routes:
       - receiver: alerta
         object_matchers: []
@@ -16,16 +16,34 @@ policies:
         group_by: [alertname]
         group_wait: 10s
         repeat_interval: 24h
-      # BMS-Ausfall ist ein Dauerzustand, kein flüchtiges Ereignis -> Erinnerung nur 1x täglich statt alle 4 h.
-      - receiver: pushover-critical
+      # BMS-Ausfall ist ein Dauerzustand, kein flüchtiges Ereignis -> Erinnerung nur 1x täglich statt alle 4 h; Prio 1 (kein 60-s-Retry); Erinnerung nur alle 7 d (Alerta hält den Stand).
+      - receiver: pushover-high
         matchers:
           - instance = lares-sungrow-bms-comm
         group_by: [alertname]
         group_wait: 30s
-        repeat_interval: 24h
+        group_interval: 30m
+        repeat_interval: 7d
+      # Bekannte, aktuell nicht behebbare Dauerzustände: 1 Push (Prio 1, kein Retry), Erinnerung 1x pro Woche.
+      - receiver: pushover-high
+        object_matchers:
+          - [instance, "=", lares-heartbeat-ventilation]
+        group_by: [alertname]
+        group_wait: 30s
+        group_interval: 30m
+        repeat_interval: 7d
+      # DatasourceNoData erbt die Labels der Quellregel (u. a. severity=critical) -> eigene Route davor.
+      - receiver: pushover-high
+        object_matchers:
+          - [alertname, "=", DatasourceNoData]
+        group_by: [alertname]
+        group_wait: 30s
+        group_interval: 30m
+        repeat_interval: 7d
       - receiver: pushover-critical
         matchers:
           - severity = critical
         group_by: [alertname]
         group_wait: 30s
-        repeat_interval: 4h
+        group_interval: 30m
+        repeat_interval: 24h
